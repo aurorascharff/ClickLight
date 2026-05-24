@@ -4,10 +4,11 @@ import AppKit
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private let settingsStore = SettingsStore()
     private lazy var overlayCoordinator = OverlayCoordinator(settingsStore: settingsStore)
+    private lazy var captureController = ClickCaptureController(settingsStore: settingsStore, eventTap: eventTap)
     private lazy var statusController = StatusController(
         settingsStore: settingsStore,
         permissions: permissions,
-        captureStatus: { [weak self] in self?.eventTap.statusLabel ?? "Not Started" },
+        captureStatus: { [weak self] in self?.captureController.statusLabel ?? "Not Started" },
         onTestPulse: { [weak self] in self?.showTestPulse() },
         onQuit: { NSApplication.shared.terminate(nil) }
     )
@@ -17,7 +18,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         overlayCoordinator.start()
         permissions.requestAccessibilityIfNeeded()
-        eventTap.start()
+        captureController.startIfEnabled()
         statusController.start()
 
         NotificationCenter.default.addObserver(
@@ -35,16 +36,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
-        eventTap.stop()
+        captureController.stop()
     }
 
     @objc private func settingsDidChange() {
         overlayCoordinator.refreshSettings()
-        if settingsStore.settings.isEnabled {
-            eventTap.start()
-        } else {
-            eventTap.stop()
-        }
+        captureController.refreshEnabledState()
     }
 
     @objc private func clickEventDidArrive(_ notification: Notification) {

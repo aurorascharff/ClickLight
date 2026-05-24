@@ -1,6 +1,6 @@
 import AppKit
 
-final class ClickEventTap {
+final class ClickEventTap: ClickEventCapturing {
     static let didReceiveClickEvent = Notification.Name("ClickLightDidReceiveClickEvent")
 
     private var eventTap: CFMachPort?
