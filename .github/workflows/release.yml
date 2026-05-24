@@ -13,7 +13,9 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
 
       - name: Get version
         id: version
@@ -68,17 +70,20 @@ jobs:
           rm /tmp/sparkle_key
 
       - name: Update Homebrew cask
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
         run: |
           SHA=$(shasum -a 256 ClickLight.zip | awk '{print $1}')
-          sed -i '' "s/version \".*\"/version \"${{ steps.version.outputs.version }}\"/" Casks/clicklight.rb
+          sed -i '' "s/version \".*\"/version \"$VERSION\"/" Casks/clicklight.rb
           sed -i '' "s/sha256 \".*\"/sha256 \"$SHA\"/" Casks/clicklight.rb
 
       - name: Update appcast
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          SIGNATURE: ${{ steps.sparkle.outputs.signature }}
+          LENGTH: ${{ steps.sparkle.outputs.length }}
         run: |
-          VERSION="${{ steps.version.outputs.version }}"
           DATE=$(date -u +"%a, %d %b %Y %H:%M:%S +0000")
-          SIGNATURE="${{ steps.sparkle.outputs.signature }}"
-          LENGTH="${{ steps.sparkle.outputs.length }}"
           cat > appcast.xml << EOF
           <?xml version="1.0" encoding="utf-8"?>
           <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
@@ -99,18 +104,20 @@ jobs:
           EOF
 
       - name: Commit release metadata
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git fetch origin main
+          git -c http.extraheader="AUTHORIZATION: bearer ${GITHUB_TOKEN}" fetch origin main:main
           git checkout main
-          git pull origin main
           git add Casks/clicklight.rb appcast.xml
-          git commit -m "Update release metadata for v${{ steps.version.outputs.version }}"
-          git push origin main
+          git commit -m "Update release metadata for v${VERSION}"
+          git -c http.extraheader="AUTHORIZATION: bearer ${GITHUB_TOKEN}" push origin main
 
       - name: Create release
-        uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844
-        with:
-          files: ClickLight.zip
-          generate_release_notes: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: gh release create "v${VERSION}" ClickLight.zip --generate-notes
