@@ -7,7 +7,7 @@
     <key>CFBundleExecutable</key>
     <string>ClickLight</string>
     <key>CFBundleIdentifier</key>
-    <string>dev.codex.ClickLight</string>
+    <string>com.aurorascharff.ClickLight</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleName</key>
@@ -25,8 +25,18 @@
     <key>NSAppleEventsUsageDescription</key>
     <string>ClickLight uses system event access to show click highlights during live demos.</string>
     <key>NSHumanReadableCopyright</key>
-    <string>Created with Codex.</string>
+    <string>Copyright (c) 2026 Aurora Scharff.</string>
     <key>NSPrincipalClass</key>
     <string>NSApplication</string>
+    <key>SUAutomaticallyUpdate</key>
+    <true/>
+    <key>SUEnableAutomaticChecks</key>
+    <true/>
+    <key>SUEnableInstallerLauncherService</key>
+    <true/>
+    <key>SUFeedURL</key>
+    <string>https://raw.githubusercontent.com/aurorascharff/ClickLight/main/appcast.xml</string>
+    <key>SUPublicEDKey</key>
+    <string>REPLACE_WITH_SPARKLE_PUBLIC_ED_KEY</string>
 </dict>
 </plist>

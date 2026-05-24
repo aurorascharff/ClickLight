@@ -9,6 +9,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         settingsStore: settingsStore,
         permissions: permissions,
         captureStatus: { [weak self] in self?.captureController.statusLabel ?? "Not Started" },
+        onCheckForUpdates: { UpdateChecker.shared.checkForUpdates() },
+        updatesAreConfigured: { UpdateChecker.shared.isConfigured },
         onTestPulse: { [weak self] in self?.showTestPulse() },
         onQuit: { NSApplication.shared.terminate(nil) }
     )

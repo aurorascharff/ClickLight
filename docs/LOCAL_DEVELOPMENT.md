@@ -52,10 +52,12 @@ ClickLight.app
     ├── Info.plist
     ├── MacOS
     │   └── ClickLight
+    ├── Frameworks
+    │   └── Sparkle.framework
     └── Resources
 ```
 
-and copies the compiled binary and `Info.plist` into that bundle. That is enough for Finder and `open` to treat it like a normal local macOS app.
+and signs the app bundle. Local builds use ad-hoc signing by default. Release builds can use Developer ID signing and notarization when the required Apple credentials are configured.
 
 This works without Xcode because Xcode is not the compiler. The app uses AppKit and CoreGraphics APIs directly from Swift, and Swift Package Manager can build it from the command line.
 
@@ -66,6 +68,7 @@ This works without Xcode because Xcode is not the compiler. The app uses AppKit 
 - `Sources/ClickLight/ClickOverlayView.swift`: pulse drawing and animation
 - `Sources/ClickLight/StatusController.swift`: menu-bar UI
 - `Sources/ClickLight/SettingsStore.swift`: saved preferences
+- `Sources/ClickLight/UpdateChecker.swift`: Sparkle update checks
 - `Info.plist`: app bundle metadata
 - `build-app.sh`: command-line app bundle builder
 
@@ -81,7 +84,7 @@ Other useful checks:
 
 ```bash
 pgrep -fl ClickLight
-defaults read dev.codex.ClickLight
+defaults read com.aurorascharff.ClickLight
 ```
 
 To remove a manually installed app and reset preferences, see [Manual Install](MANUAL_INSTALL.md#remove-manual-install).

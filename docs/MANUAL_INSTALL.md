@@ -1,6 +1,6 @@
 # Manual Install
 
-Use this if you want to build ClickLight from source and install the app yourself.
+Use this if you want to build ClickLight from source and install the app yourself instead of using Homebrew.
 
 ## Build And Copy
 
@@ -53,5 +53,5 @@ open "$HOME/Applications/ClickLight.app"
 
 ```bash
 rm -rf "$HOME/Applications/ClickLight.app"
-defaults delete dev.codex.ClickLight
+defaults delete com.aurorascharff.ClickLight
 ```

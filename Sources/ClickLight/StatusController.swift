@@ -6,6 +6,8 @@ final class StatusController {
     private let settingsStore: SettingsStore
     private let permissions: PermissionController
     private let captureStatus: () -> String
+    private let onCheckForUpdates: () -> Void
+    private let updatesAreConfigured: () -> Bool
     private let onTestPulse: () -> Void
     private let onQuit: () -> Void
 
@@ -13,12 +15,16 @@ final class StatusController {
         settingsStore: SettingsStore,
         permissions: PermissionController,
         captureStatus: @escaping () -> String,
+        onCheckForUpdates: @escaping () -> Void,
+        updatesAreConfigured: @escaping () -> Bool,
         onTestPulse: @escaping () -> Void,
         onQuit: @escaping () -> Void
     ) {
         self.settingsStore = settingsStore
         self.permissions = permissions
         self.captureStatus = captureStatus
+        self.onCheckForUpdates = onCheckForUpdates
+        self.updatesAreConfigured = updatesAreConfigured
         self.onTestPulse = onTestPulse
         self.onQuit = onQuit
     }
@@ -125,6 +131,16 @@ final class StatusController {
         menu.addItem(permissionItem)
 
         menu.addItem(NSMenuItem.separator())
+        let updatesConfigured = updatesAreConfigured()
+        let updateItem = NSMenuItem(
+            title: updatesConfigured ? "Check for Updates..." : "Updates: Not Configured",
+            action: updatesConfigured ? #selector(checkForUpdates) : nil,
+            keyEquivalent: ""
+        )
+        updateItem.target = self
+        updateItem.isEnabled = updatesConfigured
+        menu.addItem(updateItem)
+
         let quitItem = NSMenuItem(title: "Quit ClickLight", action: #selector(quit), keyEquivalent: "q")
         quitItem.target = self
         menu.addItem(quitItem)
@@ -200,6 +216,10 @@ final class StatusController {
 
     @objc private func testPulse() {
         onTestPulse()
+    }
+
+    @objc private func checkForUpdates() {
+        onCheckForUpdates()
     }
 
     @objc private func quit() {
