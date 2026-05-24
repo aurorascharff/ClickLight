@@ -58,7 +58,7 @@ Start with [Local Development](docs/LOCAL_DEVELOPMENT.md).
 
 Release scaffolding is included for Developer ID signing, notarization, Sparkle auto-updates, GitHub Releases, and a Homebrew cask.
 
-See [Releasing](docs/RELEASING.md).
+See [Releasing](docs/RELEASING.md). Until the first release is published, recent changes are tracked in the [Changelog](CHANGELOG.md).
 
 ## Uninstall
 
