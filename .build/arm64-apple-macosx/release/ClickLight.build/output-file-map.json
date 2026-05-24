@@ -1,0 +1,73 @@
+{
+  "": {
+    "dependencies": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/ClickLight.d",
+    "object": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/ClickLight.o",
+    "swift-dependencies": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/primary.swiftdeps"
+  },
+  "/Users/aurorascharff/Documents/Development/ClickLight/Sources/ClickLight/AppDelegate.swift": {
+    "object": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/AppDelegate.swift.o",
+    "swiftmodule": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/AppDelegate~partial.swiftmodule",
+    "swift-dependencies": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/AppDelegate.swiftdeps",
+    "diagnostics": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/AppDelegate.dia"
+  },
+  "/Users/aurorascharff/Documents/Development/ClickLight/Sources/ClickLight/ClickEvent.swift": {
+    "object": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/ClickEvent.swift.o",
+    "swiftmodule": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/ClickEvent~partial.swiftmodule",
+    "swift-dependencies": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/ClickEvent.swiftdeps",
+    "diagnostics": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/ClickEvent.dia"
+  },
+  "/Users/aurorascharff/Documents/Development/ClickLight/Sources/ClickLight/ClickEventTap.swift": {
+    "object": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/ClickEventTap.swift.o",
+    "swiftmodule": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/ClickEventTap~partial.swiftmodule",
+    "swift-dependencies": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/ClickEventTap.swiftdeps",
+    "diagnostics": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/ClickEventTap.dia"
+  },
+  "/Users/aurorascharff/Documents/Development/ClickLight/Sources/ClickLight/ClickOverlayView.swift": {
+    "object": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/ClickOverlayView.swift.o",
+    "swiftmodule": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/ClickOverlayView~partial.swiftmodule",
+    "swift-dependencies": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/ClickOverlayView.swiftdeps",
+    "diagnostics": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/ClickOverlayView.dia"
+  },
+  "/Users/aurorascharff/Documents/Development/ClickLight/Sources/ClickLight/ClickOverlayWindow.swift": {
+    "object": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/ClickOverlayWindow.swift.o",
+    "swiftmodule": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/ClickOverlayWindow~partial.swiftmodule",
+    "swift-dependencies": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/ClickOverlayWindow.swiftdeps",
+    "diagnostics": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/ClickOverlayWindow.dia"
+  },
+  "/Users/aurorascharff/Documents/Development/ClickLight/Sources/ClickLight/CoordinateMapper.swift": {
+    "object": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/CoordinateMapper.swift.o",
+    "swiftmodule": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/CoordinateMapper~partial.swiftmodule",
+    "swift-dependencies": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/CoordinateMapper.swiftdeps",
+    "diagnostics": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/CoordinateMapper.dia"
+  },
+  "/Users/aurorascharff/Documents/Development/ClickLight/Sources/ClickLight/OverlayCoordinator.swift": {
+    "object": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/OverlayCoordinator.swift.o",
+    "swiftmodule": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/OverlayCoordinator~partial.swiftmodule",
+    "swift-dependencies": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/OverlayCoordinator.swiftdeps",
+    "diagnostics": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/OverlayCoordinator.dia"
+  },
+  "/Users/aurorascharff/Documents/Development/ClickLight/Sources/ClickLight/PermissionController.swift": {
+    "object": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/PermissionController.swift.o",
+    "swiftmodule": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/PermissionController~partial.swiftmodule",
+    "swift-dependencies": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/PermissionController.swiftdeps",
+    "diagnostics": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/PermissionController.dia"
+  },
+  "/Users/aurorascharff/Documents/Development/ClickLight/Sources/ClickLight/SettingsStore.swift": {
+    "object": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/SettingsStore.swift.o",
+    "swiftmodule": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/SettingsStore~partial.swiftmodule",
+    "swift-dependencies": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/SettingsStore.swiftdeps",
+    "diagnostics": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/SettingsStore.dia"
+  },
+  "/Users/aurorascharff/Documents/Development/ClickLight/Sources/ClickLight/StatusController.swift": {
+    "object": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/StatusController.swift.o",
+    "swiftmodule": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/StatusController~partial.swiftmodule",
+    "swift-dependencies": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/StatusController.swiftdeps",
+    "diagnostics": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/StatusController.dia"
+  },
+  "/Users/aurorascharff/Documents/Development/ClickLight/Sources/ClickLight/main.swift": {
+    "object": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/main.swift.o",
+    "swiftmodule": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/main~partial.swiftmodule",
+    "swift-dependencies": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/main.swiftdeps",
+    "diagnostics": "/Users/aurorascharff/Documents/Development/ClickLight/.build/arm64-apple-macosx/release/ClickLight.build/main.dia"
+  }
+}
