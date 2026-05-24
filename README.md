@@ -11,7 +11,7 @@ A macOS menu bar app that highlights your clicks during live demos, so viewers c
 > **Release status**
 > Homebrew installation is the intended install path, but the first signed release is pending Apple Developer enrollment. Until the first release is published, use [Manual Install](docs/MANUAL_INSTALL.md).
 
-Install with Homebrew:
+After the first signed release is published, install with Homebrew:
 
 ```bash
 brew tap aurorascharff/clicklight https://github.com/aurorascharff/ClickLight
