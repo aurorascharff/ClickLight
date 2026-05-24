@@ -15,10 +15,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     )
     private let eventTap = ClickEventTap()
     private let permissions = PermissionController()
-    private let updateChecker = UpdateChecker.shared
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        _ = updateChecker
         overlayCoordinator.start()
         permissions.requestAccessibilityIfNeeded()
         eventTap.start()

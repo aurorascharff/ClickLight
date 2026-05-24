@@ -51,7 +51,7 @@ jobs:
 
       - name: Download Sparkle tools
         run: |
-          curl -L -o /tmp/sparkle.tar.xz "https://github.com/sparkle-project/Sparkle/releases/download/2.8.1/Sparkle-2.8.1.tar.xz"
+          curl -L -o /tmp/sparkle.tar.xz "https://github.com/sparkle-project/Sparkle/releases/download/2.9.2/Sparkle-2.9.2.tar.xz"
           cd /tmp && tar xf sparkle.tar.xz
 
       - name: Sign Sparkle update

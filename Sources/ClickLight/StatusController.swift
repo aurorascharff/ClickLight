@@ -131,13 +131,14 @@ final class StatusController {
         menu.addItem(permissionItem)
 
         menu.addItem(NSMenuItem.separator())
+        let updatesConfigured = updatesAreConfigured()
         let updateItem = NSMenuItem(
-            title: updatesAreConfigured() ? "Check for Updates..." : "Updates: Not Configured",
-            action: updatesAreConfigured() ? #selector(checkForUpdates) : nil,
+            title: updatesConfigured ? "Check for Updates..." : "Updates: Not Configured",
+            action: updatesConfigured ? #selector(checkForUpdates) : nil,
             keyEquivalent: ""
         )
         updateItem.target = self
-        updateItem.isEnabled = updatesAreConfigured()
+        updateItem.isEnabled = updatesConfigured
         menu.addItem(updateItem)
 
         let quitItem = NSMenuItem(title: "Quit ClickLight", action: #selector(quit), keyEquivalent: "q")

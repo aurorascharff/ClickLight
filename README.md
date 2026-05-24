@@ -49,7 +49,7 @@ Release scaffolding is included for Developer ID signing, notarization, Sparkle 
 ## Uninstall
 
 ```bash
-brew uninstall clicklight
+brew uninstall --cask clicklight
 ```
 
 ## License

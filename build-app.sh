@@ -4,13 +4,12 @@ set -euo pipefail
 APP_NAME="ClickLight"
 BUNDLE_IDENTIFIER="dev.codex.ClickLight"
 CONFIGURATION="${CONFIGURATION:-release}"
-RELEASE_BUILD=false
 NOTARIZE=false
 
 for arg in "$@"; do
     case "$arg" in
         --release)
-            RELEASE_BUILD=true
+            CONFIGURATION="release"
             ;;
         --notarize)
             NOTARIZE=true
