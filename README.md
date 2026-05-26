@@ -1,8 +1,8 @@
 # ClickLight
 
-A small macOS menu bar app that highlights your clicks, for things like live demos or when you want more visibility into what you are clicking.
+A small macOS menu bar app that highlights your clicks during live demos, screen sharing, UX reviews, and other moments where people need to follow what you are doing.
 
-Screen recorders like Screen Studio and CleanShot can add click effects to recordings. ClickLight is for the moments happening live, before there is a recording to polish.
+Screen recorders like Screen Studio and CleanShot can add click effects after the fact. ClickLight is for the live moment itself, when you need the audience to see exactly when you clicked without interrupting your flow.
 
 ## Demo
 
@@ -14,7 +14,7 @@ Screen recorders like Screen Studio and CleanShot can add click effects to recor
 - UX reviews where the delay between click and response matters (the original motivation for ClickLight)
 - Bug reports where a recording should show both the action and the app behavior
 - Tutorials, workshops, and conference talks where pointer movement alone is easy to miss
-- Pairing with a larger macOS pointer so clicks stay visible in screen recordings
+- Pairing with a larger macOS pointer so clicks stay visible in live demos and recordings
 
 ## Install
 
