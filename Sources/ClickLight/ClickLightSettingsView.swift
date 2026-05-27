@@ -59,6 +59,7 @@ struct ClickLightSettingsView: View {
         VStack(alignment: .leading, spacing: 4) {
             Text(selectedPane.title)
                 .font(.system(size: 22, weight: .semibold))
+                .accessibilityAddTraits(.isHeader)
             Text(selectedPane.subtitle)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
@@ -100,6 +101,7 @@ struct ClickLightSettingsView: View {
                     } icon: {
                         Image(systemName: "sparkles")
                             .foregroundStyle(.tint)
+                            .accessibilityHidden(true)
                     }
                     Text("Adjust visuals in **Visual Style**. Quick presets stay synced with the menu bar — slider tweaks show as **Custom**.")
                         .font(.callout)
@@ -127,6 +129,7 @@ struct ClickLightSettingsView: View {
             SettingsCard(title: "Size", subtitle: "How large the click pulse appears.") {
                 VStack(alignment: .leading, spacing: 16) {
                     presetSegmented(
+                        label: "Size Preset",
                         selection: Binding(
                             get: { viewModel.sizePresetSelection },
                             set: { viewModel.applySizePresetSelection($0) }
@@ -135,6 +138,7 @@ struct ClickLightSettingsView: View {
                     )
 
                     modernSlider(
+                        label: "Size",
                         value: Binding(
                             get: { Double(viewModel.settings.size) },
                             set: { newValue in
@@ -152,6 +156,7 @@ struct ClickLightSettingsView: View {
             SettingsCard(title: "Intensity", subtitle: "How bright the click pulse glows.") {
                 VStack(alignment: .leading, spacing: 16) {
                     presetSegmented(
+                        label: "Intensity Preset",
                         selection: Binding(
                             get: { viewModel.intensityPresetSelection },
                             set: { viewModel.applyIntensityPresetSelection($0) }
@@ -160,6 +165,7 @@ struct ClickLightSettingsView: View {
                     )
 
                     modernSlider(
+                        label: "Intensity",
                         value: Binding(
                             get: { Double(viewModel.settings.intensity) },
                             set: { newValue in
@@ -177,6 +183,7 @@ struct ClickLightSettingsView: View {
             SettingsCard(title: "Duration", subtitle: "How long each pulse stays visible.") {
                 VStack(alignment: .leading, spacing: 16) {
                     presetSegmented(
+                        label: "Duration Preset",
                         selection: Binding(
                             get: { viewModel.durationPresetSelection },
                             set: { viewModel.applyDurationPresetSelection($0) }
@@ -185,6 +192,7 @@ struct ClickLightSettingsView: View {
                     )
 
                     modernSlider(
+                        label: "Duration",
                         value: Binding(
                             get: { viewModel.settings.duration },
                             set: { newValue in
@@ -203,6 +211,7 @@ struct ClickLightSettingsView: View {
                 VStack(alignment: .leading, spacing: 14) {
                     HStack(spacing: 10) {
                         ColorSwatch(color: resolvedColor)
+                            .accessibilityHidden(true)
                         Picker("Color", selection: binding(\.colorPreset)) {
                             ForEach(ClickColorPreset.allCases, id: \.rawValue) { preset in
                                 Text(preset.title).tag(preset)
@@ -310,6 +319,7 @@ struct ClickLightSettingsView: View {
                         Image(systemName: viewModel.accessibilityTrusted ? "checkmark.seal.fill" : "exclamationmark.triangle.fill")
                             .font(.title3)
                             .foregroundStyle(viewModel.accessibilityTrusted ? .green : .orange)
+                            .accessibilityHidden(true)
                         VStack(alignment: .leading, spacing: 2) {
                             Text(viewModel.accessibilityTrusted ? "Accessibility Granted" : "Accessibility Required")
                                 .font(.callout.weight(.medium))
@@ -321,6 +331,7 @@ struct ClickLightSettingsView: View {
                         }
                         Spacer()
                     }
+                    .accessibilityElement(children: .combine)
                     HStack {
                         Spacer()
                         Button {
@@ -359,21 +370,23 @@ struct ClickLightSettingsView: View {
 
     @ViewBuilder
     private func presetSegmented(
+        label: String,
         selection: Binding<String>,
         options: [ClickNumericPreset]
     ) -> some View {
-        Picker("Preset", selection: selection) {
+        Picker(label, selection: selection) {
             ForEach(options, id: \.value) { preset in
                 Text(preset.title).tag(String(preset.value))
             }
         }
         .labelsHidden()
         .pickerStyle(.segmented)
-        .accessibilityLabel("Preset")
+        .accessibilityLabel(label)
     }
 
     @ViewBuilder
     private func modernSlider(
+        label: String,
         value: Binding<Double>,
         range: ClosedRange<Double>,
         lower: String,
@@ -385,10 +398,14 @@ struct ClickLightSettingsView: View {
                 Text(lower)
                     .font(.caption2)
                     .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
                 Slider(value: value, in: range)
+                    .accessibilityLabel(label)
+                    .accessibilityValue(readout)
                 Text(upper)
                     .font(.caption2)
                     .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
             }
             HStack {
                 Spacer()
@@ -400,6 +417,7 @@ struct ClickLightSettingsView: View {
                     .background(
                         Capsule().fill(Color.secondary.opacity(0.12))
                     )
+                    .accessibilityHidden(true)
             }
         }
     }
