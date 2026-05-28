@@ -9,7 +9,7 @@ macOS menu-bar app that highlights mouse clicks for live demos and screen sharin
 ./build-app.sh
 
 # Iterate quickly after source changes
-./build-app.sh && pkill -x ClickLight; open ClickLight.app
+./build-app.sh && { pkill -x ClickLight || true; open ClickLight.app; }
 
 # Inspect UserDefaults during development
 defaults read com.aurorascharff.ClickLight
@@ -40,7 +40,7 @@ ClickEventTap (CGEventTap + NSEvent fallback)
 
 ## Key Conventions
 
-- **No async/await** — `@MainActor` throughout; use `DispatchQueue.main` if needed.
+- **UI mutations on the main actor** — keep AppKit and settings mutations on the main actor; event capture forwards UI work onto the main queue.
 - **Notifications for cross-component events** — settings changes and click events use `NotificationCenter`.
 - **Value types for data, classes for controllers** — `ClickEvent`, `ClickSettings`, `ClickKind` are structs/enums; controllers are classes.
 - **Settings access** — read via `settingsStore.settings.<property>`; write by replacing the whole struct: `settingsStore.settings = newSettings`.
