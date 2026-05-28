@@ -156,6 +156,25 @@ enum ClickShortcutAction: String, CaseIterable, Identifiable {
         }
     }
 
+    var hotKeyEventID: UInt32 {
+        switch self {
+        case .toggleEnabled:
+            return 1
+        case .toggleLaserPointer:
+            return 2
+        case .toggleShowPress:
+            return 3
+        case .toggleShowRelease:
+            return 4
+        case .toggleShowRightClick:
+            return 5
+        case .toggleShowMiddleClick:
+            return 6
+        case .toggleShowDrag:
+            return 7
+        }
+    }
+
     var defaultBinding: HotKeyBinding {
         switch self {
         case .toggleEnabled:

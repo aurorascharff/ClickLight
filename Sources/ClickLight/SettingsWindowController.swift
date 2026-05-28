@@ -9,12 +9,14 @@ final class SettingsWindowController: NSWindowController {
         settingsStore: SettingsStore,
         launchAtLogin: LaunchAtLoginManaging,
         permissions: PermissionController,
+        hotKeyRegistrationIssuesProvider: @escaping () -> [ClickShortcutAction: String],
         onTestPulse: @escaping () -> Void
     ) {
         let viewModel = ClickLightSettingsViewModel(
             settingsStore: settingsStore,
             launchAtLogin: launchAtLogin,
             permissions: permissions,
+            hotKeyRegistrationIssuesProvider: hotKeyRegistrationIssuesProvider,
             onTestPulse: onTestPulse
         )
         self.viewModel = viewModel
@@ -55,6 +57,7 @@ final class ClickLightSettingsViewModel: NSObject, ObservableObject {
     private let settingsStore: SettingsStore
     private let launchAtLogin: LaunchAtLoginManaging
     private let permissions: PermissionController
+    private let hotKeyRegistrationIssuesProvider: () -> [ClickShortcutAction: String]
     private let onTestPulse: () -> Void
 
     @Published private(set) var settings: ClickSettings
@@ -62,26 +65,36 @@ final class ClickLightSettingsViewModel: NSObject, ObservableObject {
     @Published private(set) var accessibilityTrusted: Bool = false
     @Published var launchAtLoginErrorMessage: String?
     @Published private(set) var shortcutErrors: [ClickShortcutAction: String] = [:]
+    @Published private(set) var hotKeyRegistrationIssues: [ClickShortcutAction: String] = [:]
 
     init(
         settingsStore: SettingsStore,
         launchAtLogin: LaunchAtLoginManaging,
         permissions: PermissionController,
+        hotKeyRegistrationIssuesProvider: @escaping () -> [ClickShortcutAction: String],
         onTestPulse: @escaping () -> Void
     ) {
         self.settingsStore = settingsStore
         self.launchAtLogin = launchAtLogin
         self.permissions = permissions
+        self.hotKeyRegistrationIssuesProvider = hotKeyRegistrationIssuesProvider
         self.onTestPulse = onTestPulse
         self.settings = settingsStore.settings
         super.init()
         self.launchAtLoginEnabled = launchAtLogin.isEnabled
         self.accessibilityTrusted = permissions.isAccessibilityTrusted
         self.shortcutErrors = Self.findShortcutConflicts(in: settings)
+        self.hotKeyRegistrationIssues = hotKeyRegistrationIssuesProvider()
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(settingsDidChange),
             name: SettingsStore.didChangeNotification,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(hotKeyRegistrationIssuesDidChange(_:)),
+            name: AppDelegate.hotKeyRegistrationIssuesDidChangeNotification,
             object: nil
         )
         NotificationCenter.default.addObserver(
@@ -106,6 +119,20 @@ final class ClickLightSettingsViewModel: NSObject, ObservableObject {
 
     @objc private func appBecameActive() {
         refreshSystemState()
+    }
+
+    @objc private func hotKeyRegistrationIssuesDidChange(_ notification: Notification) {
+        guard let serializedIssues = notification.userInfo?["issues"] as? [String: String] else {
+            hotKeyRegistrationIssues = [:]
+            return
+        }
+
+        var parsedIssues: [ClickShortcutAction: String] = [:]
+        for (rawAction, message) in serializedIssues {
+            guard let action = ClickShortcutAction(rawValue: rawAction) else { continue }
+            parsedIssues[action] = message
+        }
+        hotKeyRegistrationIssues = parsedIssues
     }
 
     func refreshSystemState() {
@@ -193,7 +220,18 @@ final class ClickLightSettingsViewModel: NSObject, ObservableObject {
     }
 
     func shortcutError(for action: ClickShortcutAction) -> String? {
-        shortcutErrors[action]
+        shortcutErrors[action] ?? hotKeyRegistrationIssues[action]
+    }
+
+    var hasHotKeyRegistrationIssues: Bool {
+        !hotKeyRegistrationIssues.isEmpty
+    }
+
+    var hotKeyRegistrationIssueSummary: [String] {
+        ClickShortcutAction.allCases.compactMap { action in
+            guard let issue = hotKeyRegistrationIssues[action] else { return nil }
+            return "\(action.title): \(issue)"
+        }
     }
 
     @discardableResult

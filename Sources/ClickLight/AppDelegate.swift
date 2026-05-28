@@ -2,6 +2,8 @@ import AppKit
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    static let hotKeyRegistrationIssuesDidChangeNotification = Notification.Name("ClickLightHotKeyRegistrationIssuesDidChange")
+
     private let settingsStore = SettingsStore()
     private var settingsWindowController: SettingsWindowController?
     private let hotKeyManager = HotKeyManager()
@@ -24,6 +26,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var captureEnabledState: Bool?
     private var laserPointerEnabledState: Bool?
     private var hotKeyBindingsState: [ClickShortcutAction: HotKeyBinding] = [:]
+    private var hotKeyRegistrationIssuesState: [ClickShortcutAction: String] = [:]
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         configureMainMenu()
@@ -71,9 +74,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard force || bindings != hotKeyBindingsState else { return }
 
         hotKeyBindingsState = bindings
-        hotKeyManager.registerShortcuts(bindings) { [weak self] action in
+        let issues = hotKeyManager.registerShortcuts(bindings) { [weak self] action in
             self?.handleHotKeyAction(action)
         }
+        publishHotKeyRegistrationIssuesIfNeeded(issues)
+    }
+
+    private func publishHotKeyRegistrationIssuesIfNeeded(_ issues: [ClickShortcutAction: String]) {
+        guard issues != hotKeyRegistrationIssuesState else { return }
+
+        hotKeyRegistrationIssuesState = issues
+        let serializedIssues = Dictionary(uniqueKeysWithValues: issues.map { ($0.key.rawValue, $0.value) })
+        NotificationCenter.default.post(
+            name: Self.hotKeyRegistrationIssuesDidChangeNotification,
+            object: self,
+            userInfo: ["issues": serializedIssues]
+        )
     }
 
     private func handleHotKeyAction(_ action: ClickShortcutAction) {
@@ -136,6 +152,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             settingsStore: settingsStore,
             launchAtLogin: launchAtLogin,
             permissions: permissions,
+            hotKeyRegistrationIssuesProvider: { [weak self] in
+                self?.hotKeyRegistrationIssuesState ?? [:]
+            },
             onTestPulse: { [weak self] in self?.showTestPulse() }
         )
         settingsWindowController = controller

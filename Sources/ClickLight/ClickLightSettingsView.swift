@@ -314,6 +314,23 @@ struct ClickLightSettingsView: View {
 
     private var shortcutsPane: some View {
         VStack(spacing: 16) {
+            if viewModel.hasHotKeyRegistrationIssues {
+                SettingsCard {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Label("Some shortcuts could not be registered globally.", systemImage: "exclamationmark.triangle.fill")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.orange)
+
+                        ForEach(viewModel.hotKeyRegistrationIssueSummary, id: \.self) { line in
+                            Text(line)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                }
+            }
+
             SettingsCard(title: "Global Shortcuts", subtitle: "These shortcuts work system-wide. At least one modifier key is required.") {
                 VStack(spacing: 0) {
                     ForEach(Array(ClickShortcutAction.allCases.enumerated()), id: \.element) { index, action in

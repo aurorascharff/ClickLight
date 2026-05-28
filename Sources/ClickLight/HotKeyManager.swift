@@ -24,26 +24,34 @@ final class HotKeyManager {
         }
     }
 
+    @discardableResult
     func registerShortcuts(
         _ shortcuts: [ClickShortcutAction: HotKeyBinding],
         onTrigger: @escaping (ClickShortcutAction) -> Void
-    ) {
+    ) -> [ClickShortcutAction: String] {
         self.onTrigger = onTrigger
         unregisterAll()
 
-        var seenBindings = Set<HotKeyBinding>()
+        var seenBindings: [HotKeyBinding: ClickShortcutAction] = [:]
+        var issues: [ClickShortcutAction: String] = [:]
 
         for action in ClickShortcutAction.allCases {
             guard let binding = shortcuts[action] else { continue }
 
-            if seenBindings.contains(binding) {
+            if let existingAction = seenBindings[binding] {
+                let message = "Matches \(existingAction.title). Choose a unique shortcut."
+                issues[action] = message
                 NSLog("ClickLight: Duplicate shortcut for \(action.rawValue) was ignored.")
                 continue
             }
 
-            seenBindings.insert(binding)
-            register(action: action, binding: binding)
+            seenBindings[binding] = action
+            if let status = register(action: action, binding: binding) {
+                issues[action] = "Could not register globally (status \(status))."
+            }
         }
+
+        return issues
     }
 
     func unregisterAll() {
@@ -55,8 +63,8 @@ final class HotKeyManager {
         }
     }
 
-    private func register(action: ClickShortcutAction, binding: HotKeyBinding) {
-        guard let eventID = hotKeyEventID(for: action) else { return }
+    private func register(action: ClickShortcutAction, binding: HotKeyBinding) -> OSStatus? {
+        let eventID = action.hotKeyEventID
 
         var hotKeyRef: EventHotKeyRef?
         let hotKeyID = EventHotKeyID(signature: Self.hotKeySignature, id: eventID)
@@ -72,10 +80,11 @@ final class HotKeyManager {
 
         guard status == noErr, let hotKeyRef else {
             NSLog("ClickLight: Failed to register shortcut for \(action.rawValue) with status \(status).")
-            return
+            return status
         }
 
         registeredHotKeys[eventID] = RegisteredHotKey(reference: hotKeyRef, action: action)
+        return nil
     }
 
     private func installEventHandlerIfNeeded() {
@@ -103,11 +112,6 @@ final class HotKeyManager {
         DispatchQueue.main.async { [weak self] in
             self?.onTrigger?(action)
         }
-    }
-
-    private func hotKeyEventID(for action: ClickShortcutAction) -> UInt32? {
-        guard let index = ClickShortcutAction.allCases.firstIndex(of: action) else { return nil }
-        return UInt32(index + 1)
     }
 
     private static let handleHotKeyEvent: EventHandlerUPP = { _, eventRef, userData in
