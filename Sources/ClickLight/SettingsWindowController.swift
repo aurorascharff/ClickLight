@@ -1,6 +1,15 @@
 import AppKit
 import SwiftUI
 
+struct RandomizeLock: Equatable {
+    var size = false
+    var intensity = false
+    var duration = false
+    var color = false
+
+    var isAnyLocked: Bool { size || intensity || duration || color }
+}
+
 @MainActor
 final class SettingsWindowController: NSWindowController {
     private let viewModel: ClickLightSettingsViewModel
@@ -23,8 +32,8 @@ final class SettingsWindowController: NSWindowController {
         let window = NSWindow(contentViewController: hosting)
         window.title = "ClickLight Settings"
         window.styleMask = [.titled, .closable, .miniaturizable, .resizable]
-        window.setContentSize(NSSize(width: 900, height: 580))
-        window.minSize = NSSize(width: 820, height: 480)
+        window.setContentSize(NSSize(width: 960, height: 640))
+        window.minSize = NSSize(width: 820, height: 540)
         window.center()
         window.isReleasedWhenClosed = false
 
@@ -226,6 +235,16 @@ final class ClickLightSettingsViewModel: NSObject, ObservableObject {
             }
             $0.colorPreset = .custom
             $0.customColorMode = .byClick
+        }
+    }
+
+    func randomizeStyle(locked: RandomizeLock = RandomizeLock()) {
+        let colorPresets: [ClickColorPreset] = [.default, .blue, .green, .purple, .pink, .orange, .white]
+        update {
+            if !locked.size      { $0.size = [44, 64, 88, 116].randomElement().map { CGFloat($0) } ?? 64 }
+            if !locked.intensity { $0.intensity = CGFloat(Int.random(in: 20...150)) / 100 }
+            if !locked.duration  { $0.duration = Double(Int.random(in: 20...120)) / 100 }
+            if !locked.color     { $0.colorPreset = colorPresets.randomElement() ?? .default }
         }
     }
 

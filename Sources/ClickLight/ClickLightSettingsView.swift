@@ -6,6 +6,12 @@ struct ClickLightSettingsView: View {
     @State private var selectedPane: SettingsPane = .general
     @State private var showResetConfirmation = false
     @State private var showShortcutResetConfirmation = false
+    @State private var stylePaneWidth: CGFloat = 340
+    @State private var isSliderEditing = false
+    @State private var sliderDoneTrigger = 0
+    @State private var hasInitializedPaneWidth = false
+
+    private let stylePaneMinWidth: CGFloat = 260
 
     var body: some View {
         NavigationSplitView {
@@ -39,29 +45,65 @@ struct ClickLightSettingsView: View {
             }
             .navigationSplitViewColumnWidth(min: 180, ideal: 200, max: 240)
         } detail: {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    paneHeader
-
-                    Group {
-                        switch selectedPane {
-                        case .general:
-                            generalPane
-                        case .style:
+            if selectedPane == .style {
+                HStack(alignment: .top, spacing: 0) {
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 20) {
+                            paneHeader
                             stylePane
-                        case .shortcuts:
-                            shortcutsPane
-                        case .events:
-                            eventsPane
+                        }
+                        .padding(.horizontal, 28)
+                        .padding(.vertical, 24)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .scrollIndicators(.never)
+                    .frame(width: stylePaneWidth)
+
+                    StylePaneDivider(paneWidth: $stylePaneWidth, minWidth: stylePaneMinWidth)
+
+                    CursorPreviewPanel(
+                        settings: viewModel.settings,
+                        suppressAutoFire: isSliderEditing,
+                        externalTrigger: sliderDoneTrigger,
+                        onRandomize: { locked in viewModel.randomizeStyle(locked: locked) }
+                    )
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+                .background(
+                    GeometryReader { geo in
+                        Color(nsColor: .windowBackgroundColor)
+                            .onAppear {
+                                guard !hasInitializedPaneWidth else { return }
+                                hasInitializedPaneWidth = true
+                                stylePaneWidth = max(stylePaneMinWidth, (geo.size.width - 5) / 2)
+                            }
+                    }
+                )
+            } else {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 20) {
+                        paneHeader
+
+                        Group {
+                            switch selectedPane {
+                            case .general:
+                                generalPane
+                            case .style:
+                                stylePane
+                            case .shortcuts:
+                                shortcutsPane
+                            case .events:
+                                eventsPane
+                            }
                         }
                     }
+                    .padding(.horizontal, 28)
+                    .padding(.vertical, 24)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .padding(.horizontal, 28)
-                .padding(.vertical, 24)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .scrollIndicators(.never)
+                .background(Color(nsColor: .windowBackgroundColor))
             }
-            .scrollIndicators(.never)
-            .background(Color(nsColor: .windowBackgroundColor))
         }
         .navigationSplitViewStyle(.balanced)
     }
@@ -238,7 +280,11 @@ struct ClickLightSettingsView: View {
                         range: 16...240,
                         lower: "16",
                         upper: "240",
-                        readout: "\(Int(viewModel.settings.size.rounded())) px"
+                        readout: "\(Int(viewModel.settings.size.rounded())) px",
+                        onEditingChanged: { editing in
+                            isSliderEditing = editing
+                            if !editing { sliderDoneTrigger += 1 }
+                        }
                     )
                 }
             }
@@ -265,7 +311,11 @@ struct ClickLightSettingsView: View {
                         range: 0.05...2.0,
                         lower: "Subtle",
                         upper: "Beacon",
-                        readout: String(format: "%.2f", Double(viewModel.settings.intensity))
+                        readout: String(format: "%.2f", Double(viewModel.settings.intensity)),
+                        onEditingChanged: { editing in
+                            isSliderEditing = editing
+                            if !editing { sliderDoneTrigger += 1 }
+                        }
                     )
                 }
             }
@@ -292,7 +342,11 @@ struct ClickLightSettingsView: View {
                         range: 0.1...2.0,
                         lower: "0.10s",
                         upper: "2.00s",
-                        readout: String(format: "%.2f s", viewModel.settings.duration)
+                        readout: String(format: "%.2f s", viewModel.settings.duration),
+                        onEditingChanged: { editing in
+                            isSliderEditing = editing
+                            if !editing { sliderDoneTrigger += 1 }
+                        }
                     )
                 }
             }
@@ -555,7 +609,8 @@ struct ClickLightSettingsView: View {
         range: ClosedRange<Double>,
         lower: String,
         upper: String,
-        readout: String
+        readout: String,
+        onEditingChanged: @escaping (Bool) -> Void = { _ in }
     ) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
@@ -563,7 +618,7 @@ struct ClickLightSettingsView: View {
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                     .accessibilityHidden(true)
-                Slider(value: value, in: range)
+                Slider(value: value, in: range, onEditingChanged: onEditingChanged)
                     .accessibilityLabel(label)
                     .accessibilityValue(readout)
                 Text(upper)
@@ -669,6 +724,200 @@ private struct ColorSwatch: View {
                 RoundedRectangle(cornerRadius: 6, style: .continuous)
                     .strokeBorder(Color.primary.opacity(0.15), lineWidth: 1)
             )
+    }
+}
+
+private struct StylePaneDivider: View {
+    @Binding var paneWidth: CGFloat
+    let minWidth: CGFloat
+    @State private var isHovering = false
+    @State private var startWidth: CGFloat = 0
+    @State private var isDragging = false
+
+    var body: some View {
+        Rectangle()
+            .fill(Color.primary.opacity(isDragging ? 0.18 : (isHovering ? 0.12 : 0.06)))
+            .frame(width: 5)
+            .contentShape(Rectangle())
+            .onHover { inside in
+                isHovering = inside
+                if inside { NSCursor.resizeLeftRight.push() }
+                else { NSCursor.pop() }
+            }
+            .gesture(
+                DragGesture(minimumDistance: 0, coordinateSpace: .global)
+                    .onChanged { value in
+                        if !isDragging {
+                            isDragging = true
+                            startWidth = paneWidth
+                        }
+                        paneWidth = max(minWidth, startWidth + value.translation.width)
+                    }
+                    .onEnded { _ in isDragging = false }
+            )
+            .animation(.easeInOut(duration: 0.12), value: isHovering)
+    }
+}
+
+private struct CursorPreviewPanel: View {
+    let settings: ClickSettings
+    let suppressAutoFire: Bool
+    var externalTrigger: Int = 0
+    let onRandomize: (RandomizeLock) -> Void
+    @State private var buttonTrigger = 0
+    @State private var lock = RandomizeLock()
+    @State private var showLockPopover = false
+
+    var body: some View {
+        ZStack(alignment: .bottom) {
+            PulsePreviewView(
+                settings: settings,
+                trigger: buttonTrigger + externalTrigger,
+                suppressAutoFire: suppressAutoFire
+            )
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+            HStack(spacing: 8) {
+                Button {
+                    onRandomize(lock)
+                    buttonTrigger += 1
+                } label: {
+                    Label("Randomize", systemImage: "die.face.5.fill")
+                }
+
+                Button {
+                    showLockPopover.toggle()
+                } label: {
+                    Image(systemName: lock.isAnyLocked ? "lock.fill" : "lock.open")
+                }
+                .help("Lock fields from randomization")
+                .popover(isPresented: $showLockPopover, arrowEdge: .top) {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Lock from Randomize")
+                            .font(.headline)
+                        Divider()
+                        Toggle(isOn: $lock.size)      { Label("Size",      systemImage: "arrow.up.left.and.arrow.down.right") }
+                        Toggle(isOn: $lock.intensity) { Label("Intensity", systemImage: "sun.max") }
+                        Toggle(isOn: $lock.duration)  { Label("Duration",  systemImage: "timer") }
+                        Toggle(isOn: $lock.color)     { Label("Color",     systemImage: "paintpalette") }
+                    }
+                    .padding(14)
+                    .frame(width: 180)
+                    .toggleStyle(.checkbox)
+                }
+
+                Button {
+                    buttonTrigger += 1
+                } label: {
+                    Label("Preview", systemImage: "play.fill")
+                }
+            }
+            .controlSize(.regular)
+            .padding(.bottom, 16)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+private struct PulsePreviewView: NSViewRepresentable {
+    let settings: ClickSettings
+    let trigger: Int
+    let suppressAutoFire: Bool
+
+    func makeCoordinator() -> Coordinator { Coordinator() }
+
+    func makeNSView(context: Context) -> PulsePreviewNSView {
+        PulsePreviewNSView()
+    }
+
+    func updateNSView(_ nsView: PulsePreviewNSView, context: Context) {
+        let triggerChanged = trigger != context.coordinator.lastTrigger
+        let settingsChanged = context.coordinator.lastSettings == nil || context.coordinator.lastSettings != settings
+        context.coordinator.lastTrigger = trigger
+        context.coordinator.lastSettings = settings
+        guard triggerChanged || (settingsChanged && !suppressAutoFire) else { return }
+        nsView.firePulse(settings: settings)
+    }
+
+    final class Coordinator {
+        var lastTrigger: Int = -1
+        var lastSettings: ClickSettings?
+    }
+}
+
+private final class PulsePreviewNSView: NSView {
+    private var overlayView: ClickOverlayView?
+    private var pendingPulseSettings: ClickSettings?
+    private let cursorImageView = NSImageView()
+
+    private static let displaySize: CGFloat = 108
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        wantsLayer = true
+        cursorImageView.image = NSCursor.arrow.image
+        cursorImageView.imageScaling = .scaleProportionallyUpOrDown
+        cursorImageView.wantsLayer = true
+        addSubview(cursorImageView)
+    }
+
+    required init?(coder: NSCoder) { nil }
+
+    override func layout() {
+        super.layout()
+        guard !bounds.isEmpty else { return }
+
+        let d = Self.displaySize
+        let cursorImgSize = NSCursor.arrow.image.size
+        let cursorScale   = min(d / cursorImgSize.width, d / cursorImgSize.height)
+        let displayedW    = cursorImgSize.width * cursorScale
+        cursorImageView.frame = CGRect(
+            x: bounds.midX - d / 2 + displayedW / 4,
+            y: bounds.midY - d / 2,
+            width: d, height: d
+        )
+
+        if let overlay = overlayView {
+            overlay.frame = bounds
+        } else {
+            let overlay = ClickOverlayView(screenFrame: bounds, settings: .defaults)
+            overlay.frame = bounds
+            addSubview(overlay)
+            overlayView = overlay
+            if let settings = pendingPulseSettings {
+                pendingPulseSettings = nil
+                firePulse(settings: settings)
+            }
+        }
+    }
+
+    func firePulse(settings: ClickSettings) {
+        guard !bounds.isEmpty, let overlay = overlayView else {
+            pendingPulseSettings = settings
+            return
+        }
+        let d = Self.displaySize
+        let cursor = NSCursor.arrow
+        let imgSize = cursor.image.size
+        let hotSpot = cursor.hotSpot  // points from top-left of cursor image, y-down
+
+        // Image is drawn with scaleProportionallyUpOrDown (preserves aspect ratio, centered).
+        let scale = min(d / imgSize.width, d / imgSize.height)
+        let displayedW = imgSize.width * scale
+        let displayedH = imgSize.height * scale
+
+        let imageLeft = bounds.midX - d / 2 + displayedW / 4 + (d - displayedW) / 2
+        let imageTop  = bounds.midY + displayedH / 2  // y-up: top = higher value
+
+        // Hot spot y is measured downward from the top of the image.
+        let tip = CGPoint(
+            x: imageLeft + hotSpot.x * scale,
+            y: imageTop  - hotSpot.y * scale
+        )
+        overlay.show(
+            event: ClickEvent(kind: .leftDown, location: tip, timestamp: 0),
+            settings: settings
+        )
     }
 }
 
