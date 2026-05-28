@@ -36,6 +36,7 @@ Prefer not to use Homebrew? Download `ClickLight.zip` from [GitHub Releases](htt
 
 - Click highlights across macOS apps
 - Separate visuals for press, release, right-click, and drag
+- Optional laser pointer mode with fading freehand strokes while dragging
 - Dedicated settings window with sliders + presets for size, duration, intensity, and color
 - Custom color picker in Settings
 - Menu-bar quick presets for size, duration, intensity, and color

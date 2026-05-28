@@ -4,6 +4,9 @@ final class ClickOverlayView: NSView {
     private var screenFrame: CGRect
     private var settings: ClickSettings
     private var pulses: [ClickPulse] = []
+    private var laserCursor: LaserCursor?
+    private var activeLaserStroke: LaserStroke?
+    private var completedLaserStrokes: [LaserStroke] = []
     private var displayLink: Timer?
 
     init(screenFrame: CGRect, settings: ClickSettings) {
@@ -20,6 +23,12 @@ final class ClickOverlayView: NSView {
 
     func apply(settings: ClickSettings) {
         self.settings = settings
+        if !settings.showLaserPointer {
+            laserCursor = nil
+            activeLaserStroke = nil
+            completedLaserStrokes = []
+            needsDisplay = true
+        }
     }
 
     func show(event: ClickEvent, settings: ClickSettings) {
@@ -29,6 +38,23 @@ final class ClickOverlayView: NSView {
             x: event.location.x - screenFrame.minX,
             y: event.location.y - screenFrame.minY
         )
+
+        if settings.showLaserPointer {
+            switch event.kind {
+            case .move:
+                showLaserCursor(at: localPoint)
+                return
+            case .drag:
+                appendLaserPoint(localPoint)
+                return
+            case .leftUp, .rightUp:
+                completeLaserStroke()
+            case .leftDown, .rightDown:
+                break
+            }
+        }
+
+        guard shouldShowPulse(for: event.kind) else { return }
 
         pulses.append(ClickPulse(
             kind: event.kind,
@@ -50,14 +76,97 @@ final class ClickOverlayView: NSView {
 
         let now = CACurrentMediaTime()
         pulses = pulses.filter { !$0.isExpired(at: now) }
+        completedLaserStrokes = completedLaserStrokes.filter { !$0.isExpired(at: now) }
 
+        drawLaser(at: now, in: context)
         for pulse in pulses {
             draw(pulse: pulse, at: now, in: context)
         }
 
-        if pulses.isEmpty {
+        if pulses.isEmpty && laserCursor?.isExpired(at: now) != false && activeLaserStroke == nil && completedLaserStrokes.isEmpty {
             stopDisplayLink()
         }
+    }
+
+    private func showLaserCursor(at point: CGPoint) {
+        laserCursor = LaserCursor(point: point, updatedAt: CACurrentMediaTime())
+        startDisplayLink()
+        needsDisplay = true
+    }
+
+    private func appendLaserPoint(_ point: CGPoint) {
+        let now = CACurrentMediaTime()
+        showLaserCursor(at: point)
+
+        if activeLaserStroke == nil {
+            activeLaserStroke = LaserStroke(points: [point], completedAt: nil)
+        } else if activeLaserStroke?.shouldAppend(point) == true {
+            activeLaserStroke?.points.append(point)
+        }
+
+        if activeLaserStroke?.points.count == 1 {
+            activeLaserStroke?.points.append(point)
+        }
+
+        laserCursor = LaserCursor(point: point, updatedAt: now)
+        startDisplayLink()
+        needsDisplay = true
+    }
+
+    private func completeLaserStroke() {
+        guard var stroke = activeLaserStroke else { return }
+        stroke.completedAt = CACurrentMediaTime()
+        completedLaserStrokes.append(stroke)
+        activeLaserStroke = nil
+        startDisplayLink()
+        needsDisplay = true
+    }
+
+    private func drawLaser(at now: CFTimeInterval, in context: CGContext) {
+        guard settings.showLaserPointer else { return }
+
+        for stroke in completedLaserStrokes {
+            drawLaserStroke(stroke, alpha: stroke.alpha(at: now), in: context)
+        }
+
+        if let activeLaserStroke {
+            drawLaserStroke(activeLaserStroke, alpha: 0.95, in: context)
+        }
+
+        guard let laserCursor, !laserCursor.isExpired(at: now) else { return }
+        let alpha = laserCursor.alpha(at: now)
+        let laserColor = NSColor(calibratedRed: 1.0, green: 0.16, blue: 0.24, alpha: 1)
+        context.saveGState()
+        context.setFillColor(laserColor.withAlphaComponent(alpha * 0.18).cgColor)
+        context.fillEllipse(in: CGRect(x: laserCursor.point.x - 14, y: laserCursor.point.y - 14, width: 28, height: 28))
+        context.setFillColor(laserColor.withAlphaComponent(alpha).cgColor)
+        context.fillEllipse(in: CGRect(x: laserCursor.point.x - 6, y: laserCursor.point.y - 6, width: 12, height: 12))
+        context.restoreGState()
+    }
+
+    private func drawLaserStroke(_ stroke: LaserStroke, alpha: CGFloat, in context: CGContext) {
+        guard stroke.points.count >= 2, alpha > 0 else { return }
+        let laserColor = NSColor(calibratedRed: 1.0, green: 0.16, blue: 0.24, alpha: 1)
+        context.saveGState()
+        context.setLineCap(.round)
+        context.setLineJoin(.round)
+
+        let path = CGMutablePath()
+        path.move(to: stroke.points[0])
+        for point in stroke.points.dropFirst() {
+            path.addLine(to: point)
+        }
+
+        context.addPath(path)
+        context.setStrokeColor(laserColor.withAlphaComponent(alpha * 0.2).cgColor)
+        context.setLineWidth(14)
+        context.strokePath()
+
+        context.addPath(path)
+        context.setStrokeColor(laserColor.withAlphaComponent(alpha).cgColor)
+        context.setLineWidth(5)
+        context.strokePath()
+        context.restoreGState()
     }
 
     private func draw(pulse: ClickPulse, at now: CFTimeInterval, in context: CGContext) {
@@ -181,6 +290,8 @@ final class ClickOverlayView: NSView {
                 color: pulse.color,
                 alpha: alpha * 0.78
             )
+        case .move:
+            break
         }
 
         context.restoreGState()
@@ -287,6 +398,8 @@ final class ClickOverlayView: NSView {
             return NSColor(calibratedRed: 0.27, green: 0.92, blue: 0.58, alpha: 1)
         case .drag:
             return NSColor(calibratedRed: 0.92, green: 0.84, blue: 0.22, alpha: 1)
+        case .move:
+            return .clear
         }
     }
 
@@ -294,6 +407,8 @@ final class ClickOverlayView: NSView {
         switch kind {
         case .drag:
             return min(0.38, settings.duration * 0.82)
+        case .move:
+            return 0
         case .leftUp, .rightUp, .middleUp:
             return settings.duration * 0.78
         case .leftDown, .rightDown, .middleDown:
@@ -305,6 +420,8 @@ final class ClickOverlayView: NSView {
         switch kind {
         case .drag:
             return settings.size * 0.6
+        case .move:
+            return 0
         case .leftUp, .rightUp, .middleUp:
             return settings.size * 0.82
         case .leftDown, .rightDown, .middleDown:
@@ -314,6 +431,21 @@ final class ClickOverlayView: NSView {
 
     private func clamp(_ value: CGFloat) -> CGFloat {
         max(0, min(1, value))
+    }
+
+    private func shouldShowPulse(for kind: ClickKind) -> Bool {
+        switch kind {
+        case .leftDown:
+            return settings.showPress
+        case .leftUp:
+            return settings.showRelease
+        case .rightDown, .rightUp:
+            return settings.showRightClick
+        case .drag:
+            return settings.showDrag && !settings.showLaserPointer
+        case .move:
+            return false
+        }
     }
 }
 
@@ -332,5 +464,44 @@ private struct ClickPulse {
 
     func isExpired(at time: CFTimeInterval) -> Bool {
         progress(at: time) >= 1
+    }
+}
+
+private struct LaserCursor {
+    static let fadeDuration: TimeInterval = 0.42
+
+    let point: CGPoint
+    let updatedAt: CFTimeInterval
+
+    func alpha(at time: CFTimeInterval) -> CGFloat {
+        let progress = CGFloat(max(0, min(1, (time - updatedAt) / Self.fadeDuration)))
+        return 1 - progress
+    }
+
+    func isExpired(at time: CFTimeInterval) -> Bool {
+        time - updatedAt >= Self.fadeDuration
+    }
+}
+
+private struct LaserStroke {
+    static let fadeDuration: TimeInterval = 0.9
+
+    var points: [CGPoint]
+    var completedAt: CFTimeInterval?
+
+    func shouldAppend(_ point: CGPoint) -> Bool {
+        guard let last = points.last else { return true }
+        return hypot(last.x - point.x, last.y - point.y) >= 2.5
+    }
+
+    func alpha(at time: CFTimeInterval) -> CGFloat {
+        guard let completedAt else { return 1 }
+        let progress = CGFloat(max(0, min(1, (time - completedAt) / Self.fadeDuration)))
+        return 1 - progress
+    }
+
+    func isExpired(at time: CFTimeInterval) -> Bool {
+        guard let completedAt else { return false }
+        return time - completedAt >= Self.fadeDuration
     }
 }

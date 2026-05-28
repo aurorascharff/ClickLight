@@ -8,6 +8,7 @@ enum ClickKind: Sendable {
     case middleDown
     case middleUp
     case drag
+    case move
 
     var isRelease: Bool {
         self == .leftUp || self == .rightUp || self == .middleUp

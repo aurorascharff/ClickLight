@@ -3,14 +3,14 @@
   <channel>
     <title>ClickLight</title>
     <item>
-      <title>Version 0.2.0</title>
-      <sparkle:version>0.2.0</sparkle:version>
-      <sparkle:shortVersionString>0.2.0</sparkle:shortVersionString>
-      <pubDate>Wed, 27 May 2026 18:10:06 +0000</pubDate>
-      <enclosure url="https://github.com/aurorascharff/ClickLight/releases/download/v0.2.0/ClickLight.zip"
+      <title>Version 0.3.0</title>
+      <sparkle:version>0.3.0</sparkle:version>
+      <sparkle:shortVersionString>0.3.0</sparkle:shortVersionString>
+      <pubDate>Thu, 28 May 2026 09:55:13 +0000</pubDate>
+      <enclosure url="https://github.com/aurorascharff/ClickLight/releases/download/v0.3.0/ClickLight.zip"
                  type="application/octet-stream"
-                 length="2104533"
-                 sparkle:edSignature="nRZiIN5NHdOIqjH5Q15ycG9PS2xDTHLZ0by3LMHcsrXVFClXsj3QjJg6BBhtUNB6e/qhfkaXpv9BbWsCEruWDg=="/>
+                 length="4040436"
+                 sparkle:edSignature="ioglvisaOBF9O81G6FF3nNkkCikySSVBwYmfh26wVxgu76xCj5YpOnfuMNMELd0ib7kejmWuCadgVh8Zd+q4Dg=="/>
     </item>
   </channel>
 </rss>

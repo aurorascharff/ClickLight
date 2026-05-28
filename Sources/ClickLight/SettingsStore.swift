@@ -7,6 +7,7 @@ struct ClickSettings: Equatable {
     var showRightClick: Bool
     var showMiddleClick: Bool
     var showDrag: Bool
+    var showLaserPointer: Bool
     var showMenuBarText: Bool
     var size: CGFloat
     var intensity: CGFloat
@@ -32,6 +33,7 @@ struct ClickSettings: Equatable {
         showRightClick: true,
         showMiddleClick: true,
         showDrag: true,
+        showLaserPointer: false,
         showMenuBarText: false,
         size: 64,
         intensity: 0.7,
@@ -107,6 +109,7 @@ final class SettingsStore {
         static let showRightClick = "showRightClick"
         static let showMiddleClick = "showMiddleClick"
         static let showDrag = "showDrag"
+        static let showLaserPointer = "showLaserPointer"
         static let showMenuBarText = "showMenuBarText"
         static let size = "size"
         static let intensity = "intensity"
@@ -133,6 +136,7 @@ final class SettingsStore {
                 showRightClick: defaults.bool(forKey: Key.showRightClick),
                 showMiddleClick: defaults.bool(forKey: Key.showMiddleClick),
                 showDrag: defaults.bool(forKey: Key.showDrag),
+                showLaserPointer: defaults.bool(forKey: Key.showLaserPointer),
                 showMenuBarText: defaults.bool(forKey: Key.showMenuBarText),
                 size: CGFloat(defaults.double(forKey: Key.size)),
                 intensity: CGFloat(defaults.double(forKey: Key.intensity)),
@@ -150,6 +154,7 @@ final class SettingsStore {
             defaults.set(newValue.showRightClick, forKey: Key.showRightClick)
             defaults.set(newValue.showMiddleClick, forKey: Key.showMiddleClick)
             defaults.set(newValue.showDrag, forKey: Key.showDrag)
+            defaults.set(newValue.showLaserPointer, forKey: Key.showLaserPointer)
             defaults.set(newValue.showMenuBarText, forKey: Key.showMenuBarText)
             defaults.set(Double(newValue.size), forKey: Key.size)
             defaults.set(Double(newValue.intensity), forKey: Key.intensity)
@@ -177,6 +182,7 @@ final class SettingsStore {
             Key.showRightClick: defaults.showRightClick,
             Key.showMiddleClick: defaults.showMiddleClick,
             Key.showDrag: defaults.showDrag,
+            Key.showLaserPointer: defaults.showLaserPointer,
             Key.showMenuBarText: defaults.showMenuBarText,
             Key.size: Double(defaults.size),
             Key.intensity: Double(defaults.intensity),

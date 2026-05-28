@@ -21,11 +21,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let permissions = PermissionController()
     private let launchAtLogin = LaunchAtLoginController()
     private var captureEnabledState: Bool?
+    private var laserPointerEnabledState: Bool?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         overlayCoordinator.start()
         permissions.requestAccessibilityIfNeeded()
         captureEnabledState = settingsStore.settings.isEnabled
+        laserPointerEnabledState = settingsStore.settings.showLaserPointer
         captureController.startIfEnabled()
         statusController.start()
 
@@ -49,9 +51,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func settingsDidChange() {
         overlayCoordinator.refreshSettings()
-        let isEnabled = settingsStore.settings.isEnabled
-        guard captureEnabledState != isEnabled else { return }
+        let settings = settingsStore.settings
+        let isEnabled = settings.isEnabled
+        let laserPointerEnabled = settings.showLaserPointer
+        guard captureEnabledState != isEnabled || laserPointerEnabledState != laserPointerEnabled else { return }
         captureEnabledState = isEnabled
+        laserPointerEnabledState = laserPointerEnabled
         captureController.refreshEnabledState()
     }
 

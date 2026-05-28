@@ -255,6 +255,14 @@ struct ClickLightSettingsView: View {
     private var eventsPane: some View {
         SettingsCard {
             VStack(spacing: 0) {
+                ModernRow(title: "Laser Pointer Mode",
+                          subtitle: "Show a fading red pointer and draw temporary strokes while dragging.") {
+                    Toggle("", isOn: binding(\.showLaserPointer))
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                        .accessibilityLabel("Laser Pointer Mode")
+                }
+                Divider().padding(.vertical, 6)
                 ModernRow(title: "Show Press",
                           subtitle: "Highlight when the mouse button goes down.") {
                     Toggle("", isOn: binding(\.showPress))
@@ -288,11 +296,14 @@ struct ClickLightSettingsView: View {
                     }
                     Divider().padding(.vertical, 6)
                 ModernRow(title: "Show Drag",
-                          subtitle: "Trail pointer movement while dragging.") {
+                          subtitle: viewModel.settings.showLaserPointer
+                              ? "Laser Pointer Mode replaces the normal drag trail."
+                              : "Trail pointer movement while dragging.") {
                     Toggle("", isOn: binding(\.showDrag))
                         .toggleStyle(.switch)
                         .labelsHidden()
                         .accessibilityLabel("Show Drag")
+                        .disabled(viewModel.settings.showLaserPointer)
                 }
             }
         }
