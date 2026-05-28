@@ -1,0 +1,25 @@
+name: Feature request
+description: Suggest an improvement for ClickLight.
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: What would this help with?
+      description: Describe the demo, presentation, or workflow problem this would solve.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Proposed behavior
+      description: What would you like ClickLight to do?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives or examples
+      description: Link examples or describe approaches you already tried, if applicable.

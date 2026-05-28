@@ -61,9 +61,13 @@ ClickLight is personal software: one small presentation annoyance, fixed directl
 
 Start with [Local Development](docs/LOCAL_DEVELOPMENT.md).
 
+## Contributing
+
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, testing, and pull request guidance. Please report security issues privately as described in [SECURITY.md](SECURITY.md).
+
 ## Releasing
 
-Releases are signed, notarized, published to GitHub Releases, installable with Homebrew, and prepared for Sparkle updates.
+Releases are signed, notarized, published to GitHub Releases, and followed by a reviewed metadata pull request for Homebrew and Sparkle updates.
 
 See [Releasing](docs/RELEASING.md). What's new is tracked in [GitHub Releases](https://github.com/aurorascharff/ClickLight/releases).
 

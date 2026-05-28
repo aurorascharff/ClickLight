@@ -18,7 +18,8 @@ jobs:
     runs-on: macos-26
     environment: release
     permissions:
-      contents: write # Required to push release metadata and create the GitHub Release.
+      contents: write # Required to create the GitHub Release and push its metadata branch.
+      pull-requests: write # Required to open the release metadata pull request.
 
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
@@ -111,22 +112,34 @@ jobs:
           </rss>
           EOF
 
-      - name: Commit release metadata
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          VERSION: ${{ steps.version.outputs.version }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          AUTH_HEADER=$(printf "x-access-token:%s" "$GITHUB_TOKEN" | base64 | tr -d '\n')
-          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${AUTH_HEADER}" fetch origin main:main
-          git checkout main
-          git add Casks/clicklight.rb appcast.xml
-          git commit -m "Update release metadata for v${VERSION}"
-          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${AUTH_HEADER}" push origin main
-
       - name: Create release
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ steps.version.outputs.version }}
         run: gh release create "v${VERSION}" ClickLight.zip --generate-notes
+
+      - name: Open release metadata pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          BRANCH="release/v${VERSION}-metadata"
+          cp Casks/clicklight.rb "$RUNNER_TEMP/clicklight.rb"
+          cp appcast.xml "$RUNNER_TEMP/appcast.xml"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          AUTH_HEADER=$(printf "x-access-token:%s" "$GH_TOKEN" | base64 | tr -d '\n')
+          git restore Casks/clicklight.rb appcast.xml
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${AUTH_HEADER}" fetch origin main
+          git switch -c "$BRANCH" origin/main
+          cp "$RUNNER_TEMP/clicklight.rb" Casks/clicklight.rb
+          cp "$RUNNER_TEMP/appcast.xml" appcast.xml
+          git add Casks/clicklight.rb appcast.xml
+          git commit -m "Update release metadata for v${VERSION}"
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${AUTH_HEADER}" push origin "$BRANCH"
+          gh pr create \
+            --base main \
+            --head "$BRANCH" \
+            --title "Update release metadata for v${VERSION}" \
+            --body "Updates the Homebrew cask and Sparkle appcast for the published v${VERSION} release. Merge this PR to make the release available through Homebrew upgrades and in-app updates."

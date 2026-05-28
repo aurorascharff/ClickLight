@@ -59,4 +59,4 @@ ClickEventTap (CGEventTap + NSEvent fallback)
 
 ## Releasing
 
-Tag-triggered GitHub Actions pipeline handles signing, notarization, Sparkle `appcast.xml`, and Homebrew cask update. Manual approval is required via the `release` environment. See [docs/RELEASING.md](docs/RELEASING.md).
+The tag-triggered GitHub Actions pipeline handles signing, notarization, and GitHub Release publication, then opens a pull request for Sparkle `appcast.xml` and Homebrew cask updates. See [docs/RELEASING.md](docs/RELEASING.md).

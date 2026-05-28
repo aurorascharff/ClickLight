@@ -50,7 +50,9 @@ Create a GitHub Environment named:
 release
 ```
 
-Add yourself as a required reviewer. This means a pushed tag cannot publish a signed release until you approve it.
+To add a release approval gate, add yourself as a required reviewer. Verify that the next tagged workflow run pauses for review before relying on this protection.
+
+In **Settings -> Actions -> General**, enable **Allow GitHub Actions to create and approve pull requests**. The release workflow needs permission to open its metadata pull request.
 
 ## Release Flow
 
@@ -59,7 +61,7 @@ git tag -a v0.1.0 -m "Release v0.1.0"
 git push origin v0.1.0
 ```
 
-Then approve the `release` environment in GitHub Actions.
+If the `release` environment requires approval, approve the waiting workflow run in GitHub Actions.
 
 The workflow will:
 
@@ -67,9 +69,10 @@ The workflow will:
 2. sign and notarize it
 3. zip `ClickLight.app`
 4. sign the zip for Sparkle
-5. update `appcast.xml`
-6. update `Casks/clicklight.rb`
-7. create a GitHub Release
+5. create a GitHub Release
+6. open a pull request updating `appcast.xml` and `Casks/clicklight.rb`
+
+Review and merge the generated metadata pull request after the release succeeds. That merge makes the new version available through Homebrew upgrades and Sparkle in-app updates without allowing the workflow to push directly to protected `main`.
 
 ## Release Notes
 
