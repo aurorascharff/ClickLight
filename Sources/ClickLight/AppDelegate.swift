@@ -94,11 +94,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func handleQuitShortcut() {
-        if settingsWindowController?.window?.isVisible == true {
-            settingsWindowController?.close()
-            return
-        }
-
         NSApp.terminate(nil)
     }
 
