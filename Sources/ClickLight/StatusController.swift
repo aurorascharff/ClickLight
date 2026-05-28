@@ -1,36 +1,39 @@
 import AppKit
 
 @MainActor
-final class StatusController {
+final class StatusController: NSObject {
     private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     private let settingsStore: SettingsStore
     private let permissions: PermissionController
     private let launchAtLogin: LaunchAtLoginManaging
-    private let captureStatus: () -> String
     private let onCheckForUpdates: () -> Void
     private let updatesAreConfigured: () -> Bool
     private let onOpenSettings: () -> Void
     private let onQuit: () -> Void
-    private var pendingMenuRebuild: DispatchWorkItem?
+    private let onMenuWillOpen: () -> Void
+    private let onMenuDidClose: () -> Void
 
     init(
         settingsStore: SettingsStore,
         permissions: PermissionController,
         launchAtLogin: LaunchAtLoginManaging,
-        captureStatus: @escaping () -> String,
         onCheckForUpdates: @escaping () -> Void,
         updatesAreConfigured: @escaping () -> Bool,
         onOpenSettings: @escaping () -> Void,
-        onQuit: @escaping () -> Void
+        onQuit: @escaping () -> Void,
+        onMenuWillOpen: @escaping () -> Void = {},
+        onMenuDidClose: @escaping () -> Void = {}
     ) {
         self.settingsStore = settingsStore
         self.permissions = permissions
         self.launchAtLogin = launchAtLogin
-        self.captureStatus = captureStatus
         self.onCheckForUpdates = onCheckForUpdates
         self.updatesAreConfigured = updatesAreConfigured
         self.onOpenSettings = onOpenSettings
         self.onQuit = onQuit
+        self.onMenuWillOpen = onMenuWillOpen
+        self.onMenuDidClose = onMenuDidClose
+        super.init()
     }
 
     func start() {
@@ -51,62 +54,87 @@ final class StatusController {
         rebuildMenu()
     }
 
-    @objc private func settingsDidChange() {
-        applyStatusItemAppearance(settingsStore.settings)
-        pendingMenuRebuild?.cancel()
-        let workItem = DispatchWorkItem { [weak self] in
-            self?.rebuildMenu()
+    func dismissMenu() {
+        statusItem.menu?.cancelTrackingWithoutAnimation()
+        RunLoop.main.perform(inModes: [.common]) { [weak self] in
+            MainActor.assumeIsolated {
+                self?.statusItem.menu?.cancelTrackingWithoutAnimation()
+            }
         }
-        pendingMenuRebuild = workItem
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: workItem)
+    }
+
+    private func dismissMenu(from item: NSMenuItem) {
+        item.menu?.cancelTrackingWithoutAnimation()
+        dismissMenu()
+    }
+
+    @objc private func settingsDidChange() {
+        // Update the menu bar button immediately; the dropdown menu itself is
+        // rebuilt lazily in menuNeedsUpdate(_:) so it always shows fresh state
+        // the next time it opens. NSStatusItem menus don't repaint reliably
+        // while tracking, so live mid-tracking refresh isn't attempted.
+        applyStatusItemAppearance(settingsStore.settings)
     }
 
     private func rebuildMenu() {
+        let menu = statusItem.menu ?? NSMenu()
+        rebuildMenuItems(in: menu)
+        menu.delegate = self
+        if statusItem.menu !== menu {
+            statusItem.menu = menu
+        }
+    }
+
+    private func rebuildMenuItems(in menu: NSMenu) {
         let settings = settingsStore.settings
-        let menu = NSMenu()
+        menu.removeAllItems()
         StatusMenuConfiguration.apply(to: menu)
 
         menu.addItem(toggleItem(
             title: "Enabled",
             isOn: settings.isEnabled,
-            action: #selector(toggleEnabled)
+            action: #selector(toggleEnabled(_:)),
+            shortcut: settings.shortcutBindings[.toggleEnabled]
         ))
-        let openSettingsItem = NSMenuItem(title: "Open Settings...", action: #selector(openSettings), keyEquivalent: ",")
-        openSettingsItem.target = self
-        menu.addItem(openSettingsItem)
         menu.addItem(NSMenuItem.separator())
 
         menu.addItem(toggleItem(
             title: "Laser Pointer Mode",
             isOn: settings.showLaserPointer,
-            action: #selector(toggleLaserPointer)
+            action: #selector(toggleLaserPointer(_:)),
+            shortcut: settings.shortcutBindings[.toggleLaserPointer]
         ))
         menu.addItem(NSMenuItem.separator())
 
         menu.addItem(toggleItem(
             title: "Show Press",
             isOn: settings.showPress,
-            action: #selector(togglePress)
+            action: #selector(togglePress(_:)),
+            shortcut: settings.shortcutBindings[.toggleShowPress]
         ))
         menu.addItem(toggleItem(
             title: "Show Release",
             isOn: settings.showRelease,
-            action: #selector(toggleRelease)
+            action: #selector(toggleRelease(_:)),
+            shortcut: settings.shortcutBindings[.toggleShowRelease]
         ))
         menu.addItem(toggleItem(
             title: "Show Right Click",
             isOn: settings.showRightClick,
-            action: #selector(toggleRightClick)
+            action: #selector(toggleRightClick(_:)),
+            shortcut: settings.shortcutBindings[.toggleShowRightClick]
         ))
         menu.addItem(toggleItem(
             title: "Show Middle Click",
             isOn: settings.showMiddleClick,
-            action: #selector(toggleMiddleClick)
+            action: #selector(toggleMiddleClick(_:)),
+            shortcut: settings.shortcutBindings[.toggleShowMiddleClick]
         ))
         let showDragItem = toggleItem(
             title: "Show Drag",
             isOn: settings.showDrag,
-            action: #selector(toggleDrag)
+            action: #selector(toggleDrag(_:)),
+            shortcut: settings.shortcutBindings[.toggleShowDrag]
         )
         showDragItem.isEnabled = !settings.showLaserPointer
         menu.addItem(showDragItem)
@@ -144,10 +172,9 @@ final class StatusController {
         menu.addItem(colorSubmenu(selected: settings.colorPreset))
         menu.addItem(NSMenuItem.separator())
 
-        let captureItem = NSMenuItem(title: "Click Capture: \(captureStatus())", action: nil, keyEquivalent: "")
-        captureItem.isEnabled = false
-        menu.addItem(captureItem)
-        menu.addItem(NSMenuItem.separator())
+        let openSettingsItem = NSMenuItem(title: "Open Settings...", action: #selector(openSettings), keyEquivalent: ",")
+        openSettingsItem.target = self
+        menu.addItem(openSettingsItem)
 
         let permissionTitle = permissions.isAccessibilityTrusted ? "Accessibility: Granted" : "Open Accessibility Settings..."
         let permissionItem = NSMenuItem(title: permissionTitle, action: #selector(openAccessibilitySettings), keyEquivalent: "")
@@ -169,8 +196,6 @@ final class StatusController {
         let quitItem = NSMenuItem(title: "Quit ClickLight", action: #selector(quit), keyEquivalent: "q")
         quitItem.target = self
         menu.addItem(quitItem)
-
-        statusItem.menu = menu
     }
 
     private func applyStatusItemAppearance(_ settings: ClickSettings) {
@@ -179,11 +204,28 @@ final class StatusController {
         button.title = settings.showMenuBarText ? "ClickLight" : ""
     }
 
-    private func toggleItem(title: String, isOn: Bool, action: Selector) -> NSMenuItem {
+    private func toggleItem(
+        title: String,
+        isOn: Bool,
+        action: Selector,
+        shortcut: HotKeyBinding? = nil
+    ) -> NSMenuItem {
         let item = NSMenuItem(title: title, action: action, keyEquivalent: "")
         item.target = self
         item.state = isOn ? .on : .off
+        applyShortcut(shortcut, to: item)
         return item
+    }
+
+    private func applyShortcut(_ shortcut: HotKeyBinding?, to item: NSMenuItem) {
+        item.attributedTitle = nil
+        guard let shortcut, let keyEquivalent = shortcut.menuKeyEquivalent else {
+            item.keyEquivalent = ""
+            item.keyEquivalentModifierMask = []
+            return
+        }
+        item.keyEquivalent = keyEquivalent
+        item.keyEquivalentModifierMask = shortcut.menuModifierFlags
     }
 
     private func submenu(
@@ -241,7 +283,8 @@ final class StatusController {
         return item
     }
 
-    @objc private func toggleEnabled() {
+    @objc private func toggleEnabled(_ sender: NSMenuItem) {
+        dismissMenu(from: sender)
         settingsStore.update { $0.isEnabled.toggle() }
     }
 
@@ -249,27 +292,33 @@ final class StatusController {
         onOpenSettings()
     }
 
-    @objc private func togglePress() {
+    @objc private func togglePress(_ sender: NSMenuItem) {
+        dismissMenu(from: sender)
         settingsStore.update { $0.showPress.toggle() }
     }
 
-    @objc private func toggleRelease() {
+    @objc private func toggleRelease(_ sender: NSMenuItem) {
+        dismissMenu(from: sender)
         settingsStore.update { $0.showRelease.toggle() }
     }
 
-    @objc private func toggleRightClick() {
+    @objc private func toggleRightClick(_ sender: NSMenuItem) {
+        dismissMenu(from: sender)
         settingsStore.update { $0.showRightClick.toggle() }
     }
 
-    @objc private func toggleMiddleClick() {
+    @objc private func toggleMiddleClick(_ sender: NSMenuItem) {
+        dismissMenu(from: sender)
         settingsStore.update { $0.showMiddleClick.toggle() }
     }
 
-    @objc private func toggleDrag() {
+    @objc private func toggleDrag(_ sender: NSMenuItem) {
+        dismissMenu(from: sender)
         settingsStore.update { $0.showDrag.toggle() }
     }
 
-    @objc private func toggleLaserPointer() {
+    @objc private func toggleLaserPointer(_ sender: NSMenuItem) {
+        dismissMenu(from: sender)
         settingsStore.update { $0.showLaserPointer.toggle() }
     }
 
@@ -321,5 +370,30 @@ final class StatusController {
 
     @objc private func quit() {
         onQuit()
+    }
+}
+
+extension StatusController: NSMenuDelegate {
+    nonisolated func menuWillOpen(_ menu: NSMenu) {
+        MainActor.assumeIsolated {
+            onMenuWillOpen()
+        }
+    }
+
+    nonisolated func menuDidClose(_ menu: NSMenu) {
+        MainActor.assumeIsolated {
+            onMenuDidClose()
+        }
+    }
+
+    nonisolated func menuNeedsUpdate(_ menu: NSMenu) {
+        MainActor.assumeIsolated {
+            // Refresh the existing menu instance. Replacing statusItem.menu
+            // while AppKit is opening it can fire menuDidClose for the old
+            // menu and re-register global hotkeys before tracking actually
+            // ends.
+            guard let menu = statusItem.menu else { return }
+            rebuildMenuItems(in: menu)
+        }
     }
 }

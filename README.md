@@ -40,10 +40,27 @@ Prefer not to use Homebrew? Download `ClickLight.zip` from [GitHub Releases](htt
 - Dedicated settings window with sliders + presets for size, duration, intensity, and color
 - Custom color picker in Settings
 - Menu-bar quick presets for size, duration, intensity, and color
+- One default ClickLight toggle shortcut, with optional shortcuts for other actions
 - Optional compact menu-bar icon
 - Test pulse for verifying overlay behavior
 - Native Swift/AppKit app
 - No Xcode project required
+
+## Keyboard Shortcuts
+
+ClickLight includes one default global shortcut for quick toggles during demos. Other actions can be assigned shortcuts in Settings if you want them.
+
+| Shortcut | Action |
+| --- | --- |
+| `Control + Option + Command + L` | Toggle ClickLight on/off |
+| Not set by default | Toggle Laser Pointer Mode |
+| Not set by default | Toggle Press |
+| Not set by default | Toggle Release |
+| Not set by default | Toggle Right Click |
+| Not set by default | Toggle Middle Click |
+| Not set by default | Toggle Drag |
+
+All shortcuts can be changed or disabled in Settings.
 
 ## Permissions
 
