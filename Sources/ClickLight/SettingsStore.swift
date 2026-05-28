@@ -5,6 +5,7 @@ struct ClickSettings: Equatable {
     var showPress: Bool
     var showRelease: Bool
     var showRightClick: Bool
+    var showMiddleClick: Bool
     var showDrag: Bool
     var showLaserPointer: Bool
     var showMenuBarText: Bool
@@ -30,6 +31,7 @@ struct ClickSettings: Equatable {
         showPress: true,
         showRelease: true,
         showRightClick: true,
+        showMiddleClick: true,
         showDrag: true,
         showLaserPointer: false,
         showMenuBarText: false,
@@ -105,6 +107,7 @@ final class SettingsStore {
         static let showPress = "showPress"
         static let showRelease = "showRelease"
         static let showRightClick = "showRightClick"
+        static let showMiddleClick = "showMiddleClick"
         static let showDrag = "showDrag"
         static let showLaserPointer = "showLaserPointer"
         static let showMenuBarText = "showMenuBarText"
@@ -131,6 +134,7 @@ final class SettingsStore {
                 showPress: defaults.bool(forKey: Key.showPress),
                 showRelease: defaults.bool(forKey: Key.showRelease),
                 showRightClick: defaults.bool(forKey: Key.showRightClick),
+                showMiddleClick: defaults.bool(forKey: Key.showMiddleClick),
                 showDrag: defaults.bool(forKey: Key.showDrag),
                 showLaserPointer: defaults.bool(forKey: Key.showLaserPointer),
                 showMenuBarText: defaults.bool(forKey: Key.showMenuBarText),
@@ -148,6 +152,7 @@ final class SettingsStore {
             defaults.set(newValue.showPress, forKey: Key.showPress)
             defaults.set(newValue.showRelease, forKey: Key.showRelease)
             defaults.set(newValue.showRightClick, forKey: Key.showRightClick)
+            defaults.set(newValue.showMiddleClick, forKey: Key.showMiddleClick)
             defaults.set(newValue.showDrag, forKey: Key.showDrag)
             defaults.set(newValue.showLaserPointer, forKey: Key.showLaserPointer)
             defaults.set(newValue.showMenuBarText, forKey: Key.showMenuBarText)
@@ -175,6 +180,7 @@ final class SettingsStore {
             Key.showPress: defaults.showPress,
             Key.showRelease: defaults.showRelease,
             Key.showRightClick: defaults.showRightClick,
+            Key.showMiddleClick: defaults.showMiddleClick,
             Key.showDrag: defaults.showDrag,
             Key.showLaserPointer: defaults.showLaserPointer,
             Key.showMenuBarText: defaults.showMenuBarText,
