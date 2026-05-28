@@ -360,6 +360,14 @@ struct ClickLightSettingsView: View {
                         .accessibilityLabel("Show Right Click")
                 }
                 Divider().padding(.vertical, 6)
+                    ModernRow(title: "Show Middle Click",
+                          subtitle: "Highlight center-button clicks.") {
+                      Toggle("", isOn: binding(\.showMiddleClick))
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                        .accessibilityLabel("Show Middle Click")
+                    }
+                    Divider().padding(.vertical, 6)
                 ModernRow(title: "Show Drag",
                           subtitle: viewModel.settings.showLaserPointer
                               ? "Laser Pointer Mode replaces the normal drag trail."

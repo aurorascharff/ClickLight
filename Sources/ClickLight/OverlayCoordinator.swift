@@ -64,6 +64,8 @@ final class OverlayCoordinator {
             return settings.showRelease
         case .rightDown, .rightUp:
             return settings.showRightClick
+        case .middleDown, .middleUp:
+            return settings.showMiddleClick
         case .drag:
             return settings.showDrag
         case .move:

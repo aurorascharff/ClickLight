@@ -19,7 +19,7 @@
     {
       "layers" : [
         {
-          "glass" : true,
+          "glass" : false,
           "image-name" : "ClickLight-icon.png",
           "name" : "ClickLight-icon",
           "position" : {

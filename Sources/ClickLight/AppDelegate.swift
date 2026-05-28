@@ -24,6 +24,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var laserPointerEnabledState: Bool?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        configureMainMenu()
         overlayCoordinator.start()
         permissions.requestAccessibilityIfNeeded()
         captureEnabledState = settingsStore.settings.isEnabled
@@ -72,6 +73,28 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             location: NSEvent.mouseLocation,
             timestamp: CACurrentMediaTime()
         ))
+    }
+
+    private func configureMainMenu() {
+        let mainMenu = NSMenu()
+        let appMenuItem = NSMenuItem()
+        let appMenu = NSMenu(title: "ClickLight")
+
+        let quitItem = NSMenuItem(
+            title: "Quit ClickLight",
+            action: #selector(handleQuitShortcut),
+            keyEquivalent: "q"
+        )
+        quitItem.target = self
+        appMenu.addItem(quitItem)
+
+        appMenuItem.submenu = appMenu
+        mainMenu.addItem(appMenuItem)
+        NSApp.mainMenu = mainMenu
+    }
+
+    @objc private func handleQuitShortcut() {
+        NSApp.terminate(nil)
     }
 
     private func openSettings() {
