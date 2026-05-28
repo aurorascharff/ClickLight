@@ -21,7 +21,7 @@ jobs:
       contents: write # Required to push release metadata and create the GitHub Release.
 
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/checkout@v4
         with:
           persist-credentials: false
 
