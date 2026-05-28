@@ -174,6 +174,29 @@ final class ClickLightSettingsViewModel: NSObject, ObservableObject {
             $0.customColorGreen = rgb.greenComponent
             $0.customColorBlue = rgb.blueComponent
             $0.colorPreset = .custom
+            $0.customColorMode = .all
+        }
+    }
+
+    func applyCustomColor(_ color: NSColor, to target: CustomClickColorTarget) {
+        guard let rgb = color.usingColorSpace(.deviceRGB) else { return }
+        update {
+            switch target {
+            case .left:
+                $0.customLeftColorRed = rgb.redComponent
+                $0.customLeftColorGreen = rgb.greenComponent
+                $0.customLeftColorBlue = rgb.blueComponent
+            case .right:
+                $0.customRightColorRed = rgb.redComponent
+                $0.customRightColorGreen = rgb.greenComponent
+                $0.customRightColorBlue = rgb.blueComponent
+            case .drag:
+                $0.customDragColorRed = rgb.redComponent
+                $0.customDragColorGreen = rgb.greenComponent
+                $0.customDragColorBlue = rgb.blueComponent
+            }
+            $0.colorPreset = .custom
+            $0.customColorMode = .byClick
         }
     }
 

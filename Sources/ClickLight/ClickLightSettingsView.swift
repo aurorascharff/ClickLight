@@ -52,6 +52,35 @@ struct ClickLightSettingsView: View {
         .navigationSplitViewStyle(.balanced)
     }
 
+    @ViewBuilder
+    private func customColorRow(title: String, subtitle: String, color: Binding<Color>) -> some View {
+        ModernRow(title: title, subtitle: subtitle) {
+            ColorPicker(
+                "",
+                selection: color,
+                supportsOpacity: false
+            )
+            .labelsHidden()
+            .accessibilityLabel(title)
+        }
+    }
+
+    private func customClickColorBinding(_ target: CustomClickColorTarget) -> Binding<Color> {
+        Binding(
+            get: {
+                switch target {
+                case .left:
+                    return Color(nsColor: viewModel.settings.customLeftColor)
+                case .right:
+                    return Color(nsColor: viewModel.settings.customRightColor)
+                case .drag:
+                    return Color(nsColor: viewModel.settings.customDragColor)
+                }
+            },
+            set: { viewModel.applyCustomColor(NSColor($0), to: target) }
+        )
+    }
+
     // MARK: - Pane Header
 
     private var paneHeader: some View {
@@ -232,20 +261,64 @@ struct ClickLightSettingsView: View {
                         .pickerStyle(.menu)
                     }
 
-                    Divider()
+                    if viewModel.settings.colorPreset == .custom {
+                        Divider()
 
-                    ModernRow(title: "Custom Color",
-                              subtitle: "Picking a color switches to Custom automatically.") {
-                        ColorPicker(
-                            "",
-                            selection: Binding(
-                                get: { resolvedColor },
-                                set: { viewModel.applyCustomColor(NSColor($0)) }
-                            ),
-                            supportsOpacity: false
-                        )
+                        Picker("Custom Color Mode", selection: binding(\.customColorMode)) {
+                            ForEach(CustomClickColorMode.allCases, id: \.rawValue) { mode in
+                                Text(mode.title).tag(mode)
+                            }
+                        }
                         .labelsHidden()
-                        .accessibilityLabel("Custom Color Picker")
+                        .pickerStyle(.segmented)
+                        .accessibilityLabel("Custom Color Mode")
+
+                        if viewModel.settings.customColorMode == .all {
+                            customColorRow(
+                                title: "Custom Color",
+                                subtitle: "Use one custom color for every click.",
+                                color: Binding(
+                                    get: { Color(nsColor: viewModel.settings.customColor) },
+                                    set: { viewModel.applyCustomColor(NSColor($0)) }
+                                )
+                            )
+                        } else {
+                            VStack(spacing: 0) {
+                                customColorRow(
+                                    title: "Left Click",
+                                    subtitle: "Used for left press and release pulses.",
+                                    color: customClickColorBinding(.left)
+                                )
+                                Divider().padding(.vertical, 6)
+                                customColorRow(
+                                    title: "Right Click",
+                                    subtitle: "Used for secondary-button pulses.",
+                                    color: customClickColorBinding(.right)
+                                )
+                                Divider().padding(.vertical, 6)
+                                customColorRow(
+                                    title: "Drag",
+                                    subtitle: "Used for the normal drag trail.",
+                                    color: customClickColorBinding(.drag)
+                                )
+                            }
+                        }
+                    } else {
+                        Divider()
+
+                        ModernRow(title: "Custom Color",
+                                  subtitle: "Picking a color switches to Custom automatically.") {
+                            ColorPicker(
+                                "",
+                                selection: Binding(
+                                    get: { resolvedColor },
+                                    set: { viewModel.applyCustomColor(NSColor($0)) }
+                                ),
+                                supportsOpacity: false
+                            )
+                            .labelsHidden()
+                            .accessibilityLabel("Custom Color Picker")
+                        }
                     }
                 }
             }
