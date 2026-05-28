@@ -380,7 +380,23 @@ final class ClickOverlayView: NSView {
 
     private func color(for kind: ClickKind) -> NSColor {
         if settings.colorPreset == .custom {
-            return settings.customColor
+            switch settings.customColorMode {
+            case .all:
+                return settings.customColor
+            case .byClick:
+                switch kind {
+                case .leftDown, .leftUp:
+                    return settings.customLeftColor
+                case .rightDown, .rightUp:
+                    return settings.customRightColor
+                case .middleDown, .middleUp:
+                    return settings.customMiddleColor
+                case .drag:
+                    return settings.customDragColor
+                case .move:
+                    return .clear
+                }
+            }
         }
 
         if let color = settings.colorPreset.color {

@@ -14,7 +14,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         onCheckForUpdates: { UpdateChecker.shared.checkForUpdates() },
         updatesAreConfigured: { UpdateChecker.shared.isConfigured },
         onOpenSettings: { [weak self] in self?.openSettings() },
-        onTestPulse: { [weak self] in self?.showTestPulse() },
         onQuit: { NSApplication.shared.terminate(nil) }
     )
     private let eventTap = ClickEventTap()
@@ -44,10 +43,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             name: ClickEventTap.didReceiveClickEvent,
             object: nil
         )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(appDidBecomeActive),
+            name: NSApplication.didBecomeActiveNotification,
+            object: nil
+        )
     }
 
     func applicationWillTerminate(_ notification: Notification) {
         captureController.stop()
+    }
+
+    @objc private func appDidBecomeActive() {
+        statusController.refresh()
     }
 
     @objc private func settingsDidChange() {
@@ -65,14 +74,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard let box = notification.object as? ClickEventBox else { return }
         guard settingsWindowController?.contains(box.event.location) != true else { return }
         overlayCoordinator.show(box.event)
-    }
-
-    private func showTestPulse() {
-        overlayCoordinator.show(ClickEvent(
-            kind: .leftDown,
-            location: NSEvent.mouseLocation,
-            timestamp: CACurrentMediaTime()
-        ))
     }
 
     private func configureMainMenu() {
@@ -101,8 +102,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let controller = settingsWindowController ?? SettingsWindowController(
             settingsStore: settingsStore,
             launchAtLogin: launchAtLogin,
-            permissions: permissions,
-            onTestPulse: { [weak self] in self?.showTestPulse() }
+            permissions: permissions
         )
         settingsWindowController = controller
         controller.show()

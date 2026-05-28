@@ -8,19 +8,34 @@ struct ClickLightSettingsView: View {
 
     var body: some View {
         NavigationSplitView {
-            List(SettingsPane.allCases, id: \.self, selection: $selectedPane) { pane in
-                Label {
-                    Text(pane.title)
-                        .font(.system(size: 13, weight: .medium))
-                } icon: {
-                    Image(systemName: pane.icon)
-                        .symbolRenderingMode(.monochrome)
-                        .foregroundStyle(.primary)
+            VStack(spacing: 0) {
+                List(SettingsPane.allCases, id: \.self, selection: $selectedPane) { pane in
+                    Label {
+                        Text(pane.title)
+                            .font(.system(size: 13, weight: .medium))
+                    } icon: {
+                        Image(systemName: pane.icon)
+                            .symbolRenderingMode(.monochrome)
+                            .foregroundStyle(.primary)
+                    }
+                    .padding(.vertical, 2)
+                    .tag(pane)
                 }
-                .padding(.vertical, 2)
-                .tag(pane)
+                .listStyle(.sidebar)
+
+                Divider()
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Label("Preview Pad", systemImage: "cursorarrow.click.2")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+
+                    ClickPreviewPad(settings: viewModel.settings)
+                        .frame(height: 116)
+                        .accessibilityLabel("Preview Pad")
+                }
+                .padding(12)
             }
-            .listStyle(.sidebar)
             .navigationSplitViewColumnWidth(min: 180, ideal: 200, max: 240)
         } detail: {
             ScrollView {
@@ -50,6 +65,37 @@ struct ClickLightSettingsView: View {
             .background(Color(nsColor: .windowBackgroundColor))
         }
         .navigationSplitViewStyle(.balanced)
+    }
+
+    @ViewBuilder
+    private func customColorRow(title: String, subtitle: String, color: Binding<Color>) -> some View {
+        ModernRow(title: title, subtitle: subtitle) {
+            ColorPicker(
+                "",
+                selection: color,
+                supportsOpacity: false
+            )
+            .labelsHidden()
+            .accessibilityLabel(title)
+        }
+    }
+
+    private func customClickColorBinding(_ target: CustomClickColorTarget) -> Binding<Color> {
+        Binding(
+            get: {
+                switch target {
+                case .left:
+                    return Color(nsColor: viewModel.settings.customLeftColor)
+                case .right:
+                    return Color(nsColor: viewModel.settings.customRightColor)
+                case .middle:
+                    return Color(nsColor: viewModel.settings.customMiddleColor)
+                case .drag:
+                    return Color(nsColor: viewModel.settings.customDragColor)
+                }
+            },
+            set: { viewModel.applyCustomColor(NSColor($0), to: target) }
+        )
     }
 
     // MARK: - Pane Header
@@ -125,18 +171,6 @@ struct ClickLightSettingsView: View {
 
     private var stylePane: some View {
         VStack(spacing: 16) {
-            SettingsCard {
-                ModernRow(title: "Preview",
-                          subtitle: "Show the current pulse style at the pointer.") {
-                    Button {
-                        viewModel.previewPulse()
-                    } label: {
-                        Label("Preview Pulse", systemImage: "cursorarrow.click.2")
-                    }
-                    .controlSize(.regular)
-                }
-            }
-
             SettingsCard(title: "Size", subtitle: "How large the click pulse appears.") {
                 VStack(alignment: .leading, spacing: 16) {
                     presetSegmented(
@@ -232,20 +266,70 @@ struct ClickLightSettingsView: View {
                         .pickerStyle(.menu)
                     }
 
-                    Divider()
+                    if viewModel.settings.colorPreset == .custom {
+                        Divider()
 
-                    ModernRow(title: "Custom Color",
-                              subtitle: "Picking a color switches to Custom automatically.") {
-                        ColorPicker(
-                            "",
-                            selection: Binding(
-                                get: { resolvedColor },
-                                set: { viewModel.applyCustomColor(NSColor($0)) }
-                            ),
-                            supportsOpacity: false
-                        )
+                        Picker("Custom Color Mode", selection: binding(\.customColorMode)) {
+                            ForEach(CustomClickColorMode.allCases, id: \.rawValue) { mode in
+                                Text(mode.title).tag(mode)
+                            }
+                        }
                         .labelsHidden()
-                        .accessibilityLabel("Custom Color Picker")
+                        .pickerStyle(.segmented)
+                        .accessibilityLabel("Custom Color Mode")
+
+                        if viewModel.settings.customColorMode == .all {
+                            customColorRow(
+                                title: "Custom Color",
+                                subtitle: "Use one custom color for every click.",
+                                color: Binding(
+                                    get: { Color(nsColor: viewModel.settings.customColor) },
+                                    set: { viewModel.applyCustomColor(NSColor($0)) }
+                                )
+                            )
+                        } else {
+                            VStack(spacing: 0) {
+                                customColorRow(
+                                    title: "Left Click",
+                                    subtitle: "Used for left press and release pulses.",
+                                    color: customClickColorBinding(.left)
+                                )
+                                Divider().padding(.vertical, 6)
+                                customColorRow(
+                                    title: "Right Click",
+                                    subtitle: "Used for secondary-button pulses.",
+                                    color: customClickColorBinding(.right)
+                                )
+                                Divider().padding(.vertical, 6)
+                                customColorRow(
+                                    title: "Middle Click",
+                                    subtitle: "Used for center-button pulses.",
+                                    color: customClickColorBinding(.middle)
+                                )
+                                Divider().padding(.vertical, 6)
+                                customColorRow(
+                                    title: "Drag",
+                                    subtitle: "Used for the normal drag trail.",
+                                    color: customClickColorBinding(.drag)
+                                )
+                            }
+                        }
+                    } else {
+                        Divider()
+
+                        ModernRow(title: "Custom Color",
+                                  subtitle: "Picking a color switches to Custom automatically.") {
+                            ColorPicker(
+                                "",
+                                selection: Binding(
+                                    get: { resolvedColor },
+                                    set: { viewModel.applyCustomColor(NSColor($0)) }
+                                ),
+                                supportsOpacity: false
+                            )
+                            .labelsHidden()
+                            .accessibilityLabel("Custom Color Picker")
+                        }
                     }
                 }
             }
@@ -534,6 +618,112 @@ private struct ColorSwatch: View {
                 RoundedRectangle(cornerRadius: 6, style: .continuous)
                     .strokeBorder(Color.primary.opacity(0.15), lineWidth: 1)
             )
+    }
+}
+
+private struct ClickPreviewPad: NSViewRepresentable {
+    let settings: ClickSettings
+
+    func makeNSView(context: Context) -> InteractiveClickPreviewView {
+        InteractiveClickPreviewView(settings: settings)
+    }
+
+    func updateNSView(_ nsView: InteractiveClickPreviewView, context: Context) {
+        nsView.apply(settings: settings)
+    }
+}
+
+private final class InteractiveClickPreviewView: NSView {
+    private let overlayView: ClickOverlayView
+    private var settings: ClickSettings
+
+    init(settings: ClickSettings) {
+        self.settings = settings
+        self.overlayView = ClickOverlayView(
+            screenFrame: CGRect(x: 0, y: 0, width: 200, height: 116),
+            settings: settings
+        )
+        super.init(frame: .zero)
+
+        wantsLayer = true
+        layer?.backgroundColor = NSColor.controlBackgroundColor.cgColor
+        layer?.cornerRadius = 8
+        layer?.masksToBounds = true
+        layer?.borderWidth = 1
+        layer?.borderColor = NSColor.separatorColor.withAlphaComponent(0.55).cgColor
+
+        overlayView.autoresizingMask = [.width, .height]
+        addSubview(overlayView)
+    }
+
+    required init?(coder: NSCoder) {
+        nil
+    }
+
+    override func layout() {
+        super.layout()
+        overlayView.frame = bounds
+    }
+
+    override func hitTest(_ point: NSPoint) -> NSView? {
+        bounds.contains(point) ? self : nil
+    }
+
+    func apply(settings: ClickSettings) {
+        self.settings = settings
+        overlayView.apply(settings: settings)
+    }
+
+    override func mouseDown(with event: NSEvent) {
+        show(.leftDown, event: event)
+    }
+
+    override func mouseUp(with event: NSEvent) {
+        show(.leftUp, event: event)
+    }
+
+    override func rightMouseDown(with event: NSEvent) {
+        show(.rightDown, event: event)
+    }
+
+    override func rightMouseUp(with event: NSEvent) {
+        show(.rightUp, event: event)
+    }
+
+    override func otherMouseDown(with event: NSEvent) {
+        guard event.buttonNumber == 2 else { return }
+        show(.middleDown, event: event)
+    }
+
+    override func otherMouseUp(with event: NSEvent) {
+        guard event.buttonNumber == 2 else { return }
+        show(.middleUp, event: event)
+    }
+
+    override func mouseDragged(with event: NSEvent) {
+        show(.drag, event: event)
+    }
+
+    override func rightMouseDragged(with event: NSEvent) {
+        show(.drag, event: event)
+    }
+
+    override func otherMouseDragged(with event: NSEvent) {
+        guard event.buttonNumber == 2 else { return }
+        show(.drag, event: event)
+    }
+
+    private func show(_ kind: ClickKind, event: NSEvent) {
+        guard settings.isEnabled else { return }
+        let location = convert(event.locationInWindow, from: nil)
+        overlayView.show(
+            event: ClickEvent(
+                kind: kind,
+                location: location,
+                timestamp: CACurrentMediaTime()
+            ),
+            settings: settings
+        )
     }
 }
 

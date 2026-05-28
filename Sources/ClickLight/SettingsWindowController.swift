@@ -8,14 +8,12 @@ final class SettingsWindowController: NSWindowController {
     init(
         settingsStore: SettingsStore,
         launchAtLogin: LaunchAtLoginManaging,
-        permissions: PermissionController,
-        onTestPulse: @escaping () -> Void
+        permissions: PermissionController
     ) {
         let viewModel = ClickLightSettingsViewModel(
             settingsStore: settingsStore,
             launchAtLogin: launchAtLogin,
-            permissions: permissions,
-            onTestPulse: onTestPulse
+            permissions: permissions
         )
         self.viewModel = viewModel
 
@@ -55,7 +53,6 @@ final class ClickLightSettingsViewModel: NSObject, ObservableObject {
     private let settingsStore: SettingsStore
     private let launchAtLogin: LaunchAtLoginManaging
     private let permissions: PermissionController
-    private let onTestPulse: () -> Void
 
     @Published private(set) var settings: ClickSettings
     @Published private(set) var launchAtLoginEnabled: Bool = false
@@ -65,13 +62,11 @@ final class ClickLightSettingsViewModel: NSObject, ObservableObject {
     init(
         settingsStore: SettingsStore,
         launchAtLogin: LaunchAtLoginManaging,
-        permissions: PermissionController,
-        onTestPulse: @escaping () -> Void
+        permissions: PermissionController
     ) {
         self.settingsStore = settingsStore
         self.launchAtLogin = launchAtLogin
         self.permissions = permissions
-        self.onTestPulse = onTestPulse
         self.settings = settingsStore.settings
         super.init()
         self.launchAtLoginEnabled = launchAtLogin.isEnabled
@@ -174,11 +169,34 @@ final class ClickLightSettingsViewModel: NSObject, ObservableObject {
             $0.customColorGreen = rgb.greenComponent
             $0.customColorBlue = rgb.blueComponent
             $0.colorPreset = .custom
+            $0.customColorMode = .all
         }
     }
 
-    func previewPulse() {
-        onTestPulse()
+    func applyCustomColor(_ color: NSColor, to target: CustomClickColorTarget) {
+        guard let rgb = color.usingColorSpace(.deviceRGB) else { return }
+        update {
+            switch target {
+            case .left:
+                $0.customLeftColorRed = rgb.redComponent
+                $0.customLeftColorGreen = rgb.greenComponent
+                $0.customLeftColorBlue = rgb.blueComponent
+            case .right:
+                $0.customRightColorRed = rgb.redComponent
+                $0.customRightColorGreen = rgb.greenComponent
+                $0.customRightColorBlue = rgb.blueComponent
+            case .middle:
+                $0.customMiddleColorRed = rgb.redComponent
+                $0.customMiddleColorGreen = rgb.greenComponent
+                $0.customMiddleColorBlue = rgb.blueComponent
+            case .drag:
+                $0.customDragColorRed = rgb.redComponent
+                $0.customDragColorGreen = rgb.greenComponent
+                $0.customDragColorBlue = rgb.blueComponent
+            }
+            $0.colorPreset = .custom
+            $0.customColorMode = .byClick
+        }
     }
 
     func resetToDefaults() {

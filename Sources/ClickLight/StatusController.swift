@@ -10,7 +10,6 @@ final class StatusController {
     private let onCheckForUpdates: () -> Void
     private let updatesAreConfigured: () -> Bool
     private let onOpenSettings: () -> Void
-    private let onTestPulse: () -> Void
     private let onQuit: () -> Void
     private var pendingMenuRebuild: DispatchWorkItem?
 
@@ -22,7 +21,6 @@ final class StatusController {
         onCheckForUpdates: @escaping () -> Void,
         updatesAreConfigured: @escaping () -> Bool,
         onOpenSettings: @escaping () -> Void,
-        onTestPulse: @escaping () -> Void,
         onQuit: @escaping () -> Void
     ) {
         self.settingsStore = settingsStore
@@ -32,7 +30,6 @@ final class StatusController {
         self.onCheckForUpdates = onCheckForUpdates
         self.updatesAreConfigured = updatesAreConfigured
         self.onOpenSettings = onOpenSettings
-        self.onTestPulse = onTestPulse
         self.onQuit = onQuit
     }
 
@@ -48,6 +45,10 @@ final class StatusController {
             name: SettingsStore.didChangeNotification,
             object: nil
         )
+    }
+
+    func refresh() {
+        rebuildMenu()
     }
 
     @objc private func settingsDidChange() {
@@ -146,11 +147,6 @@ final class StatusController {
         let captureItem = NSMenuItem(title: "Click Capture: \(captureStatus())", action: nil, keyEquivalent: "")
         captureItem.isEnabled = false
         menu.addItem(captureItem)
-
-        let testPulseItem = NSMenuItem(title: "Test Pulse at Pointer", action: #selector(testPulse), keyEquivalent: "")
-        testPulseItem.target = self
-        testPulseItem.isEnabled = StatusMenuAvailability.isTestPulseEnabled(isClickLightEnabled: settings.isEnabled)
-        menu.addItem(testPulseItem)
         menu.addItem(NSMenuItem.separator())
 
         let permissionTitle = permissions.isAccessibilityTrusted ? "Accessibility: Granted" : "Open Accessibility Settings..."
@@ -220,13 +216,27 @@ final class StatusController {
     private func colorSubmenu(selected: ClickColorPreset) -> NSMenuItem {
         let item = NSMenuItem(title: "Colors", action: nil, keyEquivalent: "")
         let menu = NSMenu()
-        for preset in ClickColorPreset.allCases {
+        for preset in ClickColorPreset.allCases where preset != .custom {
             let child = NSMenuItem(title: preset.title, action: #selector(selectColor(_:)), keyEquivalent: "")
             child.target = self
             child.representedObject = preset.rawValue
             child.state = preset == selected ? .on : .off
             menu.addItem(child)
         }
+
+        menu.addItem(NSMenuItem.separator())
+
+        if selected == .custom {
+            let selectedCustom = NSMenuItem(title: "Custom (Configured in Settings)", action: nil, keyEquivalent: "")
+            selectedCustom.state = .on
+            selectedCustom.isEnabled = false
+            menu.addItem(selectedCustom)
+        }
+
+        let configureCustom = NSMenuItem(title: "Configure Custom Colors...", action: #selector(openSettings), keyEquivalent: "")
+        configureCustom.target = self
+        menu.addItem(configureCustom)
+
         item.submenu = menu
         return item
     }
@@ -303,10 +313,6 @@ final class StatusController {
     @objc private func openAccessibilitySettings() {
         permissions.requestAccessibilityIfNeeded()
         permissions.openPrivacySettings()
-    }
-
-    @objc private func testPulse() {
-        onTestPulse()
     }
 
     @objc private func checkForUpdates() {
