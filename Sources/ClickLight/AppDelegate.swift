@@ -14,7 +14,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         onCheckForUpdates: { UpdateChecker.shared.checkForUpdates() },
         updatesAreConfigured: { UpdateChecker.shared.isConfigured },
         onOpenSettings: { [weak self] in self?.openSettings() },
-        onTestPulse: { [weak self] in self?.showTestPulse() },
         onQuit: { NSApplication.shared.terminate(nil) }
     )
     private let eventTap = ClickEventTap()
@@ -78,14 +77,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         overlayCoordinator.show(box.event)
     }
 
-    private func showTestPulse() {
-        overlayCoordinator.show(ClickEvent(
-            kind: .leftDown,
-            location: NSEvent.mouseLocation,
-            timestamp: CACurrentMediaTime()
-        ))
-    }
-
     private func configureMainMenu() {
         let mainMenu = NSMenu()
         let appMenuItem = NSMenuItem()
@@ -112,8 +103,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let controller = settingsWindowController ?? SettingsWindowController(
             settingsStore: settingsStore,
             launchAtLogin: launchAtLogin,
-            permissions: permissions,
-            onTestPulse: { [weak self] in self?.showTestPulse() }
+            permissions: permissions
         )
         settingsWindowController = controller
         controller.show()

@@ -8,14 +8,12 @@ final class SettingsWindowController: NSWindowController {
     init(
         settingsStore: SettingsStore,
         launchAtLogin: LaunchAtLoginManaging,
-        permissions: PermissionController,
-        onTestPulse: @escaping () -> Void
+        permissions: PermissionController
     ) {
         let viewModel = ClickLightSettingsViewModel(
             settingsStore: settingsStore,
             launchAtLogin: launchAtLogin,
-            permissions: permissions,
-            onTestPulse: onTestPulse
+            permissions: permissions
         )
         self.viewModel = viewModel
 
@@ -55,7 +53,6 @@ final class ClickLightSettingsViewModel: NSObject, ObservableObject {
     private let settingsStore: SettingsStore
     private let launchAtLogin: LaunchAtLoginManaging
     private let permissions: PermissionController
-    private let onTestPulse: () -> Void
 
     @Published private(set) var settings: ClickSettings
     @Published private(set) var launchAtLoginEnabled: Bool = false
@@ -65,13 +62,11 @@ final class ClickLightSettingsViewModel: NSObject, ObservableObject {
     init(
         settingsStore: SettingsStore,
         launchAtLogin: LaunchAtLoginManaging,
-        permissions: PermissionController,
-        onTestPulse: @escaping () -> Void
+        permissions: PermissionController
     ) {
         self.settingsStore = settingsStore
         self.launchAtLogin = launchAtLogin
         self.permissions = permissions
-        self.onTestPulse = onTestPulse
         self.settings = settingsStore.settings
         super.init()
         self.launchAtLoginEnabled = launchAtLogin.isEnabled
@@ -203,10 +198,6 @@ final class ClickLightSettingsViewModel: NSObject, ObservableObject {
             $0.colorPreset = .custom
             $0.customColorMode = .byClick
         }
-    }
-
-    func previewPulse() {
-        onTestPulse()
     }
 
     func resetToDefaults() {
