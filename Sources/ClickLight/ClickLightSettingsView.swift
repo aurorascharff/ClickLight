@@ -53,10 +53,6 @@ struct ClickLightSettingsView: View {
                             shortcutsPane
                         case .events:
                             eventsPane
-                        case .menuBar:
-                            menuBarPane
-                        case .system:
-                            systemPane
                         }
                     }
                 }
@@ -130,6 +126,68 @@ struct ClickLightSettingsView: View {
             }
 
             SettingsCard {
+                VStack(alignment: .leading, spacing: 8) {
+                    ModernRow(title: "Launch at Login",
+                              subtitle: "Open ClickLight automatically after signing in.") {
+                        Toggle("", isOn: Binding(
+                            get: { viewModel.launchAtLoginEnabled },
+                            set: { viewModel.setLaunchAtLogin($0) }
+                        ))
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                        .accessibilityLabel("Launch at Login")
+                    }
+                    if let message = viewModel.launchAtLoginErrorMessage {
+                        Label(message, systemImage: "exclamationmark.triangle.fill")
+                            .font(.caption)
+                            .foregroundStyle(.orange)
+                    }
+                }
+            }
+
+            SettingsCard {
+                ModernRow(title: "Show Menu Bar Text",
+                          subtitle: "Display the ClickLight name next to the menu bar icon.") {
+                    Toggle("", isOn: binding(\.showMenuBarText))
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                        .accessibilityLabel("Show Menu Bar Text")
+                }
+            }
+
+            SettingsCard {
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack(spacing: 10) {
+                        Image(systemName: viewModel.accessibilityTrusted ? "checkmark.seal.fill" : "exclamationmark.triangle.fill")
+                            .font(.title3)
+                            .foregroundStyle(viewModel.accessibilityTrusted ? .green : .orange)
+                            .accessibilityHidden(true)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(viewModel.accessibilityTrusted ? "Accessibility Granted" : "Accessibility Required")
+                                .font(.callout.weight(.medium))
+                            Text(viewModel.accessibilityTrusted
+                                 ? "ClickLight can observe clicks across the system."
+                                 : "Grant Accessibility access so ClickLight can see your clicks.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                    }
+                    .accessibilityElement(children: .combine)
+                    HStack {
+                        Spacer()
+                        Button {
+                            viewModel.openAccessibilitySettings()
+                        } label: {
+                            Label(viewModel.accessibilityTrusted ? "Open Accessibility Settings" : "Grant Access…",
+                                  systemImage: "arrow.up.right.square")
+                        }
+                        .controlSize(.regular)
+                    }
+                }
+            }
+
+            SettingsCard {
                 ModernRow(title: "Reset to Defaults",
                           subtitle: "Restore size, intensity, duration, color, and toggles.") {
                     Button(role: .destructive) {
@@ -141,22 +199,6 @@ struct ClickLightSettingsView: View {
                 }
             }
 
-            SettingsCard {
-                VStack(alignment: .leading, spacing: 8) {
-                    Label {
-                        Text("Tip")
-                            .font(.subheadline.weight(.semibold))
-                    } icon: {
-                        Image(systemName: "sparkles")
-                            .foregroundStyle(.tint)
-                            .accessibilityHidden(true)
-                    }
-                    Text("Adjust visuals in **Visual Style**. Quick presets stay synced with the menu bar — slider tweaks show as **Custom**.")
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-            }
         }
         .confirmationDialog(
             "Reset all ClickLight settings?",
@@ -415,12 +457,11 @@ struct ClickLightSettingsView: View {
                 }
             }
 
-            SettingsCard(title: "Global Shortcuts", subtitle: "These shortcuts work system-wide. At least one modifier key is required.") {
+            SettingsCard(title: "Global Shortcuts") {
                 VStack(spacing: 0) {
                     ForEach(Array(ClickShortcutAction.allCases.enumerated()), id: \.element) { index, action in
                         ShortcutRecorderField(
                             label: action.title,
-                            subtitle: action.subtitle,
                             currentBinding: viewModel.shortcutBinding(for: action),
                             defaultBinding: action.defaultBinding,
                             errorMessage: viewModel.shortcutError(for: action),
@@ -429,6 +470,9 @@ struct ClickLightSettingsView: View {
                             },
                             onReset: {
                                 viewModel.resetShortcutBinding(for: action)
+                            },
+                            onClear: {
+                                viewModel.clearShortcutBinding(for: action)
                             }
                         )
                         .padding(.vertical, 4)
@@ -442,7 +486,7 @@ struct ClickLightSettingsView: View {
 
             SettingsCard {
                 ModernRow(title: "Reset All Shortcuts",
-                          subtitle: "Restore default keybindings for every shortcut action.") {
+                          subtitle: "Restore the ClickLight toggle shortcut and disable optional shortcuts.") {
                     Button(role: .destructive) {
                         showShortcutResetConfirmation = true
                     } label: {
@@ -452,13 +496,6 @@ struct ClickLightSettingsView: View {
                 }
             }
 
-            SettingsCard(title: "Fixed Shortcuts", subtitle: "These shortcuts are built-in and cannot be changed.") {
-                VStack(spacing: 0) {
-                    fixedShortcutRow(label: "Open Settings", keys: "⌘,")
-                    Divider().padding(.vertical, 6)
-                    fixedShortcutRow(label: "Quit ClickLight", keys: "⌘Q")
-                }
-            }
         }
         .confirmationDialog(
             "Reset all keyboard shortcuts?",
@@ -470,75 +507,7 @@ struct ClickLightSettingsView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("This restores all shortcut bindings in this pane to their default values.")
-        }
-    }
-
-    private var menuBarPane: some View {
-        SettingsCard {
-            ModernRow(title: "Show Menu Bar Text",
-                      subtitle: "Display the “ClickLight” label next to the icon.") {
-                Toggle("", isOn: binding(\.showMenuBarText))
-                    .toggleStyle(.switch)
-                    .labelsHidden()
-                    .accessibilityLabel("Show Menu Bar Text")
-            }
-        }
-    }
-
-    private var systemPane: some View {
-        VStack(spacing: 16) {
-            SettingsCard {
-                VStack(alignment: .leading, spacing: 8) {
-                    ModernRow(title: "Launch at Login",
-                              subtitle: "Open ClickLight automatically after signing in.") {
-                        Toggle("", isOn: Binding(
-                            get: { viewModel.launchAtLoginEnabled },
-                            set: { viewModel.setLaunchAtLogin($0) }
-                        ))
-                        .toggleStyle(.switch)
-                        .labelsHidden()
-                        .accessibilityLabel("Launch at Login")
-                    }
-                    if let message = viewModel.launchAtLoginErrorMessage {
-                        Label(message, systemImage: "exclamationmark.triangle.fill")
-                            .font(.caption)
-                            .foregroundStyle(.orange)
-                    }
-                }
-            }
-
-            SettingsCard {
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack(spacing: 10) {
-                        Image(systemName: viewModel.accessibilityTrusted ? "checkmark.seal.fill" : "exclamationmark.triangle.fill")
-                            .font(.title3)
-                            .foregroundStyle(viewModel.accessibilityTrusted ? .green : .orange)
-                            .accessibilityHidden(true)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(viewModel.accessibilityTrusted ? "Accessibility Granted" : "Accessibility Required")
-                                .font(.callout.weight(.medium))
-                            Text(viewModel.accessibilityTrusted
-                                 ? "ClickLight can observe clicks across the system."
-                                 : "Grant Accessibility access so ClickLight can see your clicks.")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                        Spacer()
-                    }
-                    .accessibilityElement(children: .combine)
-                    HStack {
-                        Spacer()
-                        Button {
-                            viewModel.openAccessibilitySettings()
-                        } label: {
-                            Label(viewModel.accessibilityTrusted ? "Open Accessibility Settings" : "Grant Access…",
-                                  systemImage: "arrow.up.right.square")
-                        }
-                        .controlSize(.regular)
-                    }
-                }
-            }
+            Text("This restores the ClickLight toggle shortcut and disables every optional shortcut.")
         }
     }
 
@@ -617,21 +586,6 @@ struct ClickLightSettingsView: View {
         }
     }
 
-    @ViewBuilder
-    private func fixedShortcutRow(label: String, keys: String) -> some View {
-        HStack {
-            Text(label)
-                .font(.callout.weight(.medium))
-            Spacer()
-            Text(keys)
-                .font(.system(.body, design: .monospaced))
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(.quaternary, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
-                .foregroundStyle(.secondary)
-        }
-        .padding(.vertical, 6)
-    }
 }
 
 // MARK: - Reusable Components
@@ -826,11 +780,9 @@ private final class InteractiveClickPreviewView: NSView {
 
 private enum SettingsPane: String, CaseIterable, Hashable {
     case general
+    case events
     case style
     case shortcuts
-    case events
-    case menuBar
-    case system
 
     var title: String {
         switch self {
@@ -842,27 +794,19 @@ private enum SettingsPane: String, CaseIterable, Hashable {
             return "Keyboard Shortcuts"
         case .events:
             return "Event Visibility"
-        case .menuBar:
-            return "Menu Bar"
-        case .system:
-            return "System"
         }
     }
 
     var subtitle: String {
         switch self {
         case .general:
-            return "Toggle ClickLight and learn how settings work."
+            return "Enable ClickLight, set startup behavior, and manage permissions."
         case .style:
             return "Size, intensity, duration, and color of click pulses."
         case .shortcuts:
-            return "Record custom global shortcuts for toggling ClickLight modes."
+            return "Set global shortcuts."
         case .events:
             return "Choose which mouse interactions trigger a pulse."
-        case .menuBar:
-            return "Adjust the menu bar status item appearance."
-        case .system:
-            return "Launch at login and Accessibility permission."
         }
     }
 
@@ -876,10 +820,6 @@ private enum SettingsPane: String, CaseIterable, Hashable {
             return "keyboard"
         case .events:
             return "cursorarrow.click.2"
-        case .menuBar:
-            return "menubar.rectangle"
-        case .system:
-            return "lock.shield"
         }
     }
 }

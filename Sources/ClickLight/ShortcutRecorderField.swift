@@ -2,14 +2,19 @@ import AppKit
 import Carbon.HIToolbox
 import SwiftUI
 
+extension Notification.Name {
+    static let shortcutRecordingDidBegin = Notification.Name("ClickLightShortcutRecordingDidBegin")
+    static let shortcutRecordingDidEnd = Notification.Name("ClickLightShortcutRecordingDidEnd")
+}
+
 struct ShortcutRecorderField: View {
     let label: String
-    let subtitle: String
-    let currentBinding: HotKeyBinding
-    let defaultBinding: HotKeyBinding
+    let currentBinding: HotKeyBinding?
+    let defaultBinding: HotKeyBinding?
     let errorMessage: String?
     let onRecord: (HotKeyBinding) -> Bool
     let onReset: () -> Void
+    let onClear: () -> Void
 
     @State private var isRecording = false
     @State private var eventMonitor: Any?
@@ -21,23 +26,15 @@ struct ShortcutRecorderField: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .center, spacing: 12) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(label)
-                        .font(.callout.weight(.medium))
-                    Text(subtitle)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-
-                Spacer(minLength: 10)
+                Text(label)
+                    .font(.callout.weight(.medium))
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
                 if isRecording {
                     Text("Press shortcut...")
-                        .font(.system(.body, design: .monospaced))
+                        .font(.body)
                         .foregroundStyle(.secondary)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 4)
-                        .background(.quaternary, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+                        .frame(width: 112, alignment: .trailing)
                         .accessibilityLabel("Waiting for shortcut input")
 
                     Button("Cancel") {
@@ -46,12 +43,13 @@ struct ShortcutRecorderField: View {
                     .buttonStyle(.bordered)
                     .help("Cancel shortcut recording.")
                 } else {
-                    Text(currentBinding.displayString)
-                        .font(.system(.body, design: .monospaced))
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 4)
-                        .background(.quaternary, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
-                        .accessibilityLabel("Current shortcut: \(currentBinding.displayString)")
+                    Text(currentBinding?.displayString ?? "None")
+                        .font(.system(size: 13, weight: .regular))
+                        .foregroundStyle(currentBinding == nil ? .secondary : .primary)
+                        .frame(width: 112, alignment: .trailing)
+                        .lineLimit(1)
+                        .accessibilityLabel(currentBinding.map { "Current shortcut: \($0.descriptiveString)" } ?? "No shortcut assigned")
+                        .help(currentBinding?.descriptiveString ?? "No shortcut configured.")
 
                     Button("Record") {
                         startRecording()
@@ -59,7 +57,15 @@ struct ShortcutRecorderField: View {
                     .buttonStyle(.bordered)
                     .help("Record a new shortcut.")
 
-                    if isCustom {
+                    if currentBinding != nil {
+                        Button("Clear") {
+                            onClear()
+                        }
+                        .buttonStyle(.bordered)
+                        .help("Remove this shortcut.")
+                    }
+
+                    if isCustom, defaultBinding != nil {
                         Button("Reset") {
                             onReset()
                         }
@@ -84,6 +90,7 @@ struct ShortcutRecorderField: View {
     private func startRecording() {
         guard !isRecording else { return }
         isRecording = true
+        NotificationCenter.default.post(name: .shortcutRecordingDidBegin, object: nil)
 
         eventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [self] event in
             let code = Int(event.keyCode)
@@ -118,10 +125,12 @@ struct ShortcutRecorderField: View {
     }
 
     private func stopRecording() {
+        guard isRecording || eventMonitor != nil else { return }
         isRecording = false
         if let eventMonitor {
             NSEvent.removeMonitor(eventMonitor)
             self.eventMonitor = nil
         }
+        NotificationCenter.default.post(name: .shortcutRecordingDidEnd, object: nil)
     }
 }

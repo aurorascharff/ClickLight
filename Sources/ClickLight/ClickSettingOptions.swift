@@ -23,8 +23,8 @@ enum ClickSettingOptions {
     static let durationPresets: [ClickNumericPreset] = [
         .init(title: "Snappy", value: 0.28),
         .init(title: "Normal", value: 0.48),
-        .init(title: "Slow", value: 0.72),
-        .init(title: "Very Slow", value: 1.0)
+        .init(title: "Long", value: 0.72),
+        .init(title: "Very Long", value: 1.0)
     ]
 
     static func matchingPreset(

@@ -23,8 +23,8 @@ final class SettingsWindowController: NSWindowController {
         let window = NSWindow(contentViewController: hosting)
         window.title = "ClickLight Settings"
         window.styleMask = [.titled, .closable, .miniaturizable, .resizable]
-        window.setContentSize(NSSize(width: 760, height: 520))
-        window.minSize = NSSize(width: 700, height: 480)
+        window.setContentSize(NSSize(width: 900, height: 580))
+        window.minSize = NSSize(width: 820, height: 480)
         window.center()
         window.isReleasedWhenClosed = false
 
@@ -233,7 +233,7 @@ final class ClickLightSettingsViewModel: NSObject, ObservableObject {
         apply(.defaults)
     }
 
-    func shortcutBinding(for action: ClickShortcutAction) -> HotKeyBinding {
+    func shortcutBinding(for action: ClickShortcutAction) -> HotKeyBinding? {
         settings.shortcutBinding(for: action)
     }
 
@@ -273,6 +273,13 @@ final class ClickLightSettingsViewModel: NSObject, ObservableObject {
         }
     }
 
+    func clearShortcutBinding(for action: ClickShortcutAction) {
+        shortcutErrors[action] = nil
+        update { settings in
+            settings.clearShortcutBinding(for: action)
+        }
+    }
+
     func resetAllShortcutBindings() {
         update { settings in
             settings.resetAllShortcutBindings()
@@ -301,7 +308,7 @@ final class ClickLightSettingsViewModel: NSObject, ObservableObject {
         var errors: [ClickShortcutAction: String] = [:]
 
         for action in ClickShortcutAction.allCases {
-            let binding = settings.shortcutBinding(for: action)
+            guard let binding = settings.shortcutBinding(for: action) else { continue }
             guard let other = ClickShortcutAction.allCases.first(where: {
                 $0 != action && settings.shortcutBinding(for: $0) == binding
             }) else {

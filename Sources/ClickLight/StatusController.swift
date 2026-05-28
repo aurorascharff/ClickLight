@@ -6,7 +6,6 @@ final class StatusController: NSObject {
     private let settingsStore: SettingsStore
     private let permissions: PermissionController
     private let launchAtLogin: LaunchAtLoginManaging
-    private let captureStatus: () -> String
     private let onCheckForUpdates: () -> Void
     private let updatesAreConfigured: () -> Bool
     private let onOpenSettings: () -> Void
@@ -18,7 +17,6 @@ final class StatusController: NSObject {
         settingsStore: SettingsStore,
         permissions: PermissionController,
         launchAtLogin: LaunchAtLoginManaging,
-        captureStatus: @escaping () -> String,
         onCheckForUpdates: @escaping () -> Void,
         updatesAreConfigured: @escaping () -> Bool,
         onOpenSettings: @escaping () -> Void,
@@ -29,7 +27,6 @@ final class StatusController: NSObject {
         self.settingsStore = settingsStore
         self.permissions = permissions
         self.launchAtLogin = launchAtLogin
-        self.captureStatus = captureStatus
         self.onCheckForUpdates = onCheckForUpdates
         self.updatesAreConfigured = updatesAreConfigured
         self.onOpenSettings = onOpenSettings
@@ -99,9 +96,6 @@ final class StatusController: NSObject {
             action: #selector(toggleEnabled(_:)),
             shortcut: settings.shortcutBindings[.toggleEnabled]
         ))
-        let openSettingsItem = NSMenuItem(title: "Open Settings...", action: #selector(openSettings), keyEquivalent: ",")
-        openSettingsItem.target = self
-        menu.addItem(openSettingsItem)
         menu.addItem(NSMenuItem.separator())
 
         menu.addItem(toggleItem(
@@ -178,10 +172,9 @@ final class StatusController: NSObject {
         menu.addItem(colorSubmenu(selected: settings.colorPreset))
         menu.addItem(NSMenuItem.separator())
 
-        let captureItem = NSMenuItem(title: "Click Capture: \(captureStatus())", action: nil, keyEquivalent: "")
-        captureItem.isEnabled = false
-        menu.addItem(captureItem)
-        menu.addItem(NSMenuItem.separator())
+        let openSettingsItem = NSMenuItem(title: "Open Settings...", action: #selector(openSettings), keyEquivalent: ",")
+        openSettingsItem.target = self
+        menu.addItem(openSettingsItem)
 
         let permissionTitle = permissions.isAccessibilityTrusted ? "Accessibility: Granted" : "Open Accessibility Settings..."
         let permissionItem = NSMenuItem(title: permissionTitle, action: #selector(openAccessibilitySettings), keyEquivalent: "")

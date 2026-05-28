@@ -13,7 +13,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         settingsStore: settingsStore,
         permissions: permissions,
         launchAtLogin: launchAtLogin,
-        captureStatus: { [weak self] in self?.captureController.statusLabel ?? "Not Started" },
         onCheckForUpdates: { UpdateChecker.shared.checkForUpdates() },
         updatesAreConfigured: { UpdateChecker.shared.isConfigured },
         onOpenSettings: { [weak self] in self?.openSettings() },
@@ -33,6 +32,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var laserPointerEnabledState: Bool?
     private var hotKeyBindingsState: [ClickShortcutAction: HotKeyBinding] = [:]
     private var hotKeyRegistrationIssuesState: [ClickShortcutAction: String] = [:]
+    private var activeShortcutRecorders = 0
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         configureMainMenu()
@@ -62,6 +62,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             name: NSApplication.didBecomeActiveNotification,
             object: nil
         )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(shortcutRecordingDidBegin),
+            name: .shortcutRecordingDidBegin,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(shortcutRecordingDidEnd),
+            name: .shortcutRecordingDidEnd,
+            object: nil
+        )
     }
 
     func applicationWillTerminate(_ notification: Notification) {
@@ -71,6 +83,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func appDidBecomeActive() {
         statusController.refresh()
+    }
+
+    @objc private func shortcutRecordingDidBegin() {
+        activeShortcutRecorders += 1
+        hotKeyManager.unregisterAll()
+    }
+
+    @objc private func shortcutRecordingDidEnd() {
+        activeShortcutRecorders = max(0, activeShortcutRecorders - 1)
+        guard activeShortcutRecorders == 0 else { return }
+        configureHotKeysIfNeeded(with: settingsStore.settings, force: true)
     }
 
     @objc private func settingsDidChange() {
@@ -86,6 +109,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func configureHotKeysIfNeeded(with settings: ClickSettings, force: Bool = false) {
+        guard activeShortcutRecorders == 0 else { return }
         let bindings = settings.shortcutBindings
         guard force || bindings != hotKeyBindingsState else { return }
 

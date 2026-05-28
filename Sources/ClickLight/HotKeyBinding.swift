@@ -5,10 +5,20 @@ struct HotKeyBinding: Equatable, Hashable, Sendable {
     let keyCode: Int
     let carbonModifiers: Int
 
-    static let defaultToggleModifiers: Int = Int(optionKey | cmdKey)
+    static let defaultToggleModifiers: Int = Int(controlKey | optionKey | cmdKey)
 
     var displayString: String {
         modifiersString + keyString
+    }
+
+    var descriptiveString: String {
+        var values: [String] = []
+        if carbonModifiers & Int(controlKey) != 0 { values.append("Control") }
+        if carbonModifiers & Int(optionKey) != 0 { values.append("Option") }
+        if carbonModifiers & Int(shiftKey) != 0 { values.append("Shift") }
+        if carbonModifiers & Int(cmdKey) != 0 { values.append("Command") }
+        values.append(keyString)
+        return values.joined(separator: " + ")
     }
 
     var modifiersString: String {
@@ -161,34 +171,15 @@ enum ClickShortcutAction: String, CaseIterable, Identifiable, Sendable {
         case .toggleLaserPointer:
             return "Toggle Laser Pointer"
         case .toggleShowPress:
-            return "Toggle Show Press"
+            return "Toggle Press"
         case .toggleShowRelease:
-            return "Toggle Show Release"
+            return "Toggle Release"
         case .toggleShowRightClick:
-            return "Toggle Show Right Click"
+            return "Toggle Right Click"
         case .toggleShowMiddleClick:
-            return "Toggle Show Middle Click"
+            return "Toggle Middle Click"
         case .toggleShowDrag:
-            return "Toggle Show Drag"
-        }
-    }
-
-    var subtitle: String {
-        switch self {
-        case .toggleEnabled:
-            return "Enable or disable all click highlighting."
-        case .toggleLaserPointer:
-            return "Turn laser pointer mode on or off."
-        case .toggleShowPress:
-            return "Show or hide mouse-down highlights."
-        case .toggleShowRelease:
-            return "Show or hide mouse-up highlights."
-        case .toggleShowRightClick:
-            return "Show or hide right-click highlights."
-        case .toggleShowMiddleClick:
-            return "Show or hide middle-click highlights."
-        case .toggleShowDrag:
-            return "Show or hide drag trails."
+            return "Toggle Drag"
         }
     }
 
@@ -211,22 +202,14 @@ enum ClickShortcutAction: String, CaseIterable, Identifiable, Sendable {
         }
     }
 
-    var defaultBinding: HotKeyBinding {
+    var defaultBinding: HotKeyBinding? {
         switch self {
         case .toggleEnabled:
-            return HotKeyBinding(keyCode: kVK_ANSI_1, carbonModifiers: HotKeyBinding.defaultToggleModifiers)
+            return HotKeyBinding(keyCode: kVK_ANSI_L, carbonModifiers: HotKeyBinding.defaultToggleModifiers)
         case .toggleLaserPointer:
-            return HotKeyBinding(keyCode: kVK_ANSI_2, carbonModifiers: HotKeyBinding.defaultToggleModifiers)
-        case .toggleShowPress:
-            return HotKeyBinding(keyCode: kVK_ANSI_3, carbonModifiers: HotKeyBinding.defaultToggleModifiers)
-        case .toggleShowRelease:
-            return HotKeyBinding(keyCode: kVK_ANSI_4, carbonModifiers: HotKeyBinding.defaultToggleModifiers)
-        case .toggleShowRightClick:
-            return HotKeyBinding(keyCode: kVK_ANSI_5, carbonModifiers: HotKeyBinding.defaultToggleModifiers)
-        case .toggleShowMiddleClick:
-            return HotKeyBinding(keyCode: kVK_ANSI_6, carbonModifiers: HotKeyBinding.defaultToggleModifiers)
-        case .toggleShowDrag:
-            return HotKeyBinding(keyCode: kVK_ANSI_7, carbonModifiers: HotKeyBinding.defaultToggleModifiers)
+            return nil
+        case .toggleShowPress, .toggleShowRelease, .toggleShowRightClick, .toggleShowMiddleClick, .toggleShowDrag:
+            return nil
         }
     }
 }
