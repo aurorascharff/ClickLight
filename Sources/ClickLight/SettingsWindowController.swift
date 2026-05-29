@@ -7,6 +7,7 @@ final class SettingsWindowController: NSWindowController {
 
     init(
         settingsStore: SettingsStore,
+        activityStore: ClickActivityStore,
         launchAtLogin: LaunchAtLoginManaging,
         permissions: PermissionController,
         hotKeyRegistrationIssuesProvider: @escaping () -> [ClickShortcutAction: String]
@@ -19,7 +20,9 @@ final class SettingsWindowController: NSWindowController {
         )
         self.viewModel = viewModel
 
-        let hosting = NSHostingController(rootView: ClickLightSettingsView(viewModel: viewModel))
+        let hosting = NSHostingController(
+            rootView: ClickLightSettingsView(viewModel: viewModel, activityStore: activityStore)
+        )
         let window = NSWindow(contentViewController: hosting)
         window.title = "ClickLight Settings"
         window.styleMask = [.titled, .closable, .miniaturizable, .resizable]

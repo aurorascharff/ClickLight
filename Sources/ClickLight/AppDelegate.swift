@@ -5,6 +5,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     static let hotKeyRegistrationIssuesDidChangeNotification = Notification.Name("ClickLightHotKeyRegistrationIssuesDidChange")
 
     private let settingsStore = SettingsStore()
+    private let activityStore = ClickActivityStore()
     private var settingsWindowController: SettingsWindowController?
     private let hotKeyManager = HotKeyManager()
     private lazy var overlayCoordinator = OverlayCoordinator(settingsStore: settingsStore)
@@ -173,6 +174,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func clickEventDidArrive(_ notification: Notification) {
         guard let box = notification.object as? ClickEventBox else { return }
         guard settingsWindowController?.contains(box.event.location) != true else { return }
+        activityStore.record(box.event)
         overlayCoordinator.show(box.event)
     }
 
@@ -206,6 +208,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func openSettings() {
         let controller = settingsWindowController ?? SettingsWindowController(
             settingsStore: settingsStore,
+            activityStore: activityStore,
             launchAtLogin: launchAtLogin,
             permissions: permissions,
             hotKeyRegistrationIssuesProvider: { [weak self] in

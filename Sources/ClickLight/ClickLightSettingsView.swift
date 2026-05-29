@@ -3,9 +3,11 @@ import SwiftUI
 
 struct ClickLightSettingsView: View {
     @ObservedObject var viewModel: ClickLightSettingsViewModel
+    @ObservedObject var activityStore: ClickActivityStore
     @State private var selectedPane: SettingsPane = .general
     @State private var showResetConfirmation = false
     @State private var showShortcutResetConfirmation = false
+    @State private var showActivityResetConfirmation = false
 
     var body: some View {
         NavigationSplitView {
@@ -53,6 +55,8 @@ struct ClickLightSettingsView: View {
                             shortcutsPane
                         case .events:
                             eventsPane
+                        case .activity:
+                            activityPane
                         }
                     }
                 }
@@ -553,6 +557,68 @@ struct ClickLightSettingsView: View {
         }
     }
 
+    private var activityPane: some View {
+        VStack(spacing: 16) {
+            SettingsCard(
+                title: "Daily Clicks",
+                subtitle: "Your last seven days. Stored locally on this Mac."
+            ) {
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    Text(activityStore.today.totalClicks.formatted())
+                        .font(.system(size: 32, weight: .semibold, design: .rounded))
+                        .monospacedDigit()
+                    Text("clicks today")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.top, 4)
+
+                ClickActivityChart(days: activityStore.lastSevenDays, store: activityStore)
+                    .frame(height: 190)
+                    .padding(.top, 8)
+            }
+
+            SettingsCard(title: "Today") {
+                HStack(spacing: 0) {
+                    ActivityMetric(title: "Primary", value: activityStore.today.primaryClicks)
+                    Divider().frame(height: 44)
+                    ActivityMetric(title: "Right", value: activityStore.today.secondaryClicks)
+                    Divider().frame(height: 44)
+                    ActivityMetric(title: "Middle", value: activityStore.today.middleClicks)
+                    Divider().frame(height: 44)
+                    ActivityMetric(title: "Drags", value: activityStore.today.drags)
+                }
+                .padding(.vertical, 6)
+            }
+
+            SettingsCard {
+                ModernRow(
+                    title: "Reset Activity History",
+                    subtitle: "Remove all click counts stored by ClickLight."
+                ) {
+                    Button(role: .destructive) {
+                        showActivityResetConfirmation = true
+                    } label: {
+                        Label("Reset", systemImage: "arrow.counterclockwise")
+                    }
+                    .controlSize(.regular)
+                }
+            }
+        }
+        .confirmationDialog(
+            "Reset click activity history?",
+            isPresented: $showActivityResetConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Reset", role: .destructive) {
+                activityStore.reset()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This removes the daily click totals saved on this Mac.")
+        }
+    }
+
     // MARK: - Helpers
 
     private var resolvedColor: Color {
@@ -714,6 +780,64 @@ private struct ColorSwatch: View {
     }
 }
 
+private struct ClickActivityChart: View {
+    let days: [ClickActivityDay]
+    @ObservedObject var store: ClickActivityStore
+
+    private var maximum: Int {
+        max(1, days.map(\.totalClicks).max() ?? 1)
+    }
+
+    var body: some View {
+        HStack(alignment: .bottom, spacing: 12) {
+            ForEach(days) { day in
+                VStack(spacing: 6) {
+                    Text(day.totalClicks.formatted())
+                        .font(.caption2.monospacedDigit())
+                        .foregroundStyle(.secondary)
+
+                    GeometryReader { geometry in
+                        VStack {
+                            Spacer(minLength: 0)
+                            RoundedRectangle(cornerRadius: 4, style: .continuous)
+                                .fill(Color.accentColor)
+                                .frame(
+                                    height: max(
+                                        day.totalClicks == 0 ? 2 : 6,
+                                        geometry.size.height * CGFloat(day.totalClicks) / CGFloat(maximum)
+                                    )
+                                )
+                        }
+                    }
+
+                    Text(store.label(for: day))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(store.accessibilityLabel(for: day))
+            }
+        }
+    }
+}
+
+private struct ActivityMetric: View {
+    let title: String
+    let value: Int
+
+    var body: some View {
+        VStack(alignment: .center, spacing: 4) {
+            Text(value.formatted())
+                .font(.headline.monospacedDigit())
+            Text(title)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .combine)
+    }
+}
+
 private struct ClickPreviewPad: NSViewRepresentable {
     let settings: ClickSettings
 
@@ -825,6 +949,7 @@ private enum SettingsPane: String, CaseIterable, Hashable {
     case events
     case style
     case shortcuts
+    case activity
 
     var title: String {
         switch self {
@@ -836,6 +961,8 @@ private enum SettingsPane: String, CaseIterable, Hashable {
             return "Keyboard Shortcuts"
         case .events:
             return "Event Visibility"
+        case .activity:
+            return "Activity"
         }
     }
 
@@ -849,6 +976,8 @@ private enum SettingsPane: String, CaseIterable, Hashable {
             return "Set global shortcuts."
         case .events:
             return "Choose which mouse interactions trigger a pulse."
+        case .activity:
+            return "A local daily view of your clicking."
         }
     }
 
@@ -862,6 +991,8 @@ private enum SettingsPane: String, CaseIterable, Hashable {
             return "keyboard"
         case .events:
             return "cursorarrow.click.2"
+        case .activity:
+            return "chart.bar.xaxis"
         }
     }
 }
