@@ -1,7 +1,7 @@
 cask "clicklight" do
   auto_updates true
-  version "0.9.1"
-  sha256 "879614890d43882c1e56a400218bb66cea75b36ca85a8f2c4cbddbcecd7806fc"
+  version "0.10.0"
+  sha256 "d5bd625122e53d85081a7aa39fc952c1301ae61cd08480a8ad3dbe1773575a46"
 
   url "https://github.com/aurorascharff/ClickLight/releases/download/v#{version}/ClickLight.zip"
   name "ClickLight"
