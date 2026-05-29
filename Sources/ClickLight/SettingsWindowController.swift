@@ -60,6 +60,7 @@ final class ClickLightSettingsViewModel: NSObject, ObservableObject {
     @Published private(set) var settings: ClickSettings
     @Published private(set) var launchAtLoginEnabled: Bool = false
     @Published private(set) var accessibilityTrusted: Bool = false
+    @Published private(set) var inputMonitoringTrusted: Bool = false
     @Published var launchAtLoginErrorMessage: String?
     @Published private(set) var shortcutErrors: [ClickShortcutAction: String] = [:]
     @Published private(set) var hotKeyRegistrationIssues: [ClickShortcutAction: String] = [:]
@@ -78,6 +79,7 @@ final class ClickLightSettingsViewModel: NSObject, ObservableObject {
         super.init()
         self.launchAtLoginEnabled = launchAtLogin.isEnabled
         self.accessibilityTrusted = permissions.isAccessibilityTrusted
+        self.inputMonitoringTrusted = permissions.isInputMonitoringTrusted
         self.shortcutErrors = Self.findShortcutConflicts(in: settings)
         self.hotKeyRegistrationIssues = hotKeyRegistrationIssuesProvider()
         NotificationCenter.default.addObserver(
@@ -133,6 +135,7 @@ final class ClickLightSettingsViewModel: NSObject, ObservableObject {
     func refreshSystemState() {
         launchAtLoginEnabled = launchAtLogin.isEnabled
         accessibilityTrusted = permissions.isAccessibilityTrusted
+        inputMonitoringTrusted = permissions.isInputMonitoringTrusted
     }
 
     func setLaunchAtLogin(_ enabled: Bool) {
@@ -148,6 +151,11 @@ final class ClickLightSettingsViewModel: NSObject, ObservableObject {
     func openAccessibilitySettings() {
         permissions.requestAccessibilityIfNeeded()
         permissions.openPrivacySettings()
+    }
+
+    func openInputMonitoringSettings() {
+        permissions.requestInputMonitoringIfNeeded()
+        permissions.openInputMonitoringSettings()
     }
 
     var sizePresetSelection: String {

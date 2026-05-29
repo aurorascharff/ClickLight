@@ -3,7 +3,7 @@ import Foundation
 protocol ClickEventCapturing: AnyObject {
     var statusLabel: String { get }
 
-    func start(laserPointerEnabled: Bool)
+    func start(laserPointerEnabled: Bool, liveKeyboardShortcutsEnabled: Bool)
     func stop()
 }
 
@@ -23,12 +23,18 @@ final class ClickCaptureController {
 
     func startIfEnabled() {
         guard settingsStore.settings.isEnabled else { return }
-        eventTap.start(laserPointerEnabled: settingsStore.settings.showLaserPointer)
+        eventTap.start(
+            laserPointerEnabled: settingsStore.settings.showLaserPointer,
+            liveKeyboardShortcutsEnabled: settingsStore.settings.showLiveKeyboardShortcuts
+        )
     }
 
     func refreshEnabledState() {
         if settingsStore.settings.isEnabled {
-            eventTap.start(laserPointerEnabled: settingsStore.settings.showLaserPointer)
+            eventTap.start(
+                laserPointerEnabled: settingsStore.settings.showLaserPointer,
+                liveKeyboardShortcutsEnabled: settingsStore.settings.showLiveKeyboardShortcuts
+            )
         } else {
             eventTap.stop()
         }

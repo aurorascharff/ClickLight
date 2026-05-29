@@ -2,11 +2,13 @@ import AppKit
 
 final class ClickEventTap: ClickEventCapturing {
     static let didReceiveClickEvent = Notification.Name("ClickLightDidReceiveClickEvent")
+    static let didReceiveKeyboardShortcutEvent = Notification.Name("ClickLightDidReceiveKeyboardShortcutEvent")
 
     private var eventTap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
     private var globalMonitor: Any?
     private var laserPointerEnabled = false
+    private var liveKeyboardShortcutsEnabled = false
 
     var statusLabel: String {
         switch (eventTap != nil, globalMonitor != nil) {
@@ -21,10 +23,12 @@ final class ClickEventTap: ClickEventCapturing {
         }
     }
 
-    func start(laserPointerEnabled: Bool) {
-        if self.laserPointerEnabled != laserPointerEnabled {
+    func start(laserPointerEnabled: Bool, liveKeyboardShortcutsEnabled: Bool) {
+        if self.laserPointerEnabled != laserPointerEnabled ||
+            self.liveKeyboardShortcutsEnabled != liveKeyboardShortcutsEnabled {
             stop()
             self.laserPointerEnabled = laserPointerEnabled
+            self.liveKeyboardShortcutsEnabled = liveKeyboardShortcutsEnabled
         }
         startEventTapIfNeeded()
         startGlobalMonitorIfNeeded()
@@ -51,6 +55,9 @@ final class ClickEventTap: ClickEventCapturing {
         ]
         if laserPointerEnabled {
             types.append(.mouseMoved)
+        }
+        if liveKeyboardShortcutsEnabled {
+            types.append(.keyDown)
         }
         let mask = types.reduce(CGEventMask(0)) { partial, eventType in
             partial | (1 << CGEventMask(eventType.rawValue))
@@ -107,8 +114,15 @@ final class ClickEventTap: ClickEventCapturing {
         if laserPointerEnabled {
             eventTypes.insert(.mouseMoved)
         }
+        if liveKeyboardShortcutsEnabled {
+            eventTypes.insert(.keyDown)
+        }
 
         globalMonitor = NSEvent.addGlobalMonitorForEvents(matching: eventTypes) { event in
+            if event.type == .keyDown, let shortcut = Self.keyboardShortcut(from: event) {
+                Self.post(shortcut: shortcut, timestamp: event.timestamp)
+                return
+            }
             guard let kind = ClickKind(event: event) else { return }
             Self.post(kind: kind, timestamp: event.timestamp)
         }
@@ -126,6 +140,11 @@ final class ClickEventTap: ClickEventCapturing {
             if let eventTap {
                 CGEvent.tapEnable(tap: eventTap, enable: true)
             }
+            return Unmanaged.passUnretained(event)
+        }
+
+        if type == .keyDown, let nsEvent = NSEvent(cgEvent: event), let shortcut = Self.keyboardShortcut(from: nsEvent) {
+            Self.post(shortcut: shortcut, timestamp: event.timestampSeconds)
             return Unmanaged.passUnretained(event)
         }
 
@@ -147,6 +166,32 @@ final class ClickEventTap: ClickEventCapturing {
             )
             NotificationCenter.default.post(name: Self.didReceiveClickEvent, object: ClickEventBox(clickEvent))
         }
+    }
+
+    private static func post(shortcut: HotKeyBinding, timestamp: TimeInterval) {
+        DispatchQueue.main.async {
+            let shortcutEvent = KeyboardShortcutEvent(
+                displayString: shortcut.displayString,
+                location: NSEvent.mouseLocation,
+                timestamp: timestamp
+            )
+            NotificationCenter.default.post(
+                name: Self.didReceiveKeyboardShortcutEvent,
+                object: KeyboardShortcutEventBox(shortcutEvent)
+            )
+        }
+    }
+
+    private static func keyboardShortcut(from event: NSEvent) -> HotKeyBinding? {
+        let modifiers = event.modifierFlags.intersection([.command, .option, .control, .shift])
+        guard !modifiers.intersection([.command, .option, .control]).isEmpty else { return nil }
+
+        let shortcut = HotKeyBinding(
+            keyCode: Int(event.keyCode),
+            carbonModifiers: HotKeyBinding.carbonModifiers(from: modifiers)
+        )
+        guard shortcut.keyString != "?" else { return nil }
+        return shortcut
     }
 }
 

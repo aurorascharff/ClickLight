@@ -30,6 +30,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let launchAtLogin = LaunchAtLoginController()
     private var captureEnabledState: Bool?
     private var laserPointerEnabledState: Bool?
+    private var liveKeyboardShortcutsEnabledState: Bool?
     private var hotKeyBindingsState: [ClickShortcutAction: HotKeyBinding] = [:]
     private var hotKeyRegistrationIssuesState: [ClickShortcutAction: String] = [:]
     private var activeShortcutRecorders = 0
@@ -40,6 +41,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         permissions.requestAccessibilityIfNeeded()
         captureEnabledState = settingsStore.settings.isEnabled
         laserPointerEnabledState = settingsStore.settings.showLaserPointer
+        liveKeyboardShortcutsEnabledState = settingsStore.settings.showLiveKeyboardShortcuts
         captureController.startIfEnabled()
         statusController.start()
         configureHotKeysIfNeeded(with: settingsStore.settings, force: true)
@@ -54,6 +56,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             self,
             selector: #selector(clickEventDidArrive(_:)),
             name: ClickEventTap.didReceiveClickEvent,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(keyboardShortcutEventDidArrive(_:)),
+            name: ClickEventTap.didReceiveKeyboardShortcutEvent,
             object: nil
         )
         NotificationCenter.default.addObserver(
@@ -98,13 +106,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func settingsDidChange() {
         let settings = settingsStore.settings
+        if settings.showLiveKeyboardShortcuts && liveKeyboardShortcutsEnabledState != true {
+            permissions.requestInputMonitoringIfNeeded()
+        }
         overlayCoordinator.refreshSettings()
         configureHotKeysIfNeeded(with: settings)
         let isEnabled = settings.isEnabled
         let laserPointerEnabled = settings.showLaserPointer
-        guard captureEnabledState != isEnabled || laserPointerEnabledState != laserPointerEnabled else { return }
+        let liveKeyboardShortcutsEnabled = settings.showLiveKeyboardShortcuts
+        guard captureEnabledState != isEnabled ||
+            laserPointerEnabledState != laserPointerEnabled ||
+            liveKeyboardShortcutsEnabledState != liveKeyboardShortcutsEnabled else { return }
         captureEnabledState = isEnabled
         laserPointerEnabledState = laserPointerEnabled
+        liveKeyboardShortcutsEnabledState = liveKeyboardShortcutsEnabled
         captureController.refreshEnabledState()
     }
 
@@ -158,6 +173,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func clickEventDidArrive(_ notification: Notification) {
         guard let box = notification.object as? ClickEventBox else { return }
         guard settingsWindowController?.contains(box.event.location) != true else { return }
+        overlayCoordinator.show(box.event)
+    }
+
+    @objc private func keyboardShortcutEventDidArrive(_ notification: Notification) {
+        guard let box = notification.object as? KeyboardShortcutEventBox else { return }
         overlayCoordinator.show(box.event)
     }
 

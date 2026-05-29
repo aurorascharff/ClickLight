@@ -37,6 +37,7 @@ Prefer not to use Homebrew? Download `ClickLight.zip` from [GitHub Releases](htt
 - Click highlights across macOS apps
 - Separate visuals for press, release, right-click, and drag
 - Optional laser pointer mode with fading freehand strokes while dragging
+- Optional live keyboard shortcut display beside the pointer
 - Dedicated settings window with sliders + presets for size, duration, intensity, and color
 - Custom color picker in Settings
 - Menu-bar quick presets for size, duration, intensity, and color
@@ -67,6 +68,8 @@ All shortcuts can be changed or disabled in Settings.
 ClickLight requires Accessibility permission to detect clicks outside its own menu-bar app. You will be prompted on first launch, or grant it manually in:
 
 **System Settings -> Privacy & Security -> Accessibility**
+
+The optional Live Keyboard Shortcuts display additionally requires **Input Monitoring**, because macOS protects keyboard input separately from mouse clicks.
 
 After enabling permission, quit ClickLight from the menu bar and reopen it.
 

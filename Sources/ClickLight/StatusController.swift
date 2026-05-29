@@ -104,6 +104,11 @@ final class StatusController: NSObject {
             action: #selector(toggleLaserPointer(_:)),
             shortcut: settings.shortcutBindings[.toggleLaserPointer]
         ))
+        menu.addItem(toggleItem(
+            title: "Show Live Keyboard Shortcuts",
+            isOn: settings.showLiveKeyboardShortcuts,
+            action: #selector(toggleLiveKeyboardShortcuts(_:))
+        ))
         menu.addItem(NSMenuItem.separator())
 
         menu.addItem(toggleItem(
@@ -181,6 +186,13 @@ final class StatusController: NSObject {
         permissionItem.target = self
         permissionItem.isEnabled = true
         menu.addItem(permissionItem)
+        if settings.showLiveKeyboardShortcuts {
+            let inputTitle = permissions.isInputMonitoringTrusted ? "Input Monitoring: Granted" : "Open Input Monitoring Settings..."
+            let inputItem = NSMenuItem(title: inputTitle, action: #selector(openInputMonitoringSettings), keyEquivalent: "")
+            inputItem.target = self
+            inputItem.isEnabled = true
+            menu.addItem(inputItem)
+        }
 
         menu.addItem(NSMenuItem.separator())
         let updatesConfigured = updatesAreConfigured()
@@ -322,6 +334,11 @@ final class StatusController: NSObject {
         settingsStore.update { $0.showLaserPointer.toggle() }
     }
 
+    @objc private func toggleLiveKeyboardShortcuts(_ sender: NSMenuItem) {
+        dismissMenu(from: sender)
+        settingsStore.update { $0.showLiveKeyboardShortcuts.toggle() }
+    }
+
     @objc private func toggleMenuBarText() {
         settingsStore.update { $0.showMenuBarText.toggle() }
     }
@@ -362,6 +379,11 @@ final class StatusController: NSObject {
     @objc private func openAccessibilitySettings() {
         permissions.requestAccessibilityIfNeeded()
         permissions.openPrivacySettings()
+    }
+
+    @objc private func openInputMonitoringSettings() {
+        permissions.requestInputMonitoringIfNeeded()
+        permissions.openInputMonitoringSettings()
     }
 
     @objc private func checkForUpdates() {

@@ -8,6 +8,7 @@ struct ClickSettings: Equatable {
     var showMiddleClick: Bool
     var showDrag: Bool
     var showLaserPointer: Bool
+    var showLiveKeyboardShortcuts: Bool
     var showMenuBarText: Bool
     var size: CGFloat
     var intensity: CGFloat
@@ -90,6 +91,7 @@ struct ClickSettings: Equatable {
         showMiddleClick: true,
         showDrag: true,
         showLaserPointer: false,
+        showLiveKeyboardShortcuts: false,
         showMenuBarText: false,
         size: 64,
         intensity: 0.7,
@@ -274,6 +276,7 @@ final class SettingsStore {
         static let showMiddleClick = "showMiddleClick"
         static let showDrag = "showDrag"
         static let showLaserPointer = "showLaserPointer"
+        static let showLiveKeyboardShortcuts = "showLiveKeyboardShortcuts"
         static let showMenuBarText = "showMenuBarText"
         static let size = "size"
         static let intensity = "intensity"
@@ -335,6 +338,7 @@ final class SettingsStore {
                 showMiddleClick: defaults.bool(forKey: Key.showMiddleClick),
                 showDrag: defaults.bool(forKey: Key.showDrag),
                 showLaserPointer: defaults.bool(forKey: Key.showLaserPointer),
+                showLiveKeyboardShortcuts: defaults.bool(forKey: Key.showLiveKeyboardShortcuts),
                 showMenuBarText: defaults.bool(forKey: Key.showMenuBarText),
                 size: CGFloat(defaults.double(forKey: Key.size)),
                 intensity: CGFloat(defaults.double(forKey: Key.intensity)),
@@ -401,6 +405,7 @@ final class SettingsStore {
             defaults.set(newValue.showMiddleClick, forKey: Key.showMiddleClick)
             defaults.set(newValue.showDrag, forKey: Key.showDrag)
             defaults.set(newValue.showLaserPointer, forKey: Key.showLaserPointer)
+            defaults.set(newValue.showLiveKeyboardShortcuts, forKey: Key.showLiveKeyboardShortcuts)
             defaults.set(newValue.showMenuBarText, forKey: Key.showMenuBarText)
             defaults.set(Double(newValue.size), forKey: Key.size)
             defaults.set(Double(newValue.intensity), forKey: Key.intensity)
@@ -464,6 +469,7 @@ final class SettingsStore {
             Key.showMiddleClick: defaults.showMiddleClick,
             Key.showDrag: defaults.showDrag,
             Key.showLaserPointer: defaults.showLaserPointer,
+            Key.showLiveKeyboardShortcuts: defaults.showLiveKeyboardShortcuts,
             Key.showMenuBarText: defaults.showMenuBarText,
             Key.size: Double(defaults.size),
             Key.intensity: Double(defaults.intensity),

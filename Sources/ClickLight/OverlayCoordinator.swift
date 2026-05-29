@@ -6,6 +6,7 @@ final class OverlayCoordinator {
     private var settings: ClickSettings
     private var overlaysByScreenID: [NSNumber: ClickOverlayWindow] = [:]
     private var recentEvents: [ClickEvent] = []
+    private var recentShortcutEvents: [KeyboardShortcutEvent] = []
 
     init(settingsStore: SettingsStore) {
         self.settingsStore = settingsStore
@@ -39,6 +40,19 @@ final class OverlayCoordinator {
         }
 
         overlaysByScreenID[screenID]?.show(event: event, settings: settings)
+    }
+
+    func show(_ event: KeyboardShortcutEvent) {
+        guard settings.isEnabled, settings.showLiveKeyboardShortcuts else { return }
+        guard shouldAccept(event) else { return }
+        guard let screen = screen(containing: event.location) else { return }
+
+        let screenID = screen.identifier
+        if overlaysByScreenID[screenID] == nil {
+            rebuildOverlays()
+        }
+
+        overlaysByScreenID[screenID]?.show(shortcut: event, settings: settings)
     }
 
     @objc private func screenParametersDidChange() {
@@ -83,6 +97,18 @@ final class OverlayCoordinator {
         }
         if !duplicate {
             recentEvents.append(event)
+        }
+        return !duplicate
+    }
+
+    private func shouldAccept(_ event: KeyboardShortcutEvent) -> Bool {
+        let now = CACurrentMediaTime()
+        recentShortcutEvents = recentShortcutEvents.filter { now - $0.timestamp < 0.1 }
+        let duplicate = recentShortcutEvents.contains { existing in
+            existing.displayString == event.displayString
+        }
+        if !duplicate {
+            recentShortcutEvents.append(event)
         }
         return !duplicate
     }

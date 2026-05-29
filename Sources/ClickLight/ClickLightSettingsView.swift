@@ -392,6 +392,29 @@ struct ClickLightSettingsView: View {
                         .accessibilityLabel("Laser Pointer Mode")
                 }
                 Divider().padding(.vertical, 6)
+                ModernRow(title: "Show Live Keyboard Shortcuts",
+                          subtitle: "Display shortcut combinations beside the pointer while you use them.") {
+                    Toggle("", isOn: binding(\.showLiveKeyboardShortcuts))
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                        .accessibilityLabel("Show Live Keyboard Shortcuts")
+                }
+                if viewModel.settings.showLiveKeyboardShortcuts {
+                    Divider().padding(.vertical, 6)
+                    ModernRow(title: viewModel.inputMonitoringTrusted ? "Input Monitoring Granted" : "Input Monitoring Required",
+                              subtitle: viewModel.inputMonitoringTrusted
+                                  ? "ClickLight can observe keyboard shortcuts across apps."
+                                  : "Allow Input Monitoring to display shortcuts outside ClickLight.") {
+                        Button {
+                            viewModel.openInputMonitoringSettings()
+                        } label: {
+                            Label(viewModel.inputMonitoringTrusted ? "Open Settings" : "Grant Access...",
+                                  systemImage: "arrow.up.right.square")
+                        }
+                        .controlSize(.regular)
+                    }
+                }
+                Divider().padding(.vertical, 6)
                 ModernRow(title: "Show Press",
                           subtitle: "Highlight when the mouse button goes down.") {
                     Toggle("", isOn: binding(\.showPress))

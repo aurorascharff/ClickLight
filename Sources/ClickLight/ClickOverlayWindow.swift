@@ -36,4 +36,9 @@ final class ClickOverlayWindow: NSWindow {
         orderFrontRegardless()
         overlayView.show(event: event, settings: settings)
     }
+
+    func show(shortcut: KeyboardShortcutEvent, settings: ClickSettings) {
+        orderFrontRegardless()
+        overlayView.show(shortcut: shortcut, settings: settings)
+    }
 }

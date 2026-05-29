@@ -7,6 +7,7 @@ final class ClickOverlayView: NSView {
     private var laserCursor: LaserCursor?
     private var activeLaserStroke: LaserStroke?
     private var completedLaserStrokes: [LaserStroke] = []
+    private var liveShortcutLabel: LiveShortcutLabel?
     private var displayLink: Timer?
 
     init(screenFrame: CGRect, settings: ClickSettings) {
@@ -27,6 +28,10 @@ final class ClickOverlayView: NSView {
             laserCursor = nil
             activeLaserStroke = nil
             completedLaserStrokes = []
+            needsDisplay = true
+        }
+        if !settings.showLiveKeyboardShortcuts {
+            liveShortcutLabel = nil
             needsDisplay = true
         }
     }
@@ -70,6 +75,20 @@ final class ClickOverlayView: NSView {
         needsDisplay = true
     }
 
+    func show(shortcut: KeyboardShortcutEvent, settings: ClickSettings) {
+        self.settings = settings
+        liveShortcutLabel = LiveShortcutLabel(
+            text: shortcut.displayString,
+            point: CGPoint(
+                x: shortcut.location.x - screenFrame.minX,
+                y: shortcut.location.y - screenFrame.minY
+            ),
+            startTime: CACurrentMediaTime()
+        )
+        startDisplayLink()
+        needsDisplay = true
+    }
+
     override func draw(_ dirtyRect: NSRect) {
         super.draw(dirtyRect)
         guard let context = NSGraphicsContext.current?.cgContext else { return }
@@ -77,13 +96,21 @@ final class ClickOverlayView: NSView {
         let now = CACurrentMediaTime()
         pulses = pulses.filter { !$0.isExpired(at: now) }
         completedLaserStrokes = completedLaserStrokes.filter { !$0.isExpired(at: now) }
+        if liveShortcutLabel?.isExpired(at: now) == true {
+            liveShortcutLabel = nil
+        }
 
         drawLaser(at: now, in: context)
         for pulse in pulses {
             draw(pulse: pulse, at: now, in: context)
         }
+        drawLiveShortcutLabel(at: now, in: context)
 
-        if pulses.isEmpty && laserCursor?.isExpired(at: now) != false && activeLaserStroke == nil && completedLaserStrokes.isEmpty {
+        if pulses.isEmpty &&
+            laserCursor?.isExpired(at: now) != false &&
+            activeLaserStroke == nil &&
+            completedLaserStrokes.isEmpty &&
+            liveShortcutLabel == nil {
             stopDisplayLink()
         }
     }
@@ -167,6 +194,37 @@ final class ClickOverlayView: NSView {
         context.setLineWidth(5)
         context.strokePath()
         context.restoreGState()
+    }
+
+    private func drawLiveShortcutLabel(at now: CFTimeInterval, in context: CGContext) {
+        guard settings.showLiveKeyboardShortcuts, let label = liveShortcutLabel else { return }
+
+        let alpha = label.alpha(at: now)
+        let font = NSFont.monospacedSystemFont(ofSize: 18, weight: .semibold)
+        let attributes: [NSAttributedString.Key: Any] = [
+            .font: font,
+            .foregroundColor: NSColor.white.withAlphaComponent(alpha)
+        ]
+        let textSize = (label.text as NSString).size(withAttributes: attributes)
+        let padding = CGSize(width: 13, height: 8)
+        let size = CGSize(width: textSize.width + padding.width * 2, height: textSize.height + padding.height * 2)
+        let proposedOrigin = CGPoint(x: label.point.x + 18, y: label.point.y + 18)
+        let origin = CGPoint(
+            x: min(max(10, proposedOrigin.x), bounds.width - size.width - 10),
+            y: min(max(10, proposedOrigin.y), bounds.height - size.height - 10)
+        )
+        let rect = CGRect(origin: origin, size: size)
+
+        context.saveGState()
+        context.setFillColor(NSColor(calibratedWhite: 0.06, alpha: 0.88 * alpha).cgColor)
+        context.addPath(CGPath(roundedRect: rect, cornerWidth: 9, cornerHeight: 9, transform: nil))
+        context.fillPath()
+        context.restoreGState()
+
+        (label.text as NSString).draw(
+            at: CGPoint(x: rect.minX + padding.width, y: rect.minY + padding.height),
+            withAttributes: attributes
+        )
     }
 
     private func draw(pulse: ClickPulse, at now: CFTimeInterval, in context: CGContext) {
@@ -502,6 +560,26 @@ private struct LaserCursor {
 
     func isExpired(at time: CFTimeInterval) -> Bool {
         time - updatedAt >= Self.fadeDuration
+    }
+}
+
+private struct LiveShortcutLabel {
+    static let visibleDuration: TimeInterval = 0.72
+    static let fadeDuration: TimeInterval = 0.28
+
+    let text: String
+    let point: CGPoint
+    let startTime: CFTimeInterval
+
+    func alpha(at time: CFTimeInterval) -> CGFloat {
+        let elapsed = time - startTime
+        guard elapsed > Self.visibleDuration else { return 1 }
+        let fadeProgress = CGFloat((elapsed - Self.visibleDuration) / Self.fadeDuration)
+        return max(0, min(1, 1 - fadeProgress))
+    }
+
+    func isExpired(at time: CFTimeInterval) -> Bool {
+        time - startTime >= Self.visibleDuration + Self.fadeDuration
     }
 }
 
