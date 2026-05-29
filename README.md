@@ -38,6 +38,8 @@ Prefer not to use Homebrew? Download `ClickLight.zip` from [GitHub Releases](htt
 - Separate visuals for press, release, right-click, and drag
 - Optional laser pointer mode with fading freehand strokes while dragging
 - Dedicated settings window with sliders + presets for size, duration, intensity, and color
+- Live animated cursor preview in the Style pane, updating as you adjust settings
+- Randomize button to generate a random style, with per-field locks to pin values you want to keep
 - Custom color picker in Settings
 - Menu-bar quick presets for size, duration, intensity, and color
 - One default ClickLight toggle shortcut, with optional shortcuts for other actions
