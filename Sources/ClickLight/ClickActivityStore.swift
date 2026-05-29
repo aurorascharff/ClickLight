@@ -119,7 +119,7 @@ final class ClickActivityStore: ObservableObject {
     }
 
     private func pruneAndSave() {
-        guard let cutoff = calendar.date(byAdding: .day, value: -365, to: Date()) else { return }
+        guard let cutoff = calendar.date(byAdding: .day, value: -6, to: Date()) else { return }
         let cutoffID = dayID(for: cutoff)
         days = days.filter { $0.id >= cutoffID }.sorted { $0.id < $1.id }
         guard let encoded = try? encoder.encode(days) else { return }
