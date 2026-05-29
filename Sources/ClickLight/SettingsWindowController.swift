@@ -203,6 +203,45 @@ final class ClickLightSettingsViewModel: NSObject, ObservableObject {
         update { $0.duration = value }
     }
 
+    func randomizeStyle() {
+        let size = ClickSettingOptions.sizePresets.randomElement()?.value ?? Double(ClickSettings.defaults.size)
+        let intensity = ClickSettingOptions.intensityPresets.randomElement()?.value ?? Double(ClickSettings.defaults.intensity)
+        let duration = ClickSettingOptions.durationPresets.randomElement()?.value ?? ClickSettings.defaults.duration
+        let baseHue = CGFloat.random(in: 0...1)
+        let colors = [0.0, 0.23, 0.46, 0.69].shuffled().map { offset in
+            NSColor(
+                calibratedHue: (baseHue + CGFloat(offset)).truncatingRemainder(dividingBy: 1),
+                saturation: CGFloat.random(in: 0.65...0.95),
+                brightness: CGFloat.random(in: 0.75...1),
+                alpha: 1
+            )
+        }
+        let left = colors[0]
+        let right = colors[1]
+        let middle = colors[2]
+        let drag = colors[3]
+
+        update {
+            $0.size = CGFloat(size)
+            $0.intensity = CGFloat(intensity)
+            $0.duration = duration
+            $0.customLeftColorRed = left.redComponent
+            $0.customLeftColorGreen = left.greenComponent
+            $0.customLeftColorBlue = left.blueComponent
+            $0.customRightColorRed = right.redComponent
+            $0.customRightColorGreen = right.greenComponent
+            $0.customRightColorBlue = right.blueComponent
+            $0.customMiddleColorRed = middle.redComponent
+            $0.customMiddleColorGreen = middle.greenComponent
+            $0.customMiddleColorBlue = middle.blueComponent
+            $0.customDragColorRed = drag.redComponent
+            $0.customDragColorGreen = drag.greenComponent
+            $0.customDragColorBlue = drag.blueComponent
+            $0.colorPreset = .custom
+            $0.customColorMode = .byClick
+        }
+    }
+
     func applyCustomColor(_ color: NSColor) {
         guard let rgb = color.usingColorSpace(.deviceRGB) else { return }
         update {

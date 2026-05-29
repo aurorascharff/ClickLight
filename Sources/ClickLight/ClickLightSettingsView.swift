@@ -36,6 +36,16 @@ struct ClickLightSettingsView: View {
                     ClickPreviewPad(settings: viewModel.settings)
                         .frame(height: 116)
                         .accessibilityLabel("Preview Pad")
+
+                    Button {
+                        viewModel.randomizeStyle()
+                    } label: {
+                        Label("Randomize", systemImage: "die.face.5.fill")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                    .accessibilityHint("Choose random visual presets")
                 }
                 .padding(12)
             }
