@@ -201,7 +201,7 @@ final class ClickOverlayView: NSView {
 
         let alpha = label.alpha(at: now)
         let style = settings.liveShortcutSize
-        let font = NSFont.monospacedSystemFont(ofSize: style.fontSize, weight: .semibold)
+        let font = NSFont.systemFont(ofSize: style.fontSize, weight: .semibold)
         let attributes: [NSAttributedString.Key: Any] = [
             .font: font,
             .foregroundColor: NSColor.white.withAlphaComponent(alpha)

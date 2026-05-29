@@ -223,9 +223,19 @@ enum LiveShortcutSize: String, CaseIterable, Equatable {
     case small
     case medium
     case large
+    case extraLarge
 
     var title: String {
-        rawValue.capitalized
+        switch self {
+        case .small:
+            return "Small"
+        case .medium:
+            return "Medium"
+        case .large:
+            return "Large"
+        case .extraLarge:
+            return "XL"
+        }
     }
 
     var fontSize: CGFloat {
@@ -236,6 +246,8 @@ enum LiveShortcutSize: String, CaseIterable, Equatable {
             return 18
         case .large:
             return 25
+        case .extraLarge:
+            return 34
         }
     }
 
@@ -247,6 +259,8 @@ enum LiveShortcutSize: String, CaseIterable, Equatable {
             return CGSize(width: 13, height: 8)
         case .large:
             return CGSize(width: 18, height: 11)
+        case .extraLarge:
+            return CGSize(width: 22, height: 14)
         }
     }
 
@@ -258,6 +272,8 @@ enum LiveShortcutSize: String, CaseIterable, Equatable {
             return 9
         case .large:
             return 12
+        case .extraLarge:
+            return 14
         }
     }
 }

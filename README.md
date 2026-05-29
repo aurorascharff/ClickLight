@@ -37,7 +37,7 @@ Prefer not to use Homebrew? Download `ClickLight.zip` from [GitHub Releases](htt
 - Click highlights across macOS apps
 - Separate visuals for press, release, right-click, and drag
 - Optional laser pointer mode with fading freehand strokes while dragging
-- Optional live keyboard shortcut display pinned to the bottom of the screen by default, with pointer-following placement and adjustable badge size available
+- Optional live keyboard shortcut display pinned to the bottom of the screen by default, with pointer-following placement and sizes through XL available
 - Local daily click activity chart with a resettable seven-day history
 - Optional daily click count in the menu bar
 - Dedicated settings window with sliders + presets for size, duration, intensity, and color
