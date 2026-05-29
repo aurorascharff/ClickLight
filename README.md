@@ -39,6 +39,7 @@ Prefer not to use Homebrew? Download `ClickLight.zip` from [GitHub Releases](htt
 - Optional laser pointer mode with fading freehand strokes while dragging
 - Optional live keyboard shortcut display beside the pointer
 - Local daily click activity chart with a resettable seven-day history
+- Optional daily click count in the menu bar
 - Dedicated settings window with sliders + presets for size, duration, intensity, and color
 - Custom color picker in Settings
 - Menu-bar quick presets for size, duration, intensity, and color

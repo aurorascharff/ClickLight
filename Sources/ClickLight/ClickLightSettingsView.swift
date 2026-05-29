@@ -150,12 +150,22 @@ struct ClickLightSettingsView: View {
             }
 
             SettingsCard {
-                ModernRow(title: "Show Menu Bar Text",
-                          subtitle: "Display the ClickLight name next to the menu bar icon.") {
-                    Toggle("", isOn: binding(\.showMenuBarText))
-                        .toggleStyle(.switch)
-                        .labelsHidden()
-                        .accessibilityLabel("Show Menu Bar Text")
+                VStack(spacing: 0) {
+                    ModernRow(title: "Show Menu Bar Text",
+                              subtitle: "Display the ClickLight name next to the menu bar icon.") {
+                        Toggle("", isOn: binding(\.showMenuBarText))
+                            .toggleStyle(.switch)
+                            .labelsHidden()
+                            .accessibilityLabel("Show Menu Bar Text")
+                    }
+                    Divider().padding(.vertical, 6)
+                    ModernRow(title: "Show Click Count in Menu Bar",
+                              subtitle: "Display today's click total beside the menu bar icon.") {
+                        Toggle("", isOn: binding(\.showMenuBarClickCount))
+                            .toggleStyle(.switch)
+                            .labelsHidden()
+                            .accessibilityLabel("Show Click Count in Menu Bar")
+                    }
                 }
             }
 

@@ -10,6 +10,7 @@ struct ClickSettings: Equatable {
     var showLaserPointer: Bool
     var showLiveKeyboardShortcuts: Bool
     var showMenuBarText: Bool
+    var showMenuBarClickCount: Bool
     var size: CGFloat
     var intensity: CGFloat
     var duration: TimeInterval
@@ -93,6 +94,7 @@ struct ClickSettings: Equatable {
         showLaserPointer: false,
         showLiveKeyboardShortcuts: false,
         showMenuBarText: false,
+        showMenuBarClickCount: false,
         size: 64,
         intensity: 0.7,
         duration: 0.48,
@@ -278,6 +280,7 @@ final class SettingsStore {
         static let showLaserPointer = "showLaserPointer"
         static let showLiveKeyboardShortcuts = "showLiveKeyboardShortcuts"
         static let showMenuBarText = "showMenuBarText"
+        static let showMenuBarClickCount = "showMenuBarClickCount"
         static let size = "size"
         static let intensity = "intensity"
         static let duration = "duration"
@@ -340,6 +343,7 @@ final class SettingsStore {
                 showLaserPointer: defaults.bool(forKey: Key.showLaserPointer),
                 showLiveKeyboardShortcuts: defaults.bool(forKey: Key.showLiveKeyboardShortcuts),
                 showMenuBarText: defaults.bool(forKey: Key.showMenuBarText),
+                showMenuBarClickCount: defaults.bool(forKey: Key.showMenuBarClickCount),
                 size: CGFloat(defaults.double(forKey: Key.size)),
                 intensity: CGFloat(defaults.double(forKey: Key.intensity)),
                 duration: defaults.double(forKey: Key.duration),
@@ -407,6 +411,7 @@ final class SettingsStore {
             defaults.set(newValue.showLaserPointer, forKey: Key.showLaserPointer)
             defaults.set(newValue.showLiveKeyboardShortcuts, forKey: Key.showLiveKeyboardShortcuts)
             defaults.set(newValue.showMenuBarText, forKey: Key.showMenuBarText)
+            defaults.set(newValue.showMenuBarClickCount, forKey: Key.showMenuBarClickCount)
             defaults.set(Double(newValue.size), forKey: Key.size)
             defaults.set(Double(newValue.intensity), forKey: Key.intensity)
             defaults.set(newValue.duration, forKey: Key.duration)
@@ -471,6 +476,7 @@ final class SettingsStore {
             Key.showLaserPointer: defaults.showLaserPointer,
             Key.showLiveKeyboardShortcuts: defaults.showLiveKeyboardShortcuts,
             Key.showMenuBarText: defaults.showMenuBarText,
+            Key.showMenuBarClickCount: defaults.showMenuBarClickCount,
             Key.size: Double(defaults.size),
             Key.intensity: Double(defaults.intensity),
             Key.duration: defaults.duration,

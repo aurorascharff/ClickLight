@@ -1,9 +1,11 @@
 import AppKit
+import Combine
 
 @MainActor
 final class StatusController: NSObject {
     private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     private let settingsStore: SettingsStore
+    private let activityStore: ClickActivityStore
     private let permissions: PermissionController
     private let launchAtLogin: LaunchAtLoginManaging
     private let onCheckForUpdates: () -> Void
@@ -12,9 +14,11 @@ final class StatusController: NSObject {
     private let onQuit: () -> Void
     private let onMenuWillOpen: () -> Void
     private let onMenuDidClose: () -> Void
+    private var activityObserver: AnyCancellable?
 
     init(
         settingsStore: SettingsStore,
+        activityStore: ClickActivityStore,
         permissions: PermissionController,
         launchAtLogin: LaunchAtLoginManaging,
         onCheckForUpdates: @escaping () -> Void,
@@ -25,6 +29,7 @@ final class StatusController: NSObject {
         onMenuDidClose: @escaping () -> Void = {}
     ) {
         self.settingsStore = settingsStore
+        self.activityStore = activityStore
         self.permissions = permissions
         self.launchAtLogin = launchAtLogin
         self.onCheckForUpdates = onCheckForUpdates
@@ -48,6 +53,9 @@ final class StatusController: NSObject {
             name: SettingsStore.didChangeNotification,
             object: nil
         )
+        activityObserver = activityStore.$days.sink { [weak self] _ in
+            self?.applyStatusItemAppearance(self?.settingsStore.settings ?? .defaults)
+        }
     }
 
     func refresh() {
@@ -150,6 +158,11 @@ final class StatusController: NSObject {
             action: #selector(toggleMenuBarText)
         ))
         menu.addItem(toggleItem(
+            title: "Show Click Count in Menu Bar",
+            isOn: settings.showMenuBarClickCount,
+            action: #selector(toggleMenuBarClickCount)
+        ))
+        menu.addItem(toggleItem(
             title: "Launch at Login",
             isOn: launchAtLogin.isEnabled,
             action: #selector(toggleLaunchAtLogin)
@@ -205,6 +218,10 @@ final class StatusController: NSObject {
         updateItem.isEnabled = updatesConfigured
         menu.addItem(updateItem)
 
+        let aboutItem = NSMenuItem(title: "About ClickLight", action: #selector(showAbout), keyEquivalent: "")
+        aboutItem.target = self
+        menu.addItem(aboutItem)
+
         let quitItem = NSMenuItem(title: "Quit ClickLight", action: #selector(quit), keyEquivalent: "q")
         quitItem.target = self
         menu.addItem(quitItem)
@@ -212,8 +229,19 @@ final class StatusController: NSObject {
 
     private func applyStatusItemAppearance(_ settings: ClickSettings) {
         guard let button = statusItem.button else { return }
-        button.imagePosition = settings.showMenuBarText ? .imageLeading : .imageOnly
-        button.title = settings.showMenuBarText ? "ClickLight" : ""
+        var titleParts: [String] = []
+        if settings.showMenuBarText {
+            titleParts.append("ClickLight")
+        }
+        if settings.showMenuBarClickCount {
+            titleParts.append(compactCount(activityStore.today.totalClicks))
+        }
+        button.imagePosition = titleParts.isEmpty ? .imageOnly : .imageLeading
+        button.title = titleParts.joined(separator: " ")
+    }
+
+    private func compactCount(_ value: Int) -> String {
+        value.formatted(.number.notation(.compactName).precision(.fractionLength(0...1)))
     }
 
     private func toggleItem(
@@ -343,6 +371,10 @@ final class StatusController: NSObject {
         settingsStore.update { $0.showMenuBarText.toggle() }
     }
 
+    @objc private func toggleMenuBarClickCount() {
+        settingsStore.update { $0.showMenuBarClickCount.toggle() }
+    }
+
     @objc private func toggleLaunchAtLogin() {
         let enabled = LaunchAtLoginState.toggledValue(currentlyEnabled: launchAtLogin.isEnabled)
         do {
@@ -388,6 +420,19 @@ final class StatusController: NSObject {
 
     @objc private func checkForUpdates() {
         onCheckForUpdates()
+    }
+
+    @objc private func showAbout() {
+        let credits = NSMutableAttributedString(string: "Source on GitHub")
+        credits.addAttributes(
+            [
+                .link: URL(string: "https://github.com/aurorascharff/ClickLight")!,
+                .foregroundColor: NSColor.linkColor
+            ],
+            range: NSRange(location: 0, length: credits.length)
+        )
+        NSApp.orderFrontStandardAboutPanel(options: [.credits: credits])
+        NSApp.activate(ignoringOtherApps: true)
     }
 
     @objc private func quit() {

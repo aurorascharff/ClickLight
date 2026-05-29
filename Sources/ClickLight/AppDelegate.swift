@@ -12,6 +12,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private lazy var captureController = ClickCaptureController(settingsStore: settingsStore, eventTap: eventTap)
     private lazy var statusController = StatusController(
         settingsStore: settingsStore,
+        activityStore: activityStore,
         permissions: permissions,
         launchAtLogin: launchAtLogin,
         onCheckForUpdates: { UpdateChecker.shared.checkForUpdates() },
