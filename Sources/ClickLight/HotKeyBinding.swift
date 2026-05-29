@@ -69,18 +69,22 @@ struct HotKeyBinding: Equatable, Hashable, Sendable {
     }
 
     static func keyCodeToDisplayString(_ code: Int) -> String? {
+        if let specialKey = fallbackKeyCodeString(code) {
+            return specialKey
+        }
+
         guard let rawSource = TISCopyCurrentKeyboardLayoutInputSource() else {
-            return fallbackKeyCodeString(code)
+            return nil
         }
 
         let source = rawSource.takeRetainedValue()
         guard let dataPtr = TISGetInputSourceProperty(source, kTISPropertyUnicodeKeyLayoutData) else {
-            return fallbackKeyCodeString(code)
+            return nil
         }
 
         let layoutData = Unmanaged<CFData>.fromOpaque(dataPtr).takeUnretainedValue()
         guard let bytePtr = CFDataGetBytePtr(layoutData) else {
-            return fallbackKeyCodeString(code)
+            return nil
         }
 
         return bytePtr.withMemoryRebound(to: UCKeyboardLayout.self, capacity: 1) { layout in
@@ -102,7 +106,7 @@ struct HotKeyBinding: Equatable, Hashable, Sendable {
             )
 
             guard result == noErr, length > 0 else {
-                return fallbackKeyCodeString(code)
+                return nil
             }
 
             return String(utf16CodeUnits: Array(chars.prefix(length)), count: length).uppercased()

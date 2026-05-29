@@ -187,6 +187,40 @@ struct ClickLightSettingsView: View {
                 }
             }
 
+            if viewModel.settings.showLiveKeyboardShortcuts {
+                SettingsCard {
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack(spacing: 10) {
+                            Image(systemName: viewModel.inputMonitoringTrusted ? "checkmark.seal.fill" : "exclamationmark.triangle.fill")
+                                .font(.title3)
+                                .foregroundStyle(viewModel.inputMonitoringTrusted ? .green : .orange)
+                                .accessibilityHidden(true)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(viewModel.inputMonitoringTrusted ? "Input Monitoring Granted" : "Input Monitoring Required")
+                                    .font(.callout.weight(.medium))
+                                Text(viewModel.inputMonitoringTrusted
+                                     ? "ClickLight can observe keyboard shortcuts across the system."
+                                     : "Grant Input Monitoring access so ClickLight can show keyboard shortcuts.")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                        }
+                        .accessibilityElement(children: .combine)
+                        HStack {
+                            Spacer()
+                            Button {
+                                viewModel.openInputMonitoringSettings()
+                            } label: {
+                                Label(viewModel.inputMonitoringTrusted ? "Open Input Monitoring Settings" : "Grant Access...",
+                                      systemImage: "arrow.up.right.square")
+                            }
+                            .controlSize(.regular)
+                        }
+                    }
+                }
+            }
+
             SettingsCard {
                 ModernRow(title: "Reset to Defaults",
                           subtitle: "Restore size, intensity, duration, color, and toggles.") {
@@ -398,21 +432,6 @@ struct ClickLightSettingsView: View {
                         .toggleStyle(.switch)
                         .labelsHidden()
                         .accessibilityLabel("Show Live Keyboard Shortcuts")
-                }
-                if viewModel.settings.showLiveKeyboardShortcuts {
-                    Divider().padding(.vertical, 6)
-                    ModernRow(title: viewModel.inputMonitoringTrusted ? "Input Monitoring Granted" : "Input Monitoring Required",
-                              subtitle: viewModel.inputMonitoringTrusted
-                                  ? "ClickLight can observe keyboard shortcuts across apps."
-                                  : "Allow Input Monitoring to display shortcuts outside ClickLight.") {
-                        Button {
-                            viewModel.openInputMonitoringSettings()
-                        } label: {
-                            Label(viewModel.inputMonitoringTrusted ? "Open Settings" : "Grant Access...",
-                                  systemImage: "arrow.up.right.square")
-                        }
-                        .controlSize(.regular)
-                    }
                 }
                 Divider().padding(.vertical, 6)
                 ModernRow(title: "Show Press",
