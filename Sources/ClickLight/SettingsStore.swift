@@ -9,6 +9,8 @@ struct ClickSettings: Equatable {
     var showDrag: Bool
     var showLaserPointer: Bool
     var showLiveKeyboardShortcuts: Bool
+    var liveShortcutPosition: LiveShortcutPosition
+    var liveShortcutSize: LiveShortcutSize
     var showMenuBarText: Bool
     var showMenuBarClickCount: Bool
     var size: CGFloat
@@ -93,6 +95,8 @@ struct ClickSettings: Equatable {
         showDrag: true,
         showLaserPointer: false,
         showLiveKeyboardShortcuts: false,
+        liveShortcutPosition: .bottomCenter,
+        liveShortcutSize: .medium,
         showMenuBarText: false,
         showMenuBarClickCount: false,
         size: 64,
@@ -201,6 +205,63 @@ enum CustomClickColorMode: String, CaseIterable, Equatable {
     }
 }
 
+enum LiveShortcutPosition: String, CaseIterable, Equatable {
+    case nearPointer
+    case bottomCenter
+
+    var title: String {
+        switch self {
+        case .nearPointer:
+            return "Near Pointer"
+        case .bottomCenter:
+            return "Bottom Center"
+        }
+    }
+}
+
+enum LiveShortcutSize: String, CaseIterable, Equatable {
+    case small
+    case medium
+    case large
+
+    var title: String {
+        rawValue.capitalized
+    }
+
+    var fontSize: CGFloat {
+        switch self {
+        case .small:
+            return 15
+        case .medium:
+            return 18
+        case .large:
+            return 25
+        }
+    }
+
+    var padding: CGSize {
+        switch self {
+        case .small:
+            return CGSize(width: 11, height: 6)
+        case .medium:
+            return CGSize(width: 13, height: 8)
+        case .large:
+            return CGSize(width: 18, height: 11)
+        }
+    }
+
+    var cornerRadius: CGFloat {
+        switch self {
+        case .small:
+            return 8
+        case .medium:
+            return 9
+        case .large:
+            return 12
+        }
+    }
+}
+
 enum CustomClickColorTarget {
     case left
     case right
@@ -279,6 +340,8 @@ final class SettingsStore {
         static let showDrag = "showDrag"
         static let showLaserPointer = "showLaserPointer"
         static let showLiveKeyboardShortcuts = "showLiveKeyboardShortcuts"
+        static let liveShortcutPosition = "liveShortcutPosition"
+        static let liveShortcutSize = "liveShortcutSize"
         static let showMenuBarText = "showMenuBarText"
         static let showMenuBarClickCount = "showMenuBarClickCount"
         static let size = "size"
@@ -342,6 +405,8 @@ final class SettingsStore {
                 showDrag: defaults.bool(forKey: Key.showDrag),
                 showLaserPointer: defaults.bool(forKey: Key.showLaserPointer),
                 showLiveKeyboardShortcuts: defaults.bool(forKey: Key.showLiveKeyboardShortcuts),
+                liveShortcutPosition: LiveShortcutPosition(rawValue: defaults.string(forKey: Key.liveShortcutPosition) ?? "") ?? .bottomCenter,
+                liveShortcutSize: LiveShortcutSize(rawValue: defaults.string(forKey: Key.liveShortcutSize) ?? "") ?? .medium,
                 showMenuBarText: defaults.bool(forKey: Key.showMenuBarText),
                 showMenuBarClickCount: defaults.bool(forKey: Key.showMenuBarClickCount),
                 size: CGFloat(defaults.double(forKey: Key.size)),
@@ -410,6 +475,8 @@ final class SettingsStore {
             defaults.set(newValue.showDrag, forKey: Key.showDrag)
             defaults.set(newValue.showLaserPointer, forKey: Key.showLaserPointer)
             defaults.set(newValue.showLiveKeyboardShortcuts, forKey: Key.showLiveKeyboardShortcuts)
+            defaults.set(newValue.liveShortcutPosition.rawValue, forKey: Key.liveShortcutPosition)
+            defaults.set(newValue.liveShortcutSize.rawValue, forKey: Key.liveShortcutSize)
             defaults.set(newValue.showMenuBarText, forKey: Key.showMenuBarText)
             defaults.set(newValue.showMenuBarClickCount, forKey: Key.showMenuBarClickCount)
             defaults.set(Double(newValue.size), forKey: Key.size)
@@ -475,6 +542,8 @@ final class SettingsStore {
             Key.showDrag: defaults.showDrag,
             Key.showLaserPointer: defaults.showLaserPointer,
             Key.showLiveKeyboardShortcuts: defaults.showLiveKeyboardShortcuts,
+            Key.liveShortcutPosition: defaults.liveShortcutPosition.rawValue,
+            Key.liveShortcutSize: defaults.liveShortcutSize.rawValue,
             Key.showMenuBarText: defaults.showMenuBarText,
             Key.showMenuBarClickCount: defaults.showMenuBarClickCount,
             Key.size: Double(defaults.size),

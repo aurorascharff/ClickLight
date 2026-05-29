@@ -200,24 +200,34 @@ final class ClickOverlayView: NSView {
         guard settings.showLiveKeyboardShortcuts, let label = liveShortcutLabel else { return }
 
         let alpha = label.alpha(at: now)
-        let font = NSFont.monospacedSystemFont(ofSize: 18, weight: .semibold)
+        let style = settings.liveShortcutSize
+        let font = NSFont.monospacedSystemFont(ofSize: style.fontSize, weight: .semibold)
         let attributes: [NSAttributedString.Key: Any] = [
             .font: font,
             .foregroundColor: NSColor.white.withAlphaComponent(alpha)
         ]
         let textSize = (label.text as NSString).size(withAttributes: attributes)
-        let padding = CGSize(width: 13, height: 8)
+        let padding = style.padding
         let size = CGSize(width: textSize.width + padding.width * 2, height: textSize.height + padding.height * 2)
-        let proposedOrigin = CGPoint(x: label.point.x + 18, y: label.point.y + 18)
-        let origin = CGPoint(
-            x: min(max(10, proposedOrigin.x), bounds.width - size.width - 10),
-            y: min(max(10, proposedOrigin.y), bounds.height - size.height - 10)
-        )
+        let origin: CGPoint
+        switch settings.liveShortcutPosition {
+        case .nearPointer:
+            let proposedOrigin = CGPoint(x: label.point.x + 18, y: label.point.y + 18)
+            origin = CGPoint(
+                x: min(max(10, proposedOrigin.x), bounds.width - size.width - 10),
+                y: min(max(10, proposedOrigin.y), bounds.height - size.height - 10)
+            )
+        case .bottomCenter:
+            origin = CGPoint(
+                x: max(10, (bounds.width - size.width) / 2),
+                y: 34
+            )
+        }
         let rect = CGRect(origin: origin, size: size)
 
         context.saveGState()
         context.setFillColor(NSColor(calibratedWhite: 0.06, alpha: 0.88 * alpha).cgColor)
-        context.addPath(CGPath(roundedRect: rect, cornerWidth: 9, cornerHeight: 9, transform: nil))
+        context.addPath(CGPath(roundedRect: rect, cornerWidth: style.cornerRadius, cornerHeight: style.cornerRadius, transform: nil))
         context.fillPath()
         context.restoreGState()
 

@@ -441,11 +441,27 @@ struct ClickLightSettingsView: View {
                 }
                 Divider().padding(.vertical, 6)
                 ModernRow(title: "Show Live Keyboard Shortcuts",
-                          subtitle: "Display shortcut combinations beside the pointer while you use them.") {
+                          subtitle: "Display shortcut combinations while you use them.") {
                     Toggle("", isOn: binding(\.showLiveKeyboardShortcuts))
                         .toggleStyle(.switch)
                         .labelsHidden()
                         .accessibilityLabel("Show Live Keyboard Shortcuts")
+                }
+                if viewModel.settings.showLiveKeyboardShortcuts {
+                    Divider().padding(.vertical, 6)
+                    VStack(alignment: .leading, spacing: 14) {
+                        shortcutDisplayPicker(
+                            title: "Position",
+                            selection: binding(\.liveShortcutPosition),
+                            options: LiveShortcutPosition.allCases
+                        )
+                        shortcutDisplayPicker(
+                            title: "Size",
+                            selection: binding(\.liveShortcutSize),
+                            options: LiveShortcutSize.allCases
+                        )
+                    }
+                    .padding(.vertical, 6)
                 }
                 Divider().padding(.vertical, 6)
                 ModernRow(title: "Show Press",
@@ -651,6 +667,27 @@ struct ClickLightSettingsView: View {
     }
 
     @ViewBuilder
+    private func shortcutDisplayPicker<Option: Hashable & Equatable>(
+        title: String,
+        selection: Binding<Option>,
+        options: [Option]
+    ) -> some View where Option: ShortcutDisplayOption {
+        HStack(spacing: 16) {
+            Text(title)
+                .font(.callout.weight(.medium))
+                .frame(width: 62, alignment: .leading)
+            Picker(title, selection: selection) {
+                ForEach(options, id: \.self) { option in
+                    Text(option.title).tag(option)
+                }
+            }
+            .labelsHidden()
+            .pickerStyle(.segmented)
+            .accessibilityLabel("Live Shortcut \(title)")
+        }
+    }
+
+    @ViewBuilder
     private func presetSegmented(
         label: String,
         selection: Binding<String>,
@@ -705,6 +742,13 @@ struct ClickLightSettingsView: View {
     }
 
 }
+
+private protocol ShortcutDisplayOption {
+    var title: String { get }
+}
+
+extension LiveShortcutPosition: ShortcutDisplayOption {}
+extension LiveShortcutSize: ShortcutDisplayOption {}
 
 // MARK: - Reusable Components
 
@@ -985,7 +1029,7 @@ private enum SettingsPane: String, CaseIterable, Hashable {
         case .shortcuts:
             return "Set global shortcuts."
         case .events:
-            return "Choose which mouse interactions trigger a pulse."
+            return "Choose which interactions and shortcut overlays appear."
         case .activity:
             return "A local daily view of your clicking."
         }
