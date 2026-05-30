@@ -101,19 +101,22 @@ final class StatusController: NSObject {
         menu.addItem(toggleItem(
             title: "Enabled",
             isOn: settings.isEnabled,
-            action: #selector(toggleEnabled(_:))
+            action: #selector(toggleEnabled(_:)),
+            shortcut: settings.shortcutBinding(for: .toggleEnabled)
         ))
         menu.addItem(.separator())
 
         menu.addItem(toggleItem(
             title: "Laser Pointer Mode",
             isOn: settings.showLaserPointer,
-            action: #selector(toggleLaserPointer(_:))
+            action: #selector(toggleLaserPointer(_:)),
+            shortcut: settings.shortcutBinding(for: .toggleLaserPointer)
         ))
         menu.addItem(toggleItem(
             title: "Show Live Keyboard Shortcuts",
             isOn: settings.showLiveKeyboardShortcuts,
-            action: #selector(toggleLiveKeyboardShortcuts(_:))
+            action: #selector(toggleLiveKeyboardShortcuts(_:)),
+            shortcut: settings.shortcutBinding(for: .toggleLiveKeyboardShortcuts)
         ))
         menu.addItem(.separator())
 
@@ -121,27 +124,32 @@ final class StatusController: NSObject {
             menu.addItem(toggleItem(
                 title: "Show Press",
                 isOn: settings.showPress,
-                action: #selector(togglePress(_:))
+                action: #selector(togglePress(_:)),
+                shortcut: settings.shortcutBinding(for: .toggleShowPress)
             ))
             menu.addItem(toggleItem(
                 title: "Show Release",
                 isOn: settings.showRelease,
-                action: #selector(toggleRelease(_:))
+                action: #selector(toggleRelease(_:)),
+                shortcut: settings.shortcutBinding(for: .toggleShowRelease)
             ))
             menu.addItem(toggleItem(
                 title: "Show Right Click",
                 isOn: settings.showRightClick,
-                action: #selector(toggleRightClick(_:))
+                action: #selector(toggleRightClick(_:)),
+                shortcut: settings.shortcutBinding(for: .toggleShowRightClick)
             ))
             menu.addItem(toggleItem(
                 title: "Show Middle Click",
                 isOn: settings.showMiddleClick,
-                action: #selector(toggleMiddleClick(_:))
+                action: #selector(toggleMiddleClick(_:)),
+                shortcut: settings.shortcutBinding(for: .toggleShowMiddleClick)
             ))
             let showDragItem = toggleItem(
                 title: "Show Drag",
                 isOn: settings.showDrag,
-                action: #selector(toggleDrag(_:))
+                action: #selector(toggleDrag(_:)),
+                shortcut: settings.shortcutBinding(for: .toggleShowDrag)
             )
             showDragItem.isEnabled = !settings.showLaserPointer
             menu.addItem(showDragItem)
@@ -251,12 +259,25 @@ final class StatusController: NSObject {
     private func toggleItem(
         title: String,
         isOn: Bool,
-        action: Selector
+        action: Selector,
+        shortcut: HotKeyBinding? = nil
     ) -> NSMenuItem {
         let item = NSMenuItem(title: title, action: action, keyEquivalent: "")
         item.target = self
         item.state = isOn ? .on : .off
+        applyShortcut(shortcut, to: item)
         return item
+    }
+
+    private func applyShortcut(_ shortcut: HotKeyBinding?, to item: NSMenuItem) {
+        item.attributedTitle = nil
+        guard let shortcut, let keyEquivalent = shortcut.menuKeyEquivalent else {
+            item.keyEquivalent = ""
+            item.keyEquivalentModifierMask = []
+            return
+        }
+        item.keyEquivalent = keyEquivalent
+        item.keyEquivalentModifierMask = shortcut.menuModifierFlags
     }
 
     private func submenu(
@@ -309,11 +330,6 @@ final class StatusController: NSObject {
         let configureCustom = NSMenuItem(title: "Configure Custom Colors...", action: #selector(openSettings), keyEquivalent: "")
         configureCustom.target = self
         menu.addItem(configureCustom)
-        menu.addItem(NSMenuItem.separator())
-
-        let randomize = NSMenuItem(title: "Randomize Colors", action: #selector(randomizeColors(_:)), keyEquivalent: "")
-        randomize.target = self
-        menu.addItem(randomize)
 
         item.submenu = menu
         return item
