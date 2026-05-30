@@ -162,18 +162,26 @@ final class ClickOverlayView: NSView {
 
         guard let laserCursor, !laserCursor.isExpired(at: now) else { return }
         let alpha = laserCursor.alpha(at: now)
-        let laserColor = NSColor(calibratedRed: 1.0, green: 0.16, blue: 0.24, alpha: 1)
+        let laserColor = settings.laserColor
+        let middleColor = settings.laserMiddleColor
+        let innerColor = settings.laserInnerColor
         context.saveGState()
         context.setFillColor(laserColor.withAlphaComponent(alpha * 0.18).cgColor)
-        context.fillEllipse(in: CGRect(x: laserCursor.point.x - 14, y: laserCursor.point.y - 14, width: 28, height: 28))
+        context.fillEllipse(in: CGRect(x: laserCursor.point.x - 16, y: laserCursor.point.y - 16, width: 32, height: 32))
         context.setFillColor(laserColor.withAlphaComponent(alpha).cgColor)
-        context.fillEllipse(in: CGRect(x: laserCursor.point.x - 6, y: laserCursor.point.y - 6, width: 12, height: 12))
+        context.fillEllipse(in: CGRect(x: laserCursor.point.x - 8, y: laserCursor.point.y - 8, width: 16, height: 16))
+        context.setFillColor(middleColor.withAlphaComponent(alpha).cgColor)
+        context.fillEllipse(in: CGRect(x: laserCursor.point.x - 6.5, y: laserCursor.point.y - 6.5, width: 13, height: 13))
+        context.setFillColor(innerColor.withAlphaComponent(alpha).cgColor)
+        context.fillEllipse(in: CGRect(x: laserCursor.point.x - 5.5, y: laserCursor.point.y - 5.5, width: 11, height: 11))
         context.restoreGState()
     }
 
     private func drawLaserStroke(_ stroke: LaserStroke, alpha: CGFloat, in context: CGContext) {
         guard stroke.points.count >= 2, alpha > 0 else { return }
-        let laserColor = NSColor(calibratedRed: 1.0, green: 0.16, blue: 0.24, alpha: 1)
+        let laserColor = settings.laserColor
+        let middleColor = settings.laserMiddleColor
+        let innerColor = settings.laserInnerColor
         context.saveGState()
         context.setLineCap(.round)
         context.setLineJoin(.round)
@@ -191,7 +199,17 @@ final class ClickOverlayView: NSView {
 
         context.addPath(path)
         context.setStrokeColor(laserColor.withAlphaComponent(alpha).cgColor)
-        context.setLineWidth(5)
+        context.setLineWidth(6)
+        context.strokePath()
+
+        context.addPath(path)
+        context.setStrokeColor(middleColor.withAlphaComponent(alpha).cgColor)
+        context.setLineWidth(4)
+        context.strokePath()
+
+        context.addPath(path)
+        context.setStrokeColor(innerColor.withAlphaComponent(alpha).cgColor)
+        context.setLineWidth(2)
         context.strokePath()
         context.restoreGState()
     }

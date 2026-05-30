@@ -279,6 +279,24 @@ final class ClickLightSettingsViewModel: NSObject, ObservableObject {
         }
     }
 
+    func applyLaserColor(_ color: NSColor) {
+        guard let rgb = color.usingColorSpace(.deviceRGB) else { return }
+        update {
+            $0.laserColorRed = rgb.redComponent
+            $0.laserColorGreen = rgb.greenComponent
+            $0.laserColorBlue = rgb.blueComponent
+        }
+    }
+
+    func applyLaserInnerColor(_ color: NSColor) {
+        guard let rgb = color.usingColorSpace(.deviceRGB) else { return }
+        update {
+            $0.laserInnerColorRed = rgb.redComponent
+            $0.laserInnerColorGreen = rgb.greenComponent
+            $0.laserInnerColorBlue = rgb.blueComponent
+        }
+    }
+
     func resetToDefaults() {
         apply(.defaults)
     }

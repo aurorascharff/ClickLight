@@ -37,6 +37,12 @@ struct ClickSettings: Equatable {
     var customDragColorRed: CGFloat
     var customDragColorGreen: CGFloat
     var customDragColorBlue: CGFloat
+    var laserColorRed: CGFloat
+    var laserColorGreen: CGFloat
+    var laserColorBlue: CGFloat
+    var laserInnerColorRed: CGFloat
+    var laserInnerColorGreen: CGFloat
+    var laserInnerColorBlue: CGFloat
     var toggleEnabledHotKey: HotKeyBinding?
     var toggleLaserPointerHotKey: HotKeyBinding?
     var toggleShowPressHotKey: HotKeyBinding?
@@ -91,6 +97,33 @@ struct ClickSettings: Equatable {
         )
     }
 
+    var laserColor: NSColor {
+        NSColor(
+            calibratedRed: laserColorRed.sanitizedColorComponent,
+            green: laserColorGreen.sanitizedColorComponent,
+            blue: laserColorBlue.sanitizedColorComponent,
+            alpha: 1
+        )
+    }
+
+    var laserInnerColor: NSColor {
+        NSColor(
+            calibratedRed: laserInnerColorRed.sanitizedColorComponent,
+            green: laserInnerColorGreen.sanitizedColorComponent,
+            blue: laserInnerColorBlue.sanitizedColorComponent,
+            alpha: 1
+        )
+    }
+
+    var laserMiddleColor: NSColor {
+        NSColor(
+            calibratedRed: ((laserColorRed + laserInnerColorRed) / 2).sanitizedColorComponent,
+            green: ((laserColorGreen + laserInnerColorGreen) / 2).sanitizedColorComponent,
+            blue: ((laserColorBlue + laserInnerColorBlue) / 2).sanitizedColorComponent,
+            alpha: 1
+        )
+    }
+
     static let defaults = ClickSettings(
         isEnabled: true,
         showPress: true,
@@ -128,6 +161,12 @@ struct ClickSettings: Equatable {
         customDragColorRed: 0.92,
         customDragColorGreen: 0.84,
         customDragColorBlue: 0.22,
+        laserColorRed: 1.0,
+        laserColorGreen: 0.1607843137,
+        laserColorBlue: 0.0196078431,
+        laserInnerColorRed: 1.0,
+        laserInnerColorGreen: 1.0,
+        laserInnerColorBlue: 1.0,
         toggleEnabledHotKey: ClickShortcutAction.toggleEnabled.defaultBinding,
         toggleLaserPointerHotKey: ClickShortcutAction.toggleLaserPointer.defaultBinding,
         toggleShowPressHotKey: ClickShortcutAction.toggleShowPress.defaultBinding,
@@ -394,6 +433,12 @@ final class SettingsStore {
         static let customDragColorRed = "customDragColorRed"
         static let customDragColorGreen = "customDragColorGreen"
         static let customDragColorBlue = "customDragColorBlue"
+        static let laserColorRed = "laserColorRed"
+        static let laserColorGreen = "laserColorGreen"
+        static let laserColorBlue = "laserColorBlue"
+        static let laserInnerColorRed = "laserInnerColorRed"
+        static let laserInnerColorGreen = "laserInnerColorGreen"
+        static let laserInnerColorBlue = "laserInnerColorBlue"
         static let showEventControlsInMenu = "showEventControlsInMenu"
         static let showStyleControlsInMenu = "showStyleControlsInMenu"
         static let showMenuBarControlsInMenu = "showMenuBarControlsInMenu"
@@ -470,6 +515,12 @@ final class SettingsStore {
                 customDragColorRed: CGFloat(defaults.double(forKey: Key.customDragColorRed)).sanitizedColorComponent,
                 customDragColorGreen: CGFloat(defaults.double(forKey: Key.customDragColorGreen)).sanitizedColorComponent,
                 customDragColorBlue: CGFloat(defaults.double(forKey: Key.customDragColorBlue)).sanitizedColorComponent,
+                laserColorRed: CGFloat(defaults.double(forKey: Key.laserColorRed)).sanitizedColorComponent,
+                laserColorGreen: CGFloat(defaults.double(forKey: Key.laserColorGreen)).sanitizedColorComponent,
+                laserColorBlue: CGFloat(defaults.double(forKey: Key.laserColorBlue)).sanitizedColorComponent,
+                laserInnerColorRed: CGFloat(defaults.double(forKey: Key.laserInnerColorRed)).sanitizedColorComponent,
+                laserInnerColorGreen: CGFloat(defaults.double(forKey: Key.laserInnerColorGreen)).sanitizedColorComponent,
+                laserInnerColorBlue: CGFloat(defaults.double(forKey: Key.laserInnerColorBlue)).sanitizedColorComponent,
                 toggleEnabledHotKey: shortcutBinding(
                     keyCode: Key.toggleEnabledHotKeyCode,
                     modifiers: Key.toggleEnabledHotKeyModifiers,
@@ -549,6 +600,12 @@ final class SettingsStore {
             defaults.set(Double(newValue.customDragColorRed), forKey: Key.customDragColorRed)
             defaults.set(Double(newValue.customDragColorGreen), forKey: Key.customDragColorGreen)
             defaults.set(Double(newValue.customDragColorBlue), forKey: Key.customDragColorBlue)
+            defaults.set(Double(newValue.laserColorRed), forKey: Key.laserColorRed)
+            defaults.set(Double(newValue.laserColorGreen), forKey: Key.laserColorGreen)
+            defaults.set(Double(newValue.laserColorBlue), forKey: Key.laserColorBlue)
+            defaults.set(Double(newValue.laserInnerColorRed), forKey: Key.laserInnerColorRed)
+            defaults.set(Double(newValue.laserInnerColorGreen), forKey: Key.laserInnerColorGreen)
+            defaults.set(Double(newValue.laserInnerColorBlue), forKey: Key.laserInnerColorBlue)
             saveShortcutBinding(newValue.toggleEnabledHotKey, keyCode: Key.toggleEnabledHotKeyCode, modifiers: Key.toggleEnabledHotKeyModifiers, isEnabled: Key.toggleEnabledHotKeyIsEnabled)
             saveShortcutBinding(newValue.toggleLaserPointerHotKey, keyCode: Key.toggleLaserPointerHotKeyCode, modifiers: Key.toggleLaserPointerHotKeyModifiers, isEnabled: Key.toggleLaserPointerHotKeyIsEnabled)
             saveShortcutBinding(newValue.toggleShowPressHotKey, keyCode: Key.toggleShowPressHotKeyCode, modifiers: Key.toggleShowPressHotKeyModifiers, isEnabled: Key.toggleShowPressHotKeyIsEnabled)
@@ -621,6 +678,12 @@ final class SettingsStore {
             Key.customDragColorRed: Double(defaults.customDragColorRed),
             Key.customDragColorGreen: Double(defaults.customDragColorGreen),
             Key.customDragColorBlue: Double(defaults.customDragColorBlue),
+            Key.laserColorRed: Double(defaults.laserColorRed),
+            Key.laserColorGreen: Double(defaults.laserColorGreen),
+            Key.laserColorBlue: Double(defaults.laserColorBlue),
+            Key.laserInnerColorRed: Double(defaults.laserInnerColorRed),
+            Key.laserInnerColorGreen: Double(defaults.laserInnerColorGreen),
+            Key.laserInnerColorBlue: Double(defaults.laserInnerColorBlue),
             Key.toggleEnabledHotKeyCode: ClickShortcutAction.toggleEnabled.defaultBinding!.keyCode,
             Key.toggleEnabledHotKeyModifiers: ClickShortcutAction.toggleEnabled.defaultBinding!.carbonModifiers,
             Key.toggleEnabledHotKeyIsEnabled: true,

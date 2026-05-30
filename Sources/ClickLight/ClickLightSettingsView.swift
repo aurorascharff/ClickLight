@@ -113,6 +113,21 @@ struct ClickLightSettingsView: View {
         )
     }
 
+    private func laserColorPicker(title: String, color: Binding<Color>) -> some View {
+        HStack(spacing: 6) {
+            Text(title)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            ColorPicker(
+                title,
+                selection: color,
+                supportsOpacity: false
+            )
+            .labelsHidden()
+            .accessibilityLabel("Laser Pointer \(title) Color")
+        }
+    }
+
     // MARK: - Pane Header
 
     private var paneHeader: some View {
@@ -434,6 +449,28 @@ struct ClickLightSettingsView: View {
                             )
                             .labelsHidden()
                             .accessibilityLabel("Custom Color Picker")
+                        }
+                    }
+
+                    Divider()
+
+                    ModernRow(title: "Laser Pointer Color",
+                              subtitle: "Outer ring and inner fill. The middle color is blended automatically.") {
+                        HStack(spacing: 12) {
+                            laserColorPicker(
+                                title: "Outer",
+                                color: Binding(
+                                    get: { Color(nsColor: viewModel.settings.laserColor) },
+                                    set: { viewModel.applyLaserColor(NSColor($0)) }
+                                )
+                            )
+                            laserColorPicker(
+                                title: "Inner",
+                                color: Binding(
+                                    get: { Color(nsColor: viewModel.settings.laserInnerColor) },
+                                    set: { viewModel.applyLaserInnerColor(NSColor($0)) }
+                                )
+                            )
                         }
                     }
                 }
