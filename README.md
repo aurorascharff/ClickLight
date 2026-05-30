@@ -62,6 +62,7 @@ ClickLight includes one default global shortcut for quick toggles during demos. 
 | Not set by default | Toggle Right Click |
 | Not set by default | Toggle Middle Click |
 | Not set by default | Toggle Drag |
+| Not set by default | Toggle Live Keyboard Shortcuts |
 
 All shortcuts can be changed or disabled in Settings.
 
