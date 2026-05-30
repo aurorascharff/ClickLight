@@ -67,6 +67,8 @@ struct ClickLightSettingsView: View {
                             eventsPane
                         case .activity:
                             activityPane
+                        case .menu:
+                            MenuLayoutPane(viewModel: viewModel)
                         }
                     }
                 }
@@ -753,6 +755,127 @@ struct ClickLightSettingsView: View {
 
 }
 
+private struct MenuLayoutPane: View {
+    @ObservedObject var viewModel: ClickLightSettingsViewModel
+    @State private var groups: [MenuGroupConfig]
+    @State private var expandedGroups: Set<String>
+    @State private var showResetConfirmation = false
+    @State private var listReady = false
+
+    init(viewModel: ClickLightSettingsViewModel) {
+        self.viewModel = viewModel
+        let initialGroups = viewModel.settings.menuGroups
+        self._groups = State(initialValue: initialGroups)
+        self._expandedGroups = State(initialValue: Set(initialGroups.map(\.id)))
+    }
+
+    var body: some View {
+        VStack(spacing: 16) {
+            SettingsCard(title: "Menu Groups", subtitle: "Drag to reorder groups and items. Toggle checkmarks to show or hide.") {
+                List {
+                    ForEach($groups) { $group in
+                        DisclosureGroup(
+                            isExpanded: Binding(
+                                get: { expandedGroups.contains(group.id) },
+                                set: { expanded in
+                                    if expanded { expandedGroups.insert(group.id) } else { expandedGroups.remove(group.id) }
+                                }
+                            )
+                        ) {
+                            ForEach($group.items) { $item in
+                                HStack(spacing: 8) {
+                                    Toggle("", isOn: $item.isVisible)
+                                        .labelsHidden()
+                                        .onChange(of: item.isVisible) { _, newValue in
+                                            if newValue, let gIdx = groups.firstIndex(where: { $0.id == group.id }) {
+                                                groups[gIdx].isVisible = true
+                                            }
+                                            save()
+                                        }
+                                    Text(item.title)
+                                        .font(.callout)
+                                }
+                                .padding(.vertical, 1)
+                            }
+                            .onMove { from, to in
+                                group.items.move(fromOffsets: from, toOffset: to)
+                                save()
+                            }
+                        } label: {
+                            HStack(spacing: 8) {
+                                Toggle("", isOn: $group.isVisible)
+                                    .labelsHidden()
+                                    .onChange(of: group.isVisible) { _, newValue in
+                                        if !newValue, let gIdx = groups.firstIndex(where: { $0.id == group.id }) {
+                                            for i in groups[gIdx].items.indices {
+                                                groups[gIdx].items[i].isVisible = false
+                                            }
+                                        }
+                                        save()
+                                    }
+                                Text(group.title)
+                                    .font(.callout.weight(.semibold))
+                            }
+                        }
+                    }
+                    .onMove { from, to in
+                        groups.move(fromOffsets: from, toOffset: to)
+                        save()
+                    }
+                }
+                .listStyle(.inset)
+                .scrollContentBackground(.hidden)
+                .animation(nil, value: expandedGroups)
+                .frame(height: 300)
+                .opacity(listReady ? 1 : 0)
+                .onAppear {
+                    DispatchQueue.main.async { listReady = true }
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .strokeBorder(Color.primary.opacity(0.08), lineWidth: 1)
+                )
+            }
+
+            SettingsCard {
+                ModernRow(
+                    title: "Reset Menu Layout",
+                    subtitle: "Restore the default menu group order and show all items."
+                ) {
+                    Button(role: .destructive) {
+                        showResetConfirmation = true
+                    } label: {
+                        Label("Reset", systemImage: "arrow.counterclockwise")
+                    }
+                    .controlSize(.regular)
+                }
+            }
+        }
+        .onChange(of: viewModel.settings.menuGroups) { _, newGroups in
+            if newGroups != groups {
+                groups = newGroups
+            }
+        }
+        .confirmationDialog(
+            "Reset menu layout?",
+            isPresented: $showResetConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Reset", role: .destructive) {
+                viewModel.update { $0.menuGroups = MenuGroupConfig.defaults }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This restores the default group order and makes all menu items visible.")
+        }
+    }
+
+    private func save() {
+        viewModel.update { $0.menuGroups = groups }
+    }
+}
+
 private protocol ShortcutDisplayOption {
     var title: String { get }
 }
@@ -1014,6 +1137,7 @@ private enum SettingsPane: String, CaseIterable, Hashable {
     case style
     case shortcuts
     case activity
+    case menu
 
     var title: String {
         switch self {
@@ -1027,6 +1151,8 @@ private enum SettingsPane: String, CaseIterable, Hashable {
             return "Event Visibility"
         case .activity:
             return "Activity"
+        case .menu:
+            return "Menu Layout"
         }
     }
 
@@ -1042,6 +1168,8 @@ private enum SettingsPane: String, CaseIterable, Hashable {
             return "Choose which interactions and shortcut overlays appear."
         case .activity:
             return "A local daily view of your clicking."
+        case .menu:
+            return "Choose which items appear in the status bar menu and their order."
         }
     }
 
@@ -1057,6 +1185,8 @@ private enum SettingsPane: String, CaseIterable, Hashable {
             return "cursorarrow.click.2"
         case .activity:
             return "chart.bar.xaxis"
+        case .menu:
+            return "menubar.rectangle"
         }
     }
 }

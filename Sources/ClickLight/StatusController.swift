@@ -98,98 +98,16 @@ final class StatusController: NSObject {
         menu.removeAllItems()
         StatusMenuConfiguration.apply(to: menu)
 
-        menu.addItem(toggleItem(
-            title: "Enabled",
-            isOn: settings.isEnabled,
-            action: #selector(toggleEnabled(_:)),
-            shortcut: settings.shortcutBinding(for: .toggleEnabled)
-        ))
-        menu.addItem(NSMenuItem.separator())
+        var addedAny = false
+        for group in settings.menuGroups where group.isVisible {
+            let groupItems = group.items.filter(\.isVisible).compactMap { makeMenuItem(for: $0.id, settings: settings) }
+            guard !groupItems.isEmpty else { continue }
+            if addedAny { menu.addItem(.separator()) }
+            groupItems.forEach { menu.addItem($0) }
+            addedAny = true
+        }
 
-        menu.addItem(toggleItem(
-            title: "Laser Pointer Mode",
-            isOn: settings.showLaserPointer,
-            action: #selector(toggleLaserPointer(_:)),
-            shortcut: settings.shortcutBinding(for: .toggleLaserPointer)
-        ))
-        menu.addItem(toggleItem(
-            title: "Show Live Keyboard Shortcuts",
-            isOn: settings.showLiveKeyboardShortcuts,
-            action: #selector(toggleLiveKeyboardShortcuts(_:)),
-            shortcut: settings.shortcutBinding(for: .toggleLiveKeyboardShortcuts)
-        ))
-        menu.addItem(NSMenuItem.separator())
-
-        menu.addItem(toggleItem(
-            title: "Show Press",
-            isOn: settings.showPress,
-            action: #selector(togglePress(_:)),
-            shortcut: settings.shortcutBinding(for: .toggleShowPress)
-        ))
-        menu.addItem(toggleItem(
-            title: "Show Release",
-            isOn: settings.showRelease,
-            action: #selector(toggleRelease(_:)),
-            shortcut: settings.shortcutBinding(for: .toggleShowRelease)
-        ))
-        menu.addItem(toggleItem(
-            title: "Show Right Click",
-            isOn: settings.showRightClick,
-            action: #selector(toggleRightClick(_:)),
-            shortcut: settings.shortcutBinding(for: .toggleShowRightClick)
-        ))
-        menu.addItem(toggleItem(
-            title: "Show Middle Click",
-            isOn: settings.showMiddleClick,
-            action: #selector(toggleMiddleClick(_:)),
-            shortcut: settings.shortcutBinding(for: .toggleShowMiddleClick)
-        ))
-        let showDragItem = toggleItem(
-            title: "Show Drag",
-            isOn: settings.showDrag,
-            action: #selector(toggleDrag(_:)),
-            shortcut: settings.shortcutBinding(for: .toggleShowDrag)
-        )
-        showDragItem.isEnabled = !settings.showLaserPointer
-        menu.addItem(showDragItem)
-        menu.addItem(NSMenuItem.separator())
-        menu.addItem(toggleItem(
-            title: "Show Menu Bar Text",
-            isOn: settings.showMenuBarText,
-            action: #selector(toggleMenuBarText)
-        ))
-        menu.addItem(toggleItem(
-            title: "Show Click Count in Menu Bar",
-            isOn: settings.showMenuBarClickCount,
-            action: #selector(toggleMenuBarClickCount)
-        ))
-        menu.addItem(toggleItem(
-            title: "Launch at Login",
-            isOn: launchAtLogin.isEnabled,
-            action: #selector(toggleLaunchAtLogin)
-        ))
-        menu.addItem(NSMenuItem.separator())
-
-        menu.addItem(submenu(
-            title: "Size",
-            options: ClickSettingOptions.sizePresets,
-            selected: Double(settings.size),
-            action: #selector(selectSize(_:))
-        ))
-        menu.addItem(submenu(
-            title: "Intensity",
-            options: ClickSettingOptions.intensityPresets,
-            selected: Double(settings.intensity),
-            action: #selector(selectIntensity(_:))
-        ))
-        menu.addItem(submenu(
-            title: "Duration",
-            options: ClickSettingOptions.durationPresets,
-            selected: settings.duration,
-            action: #selector(selectDuration(_:))
-        ))
-        menu.addItem(colorSubmenu(selected: settings.colorPreset))
-        menu.addItem(NSMenuItem.separator())
+        menu.addItem(.separator())
 
         let openSettingsItem = NSMenuItem(title: "Open Settings...", action: #selector(openSettings), keyEquivalent: ",")
         openSettingsItem.target = self
@@ -208,7 +126,7 @@ final class StatusController: NSObject {
             menu.addItem(inputItem)
         }
 
-        menu.addItem(NSMenuItem.separator())
+        menu.addItem(.separator())
         let updatesConfigured = updatesAreConfigured()
         let updateItem = NSMenuItem(
             title: updatesConfigured ? "Check for Updates..." : "Updates: Not Configured",
@@ -226,6 +144,45 @@ final class StatusController: NSObject {
         let quitItem = NSMenuItem(title: "Quit ClickLight", action: #selector(quit), keyEquivalent: "q")
         quitItem.target = self
         menu.addItem(quitItem)
+    }
+
+    private func makeMenuItem(for id: String, settings: ClickSettings) -> NSMenuItem? {
+        switch id {
+        case "enabled":
+            return toggleItem(title: "Enabled", isOn: settings.isEnabled, action: #selector(toggleEnabled(_:)), shortcut: settings.shortcutBindings[.toggleEnabled])
+        case "laserPointer":
+            return toggleItem(title: "Laser Pointer Mode", isOn: settings.showLaserPointer, action: #selector(toggleLaserPointer(_:)), shortcut: settings.shortcutBindings[.toggleLaserPointer])
+        case "liveKeyboardShortcuts":
+            return toggleItem(title: "Show Live Keyboard Shortcuts", isOn: settings.showLiveKeyboardShortcuts, action: #selector(toggleLiveKeyboardShortcuts(_:)), shortcut: settings.shortcutBinding(for: .toggleLiveKeyboardShortcuts))
+        case "showPress":
+            return toggleItem(title: "Show Press", isOn: settings.showPress, action: #selector(togglePress(_:)), shortcut: settings.shortcutBindings[.toggleShowPress])
+        case "showRelease":
+            return toggleItem(title: "Show Release", isOn: settings.showRelease, action: #selector(toggleRelease(_:)), shortcut: settings.shortcutBindings[.toggleShowRelease])
+        case "showRightClick":
+            return toggleItem(title: "Show Right Click", isOn: settings.showRightClick, action: #selector(toggleRightClick(_:)), shortcut: settings.shortcutBindings[.toggleShowRightClick])
+        case "showMiddleClick":
+            return toggleItem(title: "Show Middle Click", isOn: settings.showMiddleClick, action: #selector(toggleMiddleClick(_:)), shortcut: settings.shortcutBindings[.toggleShowMiddleClick])
+        case "showDrag":
+            let item = toggleItem(title: "Show Drag", isOn: settings.showDrag, action: #selector(toggleDrag(_:)), shortcut: settings.shortcutBindings[.toggleShowDrag])
+            item.isEnabled = !settings.showLaserPointer
+            return item
+        case "showMenuBarText":
+            return toggleItem(title: "Show Menu Bar Text", isOn: settings.showMenuBarText, action: #selector(toggleMenuBarText))
+        case "showMenuBarClickCount":
+            return toggleItem(title: "Show Click Count in Menu Bar", isOn: settings.showMenuBarClickCount, action: #selector(toggleMenuBarClickCount))
+        case "launchAtLogin":
+            return toggleItem(title: "Launch at Login", isOn: launchAtLogin.isEnabled, action: #selector(toggleLaunchAtLogin))
+        case "size":
+            return submenu(title: "Size", options: ClickSettingOptions.sizePresets, selected: Double(settings.size), action: #selector(selectSize(_:)))
+        case "intensity":
+            return submenu(title: "Intensity", options: ClickSettingOptions.intensityPresets, selected: Double(settings.intensity), action: #selector(selectIntensity(_:)))
+        case "duration":
+            return submenu(title: "Duration", options: ClickSettingOptions.durationPresets, selected: settings.duration, action: #selector(selectDuration(_:)))
+        case "colors":
+            return colorSubmenu(selected: settings.colorPreset)
+        default:
+            return nil
+        }
     }
 
     private func applyStatusItemAppearance(_ settings: ClickSettings) {

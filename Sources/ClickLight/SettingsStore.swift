@@ -41,6 +41,7 @@ struct ClickSettings: Equatable {
     var toggleShowMiddleClickHotKey: HotKeyBinding?
     var toggleShowDragHotKey: HotKeyBinding?
     var toggleLiveKeyboardShortcutsHotKey: HotKeyBinding?
+    var menuGroups: [MenuGroupConfig]
 
     var customColor: NSColor {
         NSColor(
@@ -127,7 +128,8 @@ struct ClickSettings: Equatable {
         toggleShowRightClickHotKey: ClickShortcutAction.toggleShowRightClick.defaultBinding,
         toggleShowMiddleClickHotKey: ClickShortcutAction.toggleShowMiddleClick.defaultBinding,
         toggleShowDragHotKey: ClickShortcutAction.toggleShowDrag.defaultBinding,
-        toggleLiveKeyboardShortcutsHotKey: ClickShortcutAction.toggleLiveKeyboardShortcuts.defaultBinding
+        toggleLiveKeyboardShortcutsHotKey: ClickShortcutAction.toggleLiveKeyboardShortcuts.defaultBinding,
+        menuGroups: MenuGroupConfig.defaults
     )
 
     var shortcutBindings: [ClickShortcutAction: HotKeyBinding] {
@@ -410,6 +412,7 @@ final class SettingsStore {
         static let toggleLiveKeyboardShortcutsHotKeyCode = "toggleLiveKeyboardShortcutsHotKeyCode"
         static let toggleLiveKeyboardShortcutsHotKeyModifiers = "toggleLiveKeyboardShortcutsHotKeyModifiers"
         static let toggleLiveKeyboardShortcutsHotKeyIsEnabled = "toggleLiveKeyboardShortcutsHotKeyIsEnabled"
+        static let menuGroups = "menuGroups"
     }
 
     private let defaults: UserDefaults
@@ -493,7 +496,16 @@ final class SettingsStore {
                     keyCode: Key.toggleLiveKeyboardShortcutsHotKeyCode,
                     modifiers: Key.toggleLiveKeyboardShortcutsHotKeyModifiers,
                     isEnabled: Key.toggleLiveKeyboardShortcutsHotKeyIsEnabled
-                )
+                ),
+                menuGroups: {
+                    guard
+                        let data = defaults.data(forKey: Key.menuGroups),
+                        let saved = try? JSONDecoder().decode([MenuGroupConfig].self, from: data)
+                    else {
+                        return MenuGroupConfig.defaults
+                    }
+                    return MenuGroupConfig.merged(saved: saved, defaults: MenuGroupConfig.defaults)
+                }()
             )
         }
         set {
@@ -537,6 +549,9 @@ final class SettingsStore {
             saveShortcutBinding(newValue.toggleShowMiddleClickHotKey, keyCode: Key.toggleShowMiddleClickHotKeyCode, modifiers: Key.toggleShowMiddleClickHotKeyModifiers, isEnabled: Key.toggleShowMiddleClickHotKeyIsEnabled)
             saveShortcutBinding(newValue.toggleShowDragHotKey, keyCode: Key.toggleShowDragHotKeyCode, modifiers: Key.toggleShowDragHotKeyModifiers, isEnabled: Key.toggleShowDragHotKeyIsEnabled)
             saveShortcutBinding(newValue.toggleLiveKeyboardShortcutsHotKey, keyCode: Key.toggleLiveKeyboardShortcutsHotKeyCode, modifiers: Key.toggleLiveKeyboardShortcutsHotKeyModifiers, isEnabled: Key.toggleLiveKeyboardShortcutsHotKeyIsEnabled)
+            if let data = try? JSONEncoder().encode(newValue.menuGroups) {
+                defaults.set(data, forKey: Key.menuGroups)
+            }
             NotificationCenter.default.post(name: Self.didChangeNotification, object: self)
         }
     }
@@ -622,6 +637,9 @@ final class SettingsStore {
             Key.toggleLiveKeyboardShortcutsHotKeyModifiers: 0,
             Key.toggleLiveKeyboardShortcutsHotKeyIsEnabled: false
         ])
+        if let defaultData = try? JSONEncoder().encode(MenuGroupConfig.defaults) {
+            self.defaults.register(defaults: [Key.menuGroups: defaultData])
+        }
     }
 }
 
