@@ -420,11 +420,6 @@ final class StatusController: NSObject {
         settingsStore.update { $0.colorPreset = preset }
     }
 
-    @objc private func randomizeColors(_ sender: NSMenuItem) {
-        dismissMenu(from: sender)
-        settingsStore.update { $0.applyRandomizedStyle() }
-    }
-
     @objc private func openAccessibilitySettings() {
         permissions.requestAccessibilityIfNeeded()
         permissions.openPrivacySettings()

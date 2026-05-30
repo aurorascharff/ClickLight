@@ -169,8 +169,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             settingsStore.update { $0.showMiddleClick.toggle() }
         case .toggleShowDrag:
             settingsStore.update { $0.showDrag.toggle() }
-        case .randomizeColors:
-            settingsStore.update { $0.applyRandomizedStyle() }
         case .toggleLiveKeyboardShortcuts:
             settingsStore.update { $0.showLiveKeyboardShortcuts.toggle() }
         }
