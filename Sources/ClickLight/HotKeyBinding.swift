@@ -165,6 +165,7 @@ enum ClickShortcutAction: String, CaseIterable, Identifiable, Sendable {
     case toggleShowRightClick
     case toggleShowMiddleClick
     case toggleShowDrag
+    case randomizeColors
     case toggleLiveKeyboardShortcuts
 
     var id: String { rawValue }
@@ -185,6 +186,8 @@ enum ClickShortcutAction: String, CaseIterable, Identifiable, Sendable {
             return "Toggle Middle Click"
         case .toggleShowDrag:
             return "Toggle Drag"
+        case .randomizeColors:
+            return "Randomize Colors"
         case .toggleLiveKeyboardShortcuts:
             return "Toggle Live Keyboard Shortcuts"
         }
@@ -208,6 +211,8 @@ enum ClickShortcutAction: String, CaseIterable, Identifiable, Sendable {
             return 7
         case .toggleLiveKeyboardShortcuts:
             return 8
+        case .randomizeColors:
+            return 9
         }
     }
 
@@ -221,6 +226,7 @@ enum ClickShortcutAction: String, CaseIterable, Identifiable, Sendable {
             .toggleShowRightClick,
             .toggleShowMiddleClick,
             .toggleShowDrag,
+            .randomizeColors,
             .toggleLiveKeyboardShortcuts:
             return nil
         }

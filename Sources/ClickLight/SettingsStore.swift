@@ -44,6 +44,7 @@ struct ClickSettings: Equatable {
     var toggleShowRightClickHotKey: HotKeyBinding?
     var toggleShowMiddleClickHotKey: HotKeyBinding?
     var toggleShowDragHotKey: HotKeyBinding?
+    var randomizeColorsHotKey: HotKeyBinding?
     var toggleLiveKeyboardShortcutsHotKey: HotKeyBinding?
 
     var customColor: NSColor {
@@ -135,6 +136,7 @@ struct ClickSettings: Equatable {
         toggleShowRightClickHotKey: ClickShortcutAction.toggleShowRightClick.defaultBinding,
         toggleShowMiddleClickHotKey: ClickShortcutAction.toggleShowMiddleClick.defaultBinding,
         toggleShowDragHotKey: ClickShortcutAction.toggleShowDrag.defaultBinding,
+        randomizeColorsHotKey: ClickShortcutAction.randomizeColors.defaultBinding,
         toggleLiveKeyboardShortcutsHotKey: ClickShortcutAction.toggleLiveKeyboardShortcuts.defaultBinding
     )
 
@@ -160,6 +162,8 @@ struct ClickSettings: Equatable {
             return toggleShowMiddleClickHotKey
         case .toggleShowDrag:
             return toggleShowDragHotKey
+        case .randomizeColors:
+            return randomizeColorsHotKey
         case .toggleLiveKeyboardShortcuts:
             return toggleLiveKeyboardShortcutsHotKey
         }
@@ -181,6 +185,8 @@ struct ClickSettings: Equatable {
             toggleShowMiddleClickHotKey = binding
         case .toggleShowDrag:
             toggleShowDragHotKey = binding
+        case .randomizeColors:
+            randomizeColorsHotKey = binding
         case .toggleLiveKeyboardShortcuts:
             toggleLiveKeyboardShortcutsHotKey = binding
         }
@@ -456,6 +462,9 @@ final class SettingsStore {
         static let toggleShowDragHotKeyCode = "toggleShowDragHotKeyCode"
         static let toggleShowDragHotKeyModifiers = "toggleShowDragHotKeyModifiers"
         static let toggleShowDragHotKeyIsEnabled = "toggleShowDragHotKeyIsEnabled"
+        static let randomizeColorsHotKeyCode = "randomizeColorsHotKeyCode"
+        static let randomizeColorsHotKeyModifiers = "randomizeColorsHotKeyModifiers"
+        static let randomizeColorsHotKeyIsEnabled = "randomizeColorsHotKeyIsEnabled"
         static let toggleLiveKeyboardShortcutsHotKeyCode = "toggleLiveKeyboardShortcutsHotKeyCode"
         static let toggleLiveKeyboardShortcutsHotKeyModifiers = "toggleLiveKeyboardShortcutsHotKeyModifiers"
         static let toggleLiveKeyboardShortcutsHotKeyIsEnabled = "toggleLiveKeyboardShortcutsHotKeyIsEnabled"
@@ -542,6 +551,11 @@ final class SettingsStore {
                     modifiers: Key.toggleShowDragHotKeyModifiers,
                     isEnabled: Key.toggleShowDragHotKeyIsEnabled
                 ),
+                randomizeColorsHotKey: shortcutBinding(
+                    keyCode: Key.randomizeColorsHotKeyCode,
+                    modifiers: Key.randomizeColorsHotKeyModifiers,
+                    isEnabled: Key.randomizeColorsHotKeyIsEnabled
+                ),
                 toggleLiveKeyboardShortcutsHotKey: shortcutBinding(
                     keyCode: Key.toggleLiveKeyboardShortcutsHotKeyCode,
                     modifiers: Key.toggleLiveKeyboardShortcutsHotKeyModifiers,
@@ -593,6 +607,7 @@ final class SettingsStore {
             saveShortcutBinding(newValue.toggleShowRightClickHotKey, keyCode: Key.toggleShowRightClickHotKeyCode, modifiers: Key.toggleShowRightClickHotKeyModifiers, isEnabled: Key.toggleShowRightClickHotKeyIsEnabled)
             saveShortcutBinding(newValue.toggleShowMiddleClickHotKey, keyCode: Key.toggleShowMiddleClickHotKeyCode, modifiers: Key.toggleShowMiddleClickHotKeyModifiers, isEnabled: Key.toggleShowMiddleClickHotKeyIsEnabled)
             saveShortcutBinding(newValue.toggleShowDragHotKey, keyCode: Key.toggleShowDragHotKeyCode, modifiers: Key.toggleShowDragHotKeyModifiers, isEnabled: Key.toggleShowDragHotKeyIsEnabled)
+            saveShortcutBinding(newValue.randomizeColorsHotKey, keyCode: Key.randomizeColorsHotKeyCode, modifiers: Key.randomizeColorsHotKeyModifiers, isEnabled: Key.randomizeColorsHotKeyIsEnabled)
             saveShortcutBinding(newValue.toggleLiveKeyboardShortcutsHotKey, keyCode: Key.toggleLiveKeyboardShortcutsHotKeyCode, modifiers: Key.toggleLiveKeyboardShortcutsHotKeyModifiers, isEnabled: Key.toggleLiveKeyboardShortcutsHotKeyIsEnabled)
             NotificationCenter.default.post(name: Self.didChangeNotification, object: self)
         }
@@ -679,6 +694,9 @@ final class SettingsStore {
             Key.toggleShowDragHotKeyCode: 0,
             Key.toggleShowDragHotKeyModifiers: 0,
             Key.toggleShowDragHotKeyIsEnabled: false,
+            Key.randomizeColorsHotKeyCode: 0,
+            Key.randomizeColorsHotKeyModifiers: 0,
+            Key.randomizeColorsHotKeyIsEnabled: false,
             Key.toggleLiveKeyboardShortcutsHotKeyCode: 0,
             Key.toggleLiveKeyboardShortcutsHotKeyModifiers: 0,
             Key.toggleLiveKeyboardShortcutsHotKeyIsEnabled: false
