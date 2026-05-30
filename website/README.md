@@ -1,31 +1,34 @@
-# ClickLight Website
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-Minimal homepage for [ClickLight](https://github.com/aurorascharff/ClickLight), built with the Next.js 16 App Router.
+## Getting Started
 
-The page is meant to feel like a live product demo rather than a marketing site: the background acts as the ClickLight test surface, the floating menu mirrors the macOS menu bar app, and the install command is available directly from the hero.
-
-## Local Development
+First, run the development server:
 
 ```bash
-npm install
 npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-Open `http://localhost:3000`, or run a specific port when testing inside Codex:
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-```bash
-npm run dev -- --port 3333 --hostname 127.0.0.1
-```
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-## Scripts
+## Learn More
 
-- `npm run dev` starts the local development server.
-- `npm run build` creates the production build.
-- `npm run start` serves the production build locally.
+To learn more about Next.js, take a look at the following resources:
 
-## Notes
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-- The ClickLight mark lives in `public/clicklight-icon.png` and is used for the hero logo and favicon.
-- Set `NEXT_PUBLIC_SITE_URL` in production if the deployed domain is not provided by Vercel.
-- Vercel Analytics is wired in `app/layout.tsx`.
-- The demo behavior and controls live in `app/page.tsx`; visual styling lives in `app/globals.css`.
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
