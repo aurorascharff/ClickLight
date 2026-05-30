@@ -482,7 +482,7 @@ struct ClickLightSettingsView: View {
         SettingsCard {
             VStack(spacing: 0) {
                 ModernRow(title: "Laser Pointer Mode",
-                          subtitle: "Show a fading red pointer and draw temporary strokes while dragging.") {
+                          subtitle: "Show a fading pointer and draw temporary strokes while dragging.") {
                     Toggle("", isOn: binding(\.showLaserPointer))
                         .toggleStyle(.switch)
                         .labelsHidden()
