@@ -26,5 +26,6 @@ npm run dev -- --port 3333 --hostname 127.0.0.1
 ## Notes
 
 - The ClickLight mark lives in `public/clicklight-icon.png` and is used for the hero logo and favicon.
+- Set `NEXT_PUBLIC_SITE_URL` in production if the deployed domain is not provided by Vercel.
 - Vercel Analytics is wired in `app/layout.tsx`.
 - The demo behavior and controls live in `app/page.tsx`; visual styling lives in `app/globals.css`.

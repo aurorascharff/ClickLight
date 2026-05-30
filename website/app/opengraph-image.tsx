@@ -44,6 +44,7 @@ export default function Image() {
               style={{
                 border: "10px solid #f7f7fb",
                 borderRadius: 999,
+                display: "flex",
                 height: 108,
                 position: "relative",
                 width: 108,
