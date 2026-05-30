@@ -13,6 +13,17 @@ type DemoSettings = Record<ToggleKey, boolean> & {
   theme: ThemeName;
 };
 
+type ThemePalette = {
+  active: string;
+  drag: string;
+  laserInner: string;
+  laserMiddle: string;
+  laserOuter: string;
+  laserMain: string;
+  middle: string;
+  right: string;
+};
+
 type Pulse = {
   id: number;
   x: number;
@@ -35,8 +46,8 @@ const profiles: Record<ProfileName, DemoSettings> = {
     drag: true,
     laser: false,
     keys: true,
-    pulseDuration: 480,
-    pulseSize: 104,
+    pulseDuration: 440,
+    pulseSize: 96,
     theme: "blue",
   },
   Tutorial: {
@@ -47,8 +58,8 @@ const profiles: Record<ProfileName, DemoSettings> = {
     drag: true,
     laser: false,
     keys: true,
-    pulseDuration: 760,
-    pulseSize: 148,
+    pulseDuration: 1080,
+    pulseSize: 184,
     theme: "amber",
   },
   Presentation: {
@@ -56,12 +67,45 @@ const profiles: Record<ProfileName, DemoSettings> = {
     release: true,
     right: true,
     middle: true,
-    drag: false,
+    drag: true,
     laser: true,
     keys: true,
-    pulseDuration: 560,
-    pulseSize: 112,
+    pulseDuration: 620,
+    pulseSize: 116,
     theme: "red",
+  },
+};
+
+const themePalettes: Record<ThemeName, ThemePalette> = {
+  blue: {
+    active: "var(--aqua)",
+    drag: "#ebd638",
+    laserInner: "#ffffff",
+    laserMiddle: "#ffb0a8",
+    laserOuter: "rgba(255, 93, 87, 0.25)",
+    laserMain: "#ff2905",
+    middle: "#45eb94",
+    right: "#ff7530",
+  },
+  amber: {
+    active: "var(--amber)",
+    drag: "#ffb02e",
+    laserInner: "#ffffff",
+    laserMiddle: "#ffb0a8",
+    laserOuter: "rgba(255, 93, 87, 0.25)",
+    laserMain: "#ff2905",
+    middle: "#ffe98f",
+    right: "#ff9f43",
+  },
+  red: {
+    active: "var(--coral)",
+    drag: "#ff6d6a",
+    laserInner: "#ffffff",
+    laserMiddle: "#ffb0a8",
+    laserOuter: "rgba(255, 93, 87, 0.25)",
+    laserMain: "#ff2905",
+    middle: "#ff8f83",
+    right: "#ff5d57",
   },
 };
 
@@ -76,6 +120,7 @@ export default function Home() {
   const [laserCursor, setLaserCursor] = useState<TrailPoint | null>(null);
   const [shortcut, setShortcut] = useState<string | null>(null);
   const [copiedInstall, setCopiedInstall] = useState(false);
+  const [isPointerActive, setIsPointerActive] = useState(false);
   const surfaceRef = useRef<HTMLElement>(null);
   const pointerDownRef = useRef(false);
   const downPointRef = useRef<TrailPoint | null>(null);
@@ -84,15 +129,12 @@ export default function Home() {
   const pressedKindRef = useRef<ClickKind>("press");
   const shortcutTimeoutRef = useRef<number | null>(null);
 
-  const activeColor = useMemo(() => {
-    if (settings.theme === "amber") return "var(--amber)";
-    if (settings.theme === "red") return "var(--coral)";
-    return "var(--aqua)";
-  }, [settings.theme]);
+  const palette = useMemo(() => themePalettes[settings.theme], [settings.theme]);
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       if (!settings.keys || event.repeat) return;
+      if (!event.metaKey && !event.ctrlKey && !event.altKey) return;
       const parts = [];
       if (event.metaKey) parts.push("⌘");
       if (event.ctrlKey) parts.push("⌃");
@@ -135,6 +177,7 @@ export default function Home() {
   function handlePointerDown(event: PointerEvent<HTMLElement>) {
     event.currentTarget.setPointerCapture(event.pointerId);
     pointerDownRef.current = true;
+    setIsPointerActive(true);
     const downPoint = pointFromEvent(event);
     downPointRef.current = downPoint ? { id: nextAnimationId++, ...downPoint } : null;
     lastDragPointRef.current = downPointRef.current;
@@ -195,6 +238,7 @@ export default function Home() {
 
   function resetPointerState() {
     pointerDownRef.current = false;
+    setIsPointerActive(false);
     downPointRef.current = null;
     lastDragPointRef.current = null;
     hasDraggedRef.current = false;
@@ -229,11 +273,18 @@ export default function Home() {
       ref={surfaceRef}
       style={
         {
-          "--active": activeColor,
-          "--press-color": activeColor,
+          "--active": palette.active,
+          "--drag-color": palette.drag,
+          "--laser-inner": palette.laserInner,
+          "--laser-middle": palette.laserMiddle,
+          "--laser-outer": palette.laserOuter,
+          "--laser-main": palette.laserMain,
+          "--middle-color": palette.middle,
+          "--press-color": palette.active,
           "--pulse-duration": `${settings.pulseDuration}ms`,
-          "--release-color": activeColor,
+          "--release-color": palette.active,
           "--pulse-size": `${settings.pulseSize}px`,
+          "--right-color": palette.right,
         } as React.CSSProperties
       }
       onPointerDown={handlePointerDown}
@@ -267,13 +318,32 @@ export default function Home() {
           </p>
           <div className="install" onPointerDown={stopDemoEvent}>
             <code>{installCommand}</code>
-            <button type="button" onClick={copyInstallCommand} aria-label="Copy install command">
-              {copiedInstall ? "Copied" : "Copy"}
+            <button
+              className={copiedInstall ? "copied" : ""}
+              type="button"
+              onClick={copyInstallCommand}
+              aria-label={copiedInstall ? "Copied install command" : "Copy install command"}
+            >
+              {copiedInstall ? (
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                  <path d="m9.4 16.2-3.2-3.2-1.4 1.4 4.6 4.6 9.8-9.8-1.4-1.4-8.4 8.4Z" />
+                </svg>
+              ) : (
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                  <path d="M8 7.5A2.5 2.5 0 0 1 10.5 5h6A2.5 2.5 0 0 1 19 7.5v6a2.5 2.5 0 0 1-2.5 2.5h-6A2.5 2.5 0 0 1 8 13.5v-6Zm2.5-.5a.5.5 0 0 0-.5.5v6a.5.5 0 0 0 .5.5h6a.5.5 0 0 0 .5-.5v-6a.5.5 0 0 0-.5-.5h-6ZM5 10.5A2.5 2.5 0 0 1 7.5 8v2A.5.5 0 0 0 7 10.5v6a.5.5 0 0 0 .5.5h6a.5.5 0 0 0 .5-.5h2a2.5 2.5 0 0 1-2.5 2.5h-6A2.5 2.5 0 0 1 5 16.5v-6Z" />
+                </svg>
+              )}
             </button>
           </div>
         </section>
 
         <aside className="menu" aria-label="ClickLight controls" onPointerDown={stopDemoEvent}>
+          <div className="menu-brand" aria-hidden="true">
+            <span className="menu-brand-icon" />
+            <span className="menu-brand-title">ClickLight</span>
+          </div>
+          <div className="menu-separator" />
+
           <MenuItem label="Laser Pointer Mode" checked={settings.laser} onClick={() => toggle("laser")} />
           <MenuItem
             label="Show Live Keyboard Shortcuts"
@@ -315,7 +385,7 @@ export default function Home() {
       {settings.keys && shortcut && <div className="shortcut-display">{shortcut}</div>}
 
       {trail.length > 1 && (
-        <svg className="laser-strokes" aria-hidden="true">
+        <svg className={`laser-strokes ${isPointerActive ? "active" : "fading"}`} aria-hidden="true">
           <polyline className="laser-stroke outer" points={trail.map((point) => `${point.x},${point.y}`).join(" ")} />
           <polyline className="laser-stroke main" points={trail.map((point) => `${point.x},${point.y}`).join(" ")} />
           <polyline className="laser-stroke middle" points={trail.map((point) => `${point.x},${point.y}`).join(" ")} />

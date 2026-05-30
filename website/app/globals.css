@@ -8,10 +8,17 @@
   --amber: #ffd86a;
   --coral: #ff5d57;
   --active: var(--aqua);
+  --drag-color: #ebd638;
+  --laser-inner: #fff;
+  --laser-middle: #ff9482;
+  --laser-outer: rgba(255, 41, 5, 0.22);
+  --laser-main: #ff2905;
+  --middle-color: #45eb94;
   --press-color: var(--aqua);
   --pulse-duration: 480ms;
   --pulse-size: 104px;
   --release-color: var(--aqua);
+  --right-color: #ff7530;
 }
 
 * {
@@ -167,7 +174,7 @@ button:disabled {
   gap: 10px;
   margin-top: 24px;
   max-width: min(100%, 720px);
-  padding: 8px 8px 8px 18px;
+  padding: 10px 10px 10px 22px;
 }
 
 .install code {
@@ -181,13 +188,32 @@ button:disabled {
 }
 
 .install button {
-  background: #64d8ff;
-  border: 0;
-  border-radius: 12px;
-  color: #071017;
-  font-size: 0.92rem;
-  font-weight: 760;
-  padding: 10px 14px;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.13);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.86);
+  display: inline-flex;
+  flex: 0 0 auto;
+  height: 42px;
+  justify-content: center;
+  width: 42px;
+}
+
+.install button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.install button.copied {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.install button svg {
+  fill: currentColor;
+  height: 20px;
+  opacity: 0.92;
+  width: 20px;
 }
 
 .statement h1 {
@@ -216,6 +242,30 @@ button:disabled {
   inset: 0;
   position: absolute;
   z-index: -1;
+}
+
+.menu-brand {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  min-height: 30px;
+  padding: 2px 0 4px;
+}
+
+.menu-brand-icon {
+  background: rgba(255, 255, 255, 0.94);
+  display: block;
+  flex: 0 0 auto;
+  height: 24px;
+  mask: url("/clicklight-icon.png") center / 112% no-repeat;
+  -webkit-mask: url("/clicklight-icon.png") center / 112% no-repeat;
+  width: 24px;
+}
+
+.menu-brand-title {
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 0.9rem;
+  font-weight: 700;
 }
 
 .menu-row {
@@ -306,10 +356,13 @@ button:disabled {
 }
 
 .laser-strokes {
-  animation: laser-fade 900ms ease-out forwards;
   height: 100%;
   overflow: visible;
   width: 100%;
+}
+
+.laser-strokes.fading {
+  animation: laser-fade 900ms ease-out forwards;
 }
 
 .laser-stroke {
@@ -319,31 +372,31 @@ button:disabled {
 }
 
 .laser-stroke.outer {
-  stroke: rgba(255, 41, 5, 0.22);
-  stroke-width: 14;
+  stroke: var(--laser-outer);
+  stroke-width: 22;
 }
 
 .laser-stroke.main {
-  stroke: #ff2905;
-  stroke-width: 7;
+  stroke: var(--laser-main);
+  stroke-width: 11;
 }
 
 .laser-stroke.middle {
-  stroke: #ff9482;
-  stroke-width: 4.5;
+  stroke: var(--laser-middle);
+  stroke-width: 7;
 }
 
 .laser-stroke.inner {
-  stroke: #fff;
-  stroke-width: 2.4;
+  stroke: var(--laser-inner);
+  stroke-width: 3.4;
 }
 
 .laser-cursor {
-  background: rgba(255, 41, 5, 0.18);
+  background: color-mix(in srgb, var(--laser-main), transparent 82%);
   border-radius: 999px;
-  height: 32px;
+  height: 42px;
   transform: translate(-50%, -50%);
-  width: 32px;
+  width: 42px;
 }
 
 .laser-cursor::before,
@@ -357,15 +410,20 @@ button:disabled {
 }
 
 .laser-cursor::before {
-  background: radial-gradient(circle, #fff 0 33%, #ff9482 34% 48%, #ff2905 50% 100%);
-  height: 16px;
-  width: 16px;
+  background: radial-gradient(
+    circle,
+    var(--laser-inner) 0 33%,
+    var(--laser-middle) 34% 48%,
+    var(--laser-main) 50% 100%
+  );
+  height: 22px;
+  width: 22px;
 }
 
 .laser-cursor::after {
-  background: #fff;
-  height: 11px;
-  width: 11px;
+  background: var(--laser-inner);
+  height: 14px;
+  width: 14px;
 }
 
 .pulse {
@@ -412,7 +470,7 @@ button:disabled {
 }
 
 .pulse.right {
-  --pulse-color: #ff7530;
+  --pulse-color: var(--right-color);
   animation-name: right-pulse;
   animation-duration: var(--pulse-duration);
 }
@@ -440,13 +498,13 @@ button:disabled {
 }
 
 .pulse.rightRelease {
-  --pulse-color: #ff7530;
+  --pulse-color: var(--right-color);
   animation-name: right-release-pulse;
   animation-duration: calc(var(--pulse-duration) * 0.92);
 }
 
 .pulse.middle {
-  --pulse-color: #45eb94;
+  --pulse-color: var(--middle-color);
   animation-name: middle-pulse;
   animation-duration: var(--pulse-duration);
 }
@@ -466,7 +524,7 @@ button:disabled {
 }
 
 .pulse.middleRelease {
-  --pulse-color: #45eb94;
+  --pulse-color: var(--middle-color);
   animation-name: middle-release-pulse;
   animation-duration: calc(var(--pulse-duration) * 0.92);
   border: 0;
@@ -474,13 +532,13 @@ button:disabled {
 }
 
 .pulse.drag {
-  --pulse-color: #ebd638;
+  --pulse-color: var(--drag-color);
   animation: drag-pulse 380ms ease-out forwards;
   background: var(--pulse-color);
   border: 0;
   box-shadow: none;
-  height: 18px;
-  width: 18px;
+  height: 12px;
+  width: 12px;
 }
 
 .pulse.drag::before {
