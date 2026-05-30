@@ -33,7 +33,7 @@ struct ClickLightSettingsView: View {
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(.secondary)
 
-                    ClickPreviewPad(settings: viewModel.settings)
+                    ClickPreviewPad(settings: viewModel.settings, activityStore: activityStore)
                         .frame(height: 116)
                         .accessibilityLabel("Preview Pad")
 
@@ -618,7 +618,7 @@ struct ClickLightSettingsView: View {
 
             SettingsCard(title: "Today") {
                 HStack(spacing: 0) {
-                    ActivityMetric(title: "Primary", value: activityStore.today.primaryClicks)
+                    ActivityMetric(title: "Left", value: activityStore.today.primaryClicks)
                     Divider().frame(height: 44)
                     ActivityMetric(title: "Right", value: activityStore.today.secondaryClicks)
                     Divider().frame(height: 44)
@@ -969,22 +969,26 @@ private struct ActivityMetric: View {
 
 private struct ClickPreviewPad: NSViewRepresentable {
     let settings: ClickSettings
+    let activityStore: ClickActivityStore
 
     func makeNSView(context: Context) -> InteractiveClickPreviewView {
-        InteractiveClickPreviewView(settings: settings)
+        InteractiveClickPreviewView(settings: settings, activityStore: activityStore)
     }
 
     func updateNSView(_ nsView: InteractiveClickPreviewView, context: Context) {
-        nsView.apply(settings: settings)
+        nsView.apply(settings: settings, activityStore: activityStore)
     }
 }
 
+@MainActor
 private final class InteractiveClickPreviewView: NSView {
     private let overlayView: ClickOverlayView
     private var settings: ClickSettings
+    private var activityStore: ClickActivityStore
 
-    init(settings: ClickSettings) {
+    init(settings: ClickSettings, activityStore: ClickActivityStore) {
         self.settings = settings
+        self.activityStore = activityStore
         self.overlayView = ClickOverlayView(
             screenFrame: CGRect(x: 0, y: 0, width: 200, height: 116),
             settings: settings
@@ -1015,8 +1019,9 @@ private final class InteractiveClickPreviewView: NSView {
         bounds.contains(point) ? self : nil
     }
 
-    func apply(settings: ClickSettings) {
+    func apply(settings: ClickSettings, activityStore: ClickActivityStore) {
         self.settings = settings
+        self.activityStore = activityStore
         overlayView.apply(settings: settings)
     }
 
@@ -1062,14 +1067,13 @@ private final class InteractiveClickPreviewView: NSView {
     private func show(_ kind: ClickKind, event: NSEvent) {
         guard settings.isEnabled else { return }
         let location = convert(event.locationInWindow, from: nil)
-        overlayView.show(
-            event: ClickEvent(
-                kind: kind,
-                location: location,
-                timestamp: CACurrentMediaTime()
-            ),
-            settings: settings
+        let clickEvent = ClickEvent(
+            kind: kind,
+            location: location,
+            timestamp: CACurrentMediaTime()
         )
+        activityStore.record(clickEvent)
+        overlayView.show(event: clickEvent, settings: settings)
     }
 }
 
