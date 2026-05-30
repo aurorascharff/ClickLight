@@ -229,10 +229,6 @@ export default function Home() {
       <div className="background" aria-hidden="true" />
 
       <nav className="topbar" aria-label="ClickLight navigation" onPointerDown={stopDemoEvent}>
-        <div className="brand" aria-label="ClickLight">
-          <img src="/clicklight-icon.png" alt="" />
-          ClickLight
-        </div>
         <a
           className="github-link"
           href="https://github.com/aurorascharff/ClickLight"
@@ -245,7 +241,10 @@ export default function Home() {
       </nav>
 
       <section className="statement" aria-label="ClickLight demo intro">
-        <h1>ClickLight</h1>
+        <div className="hero-title">
+          <span className="hero-mark" aria-hidden="true" />
+          <h1>ClickLight</h1>
+        </div>
         <p>Highlights your clicks during live demos, screen sharing, and UX reviews.</p>
         <div className="install" onPointerDown={stopDemoEvent}>
           <code>{installCommand}</code>
