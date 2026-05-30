@@ -5,9 +5,12 @@
   --panel-strong: rgba(15, 15, 20, 0.88);
   --stroke: rgba(255, 255, 255, 0.16);
   --aqua: #64d8ff;
-  --mint: #90f7a6;
+  --amber: #ffd86a;
   --coral: #ff5d57;
   --active: var(--aqua);
+  --press-color: var(--aqua);
+  --pulse-size: 104px;
+  --release-color: var(--aqua);
 }
 
 * {
@@ -132,8 +135,8 @@ button:disabled {
   display: block;
   flex: 0 0 auto;
   height: clamp(3.1rem, 6.8vw, 6rem);
-  mask: url("/clicklight-icon.png") center / contain no-repeat;
-  -webkit-mask: url("/clicklight-icon.png") center / contain no-repeat;
+  mask: url("/clicklight-icon.png") center / 108% no-repeat;
+  -webkit-mask: url("/clicklight-icon.png") center / 108% no-repeat;
   width: clamp(3.1rem, 6.8vw, 6rem);
 }
 
@@ -167,7 +170,7 @@ button:disabled {
 }
 
 .install button {
-  background: var(--active);
+  background: #64d8ff;
   border: 0;
   border-radius: 12px;
   color: #071017;
@@ -190,102 +193,89 @@ button:disabled {
 }
 
 .menu {
-  border-radius: 20px;
+  background: rgba(20, 22, 26, 0.62);
+  border-radius: 17px;
   bottom: 28px;
-  padding: 14px;
+  color: rgba(255, 255, 255, 0.91);
+  padding: 12px 16px;
   position: fixed;
   right: 28px;
-  width: 318px;
+  width: 332px;
   z-index: 8;
 }
 
-.menu-title {
-  align-items: center;
-  display: flex;
-  gap: 9px;
-  padding: 2px 4px 12px;
+.menu::before {
+  background:
+    radial-gradient(circle at 18% 0%, rgba(100, 216, 255, 0.18), transparent 42%),
+    radial-gradient(circle at 40% 58%, rgba(255, 255, 255, 0.08), transparent 50%);
+  border-radius: inherit;
+  content: "";
+  inset: 0;
+  position: absolute;
+  z-index: -1;
 }
 
-.status-dot {
-  background: var(--active);
-  border-radius: 999px;
-  box-shadow: 0 0 20px var(--active);
-  height: 12px;
-  width: 12px;
-}
-
-.profiles {
-  display: flex;
-  gap: 8px;
-}
-
-.profiles {
-  margin-bottom: 12px;
-}
-
-.profiles button,
-.shortcut-display button {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid var(--stroke);
-  border-radius: 999px;
-  padding: 8px 11px;
-}
-
-.profiles button.selected {
-  background: var(--active);
-  color: #071017;
-}
-
-.menu-section {
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 7px 0;
-}
-
-.toggle {
+.menu-row {
   align-items: center;
   background: transparent;
   border: 0;
-  border-radius: 10px;
+  border-radius: 7px;
+  color: inherit;
   display: flex;
-  justify-content: space-between;
-  padding: 7px 4px;
+  gap: 8px;
+  min-height: 25px;
+  padding: 3px 0;
   text-align: left;
   width: 100%;
 }
 
-.toggle:hover {
-  background: rgba(255, 255, 255, 0.07);
+.menu-row:hover {
+  background: rgba(255, 255, 255, 0.08);
 }
 
-.toggle > span:first-child {
-  font-size: 0.94rem;
+.menu-row:disabled {
+  cursor: default;
+  opacity: 0.48;
 }
 
-.switch {
-  background: rgba(255, 255, 255, 0.16);
-  border-radius: 999px;
+.menu-row:disabled:hover {
+  background: transparent;
+}
+
+.menu-row.inset {
+  padding-left: 28px;
+}
+
+.menu-check {
   display: block;
-  height: 22px;
-  padding: 3px;
-  width: 40px;
+  flex: 0 0 18px;
+  font-size: 1.15rem;
+  line-height: 1;
+  text-align: center;
 }
 
-.switch span {
-  background: rgba(255, 255, 255, 0.88);
-  border-radius: 999px;
-  display: block;
-  height: 16px;
-  transform: translateX(0);
-  transition: transform 140ms ease;
-  width: 16px;
+.menu-label {
+  flex: 1;
+  font-size: 1rem;
+  font-weight: 620;
 }
 
-.switch.on {
-  background: var(--active);
+.menu-shortcut,
+.menu-chevron {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.98rem;
+  font-weight: 620;
 }
 
-.switch.on span {
-  transform: translateX(18px);
+.menu-chevron {
+  font-size: 1.55rem;
+  line-height: 0.7;
+}
+
+.menu-separator {
+  background: rgba(255, 255, 255, 0.18);
+  height: 1px;
+  margin: 7px 0;
 }
 
 .shortcut-display {
@@ -376,13 +366,13 @@ button:disabled {
 }
 
 .pulse {
-  --pulse-color: #00bdff;
+  --pulse-color: var(--press-color);
   animation: press-pulse 480ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
   border: 4px solid var(--pulse-color);
   border-radius: 999px;
   box-shadow: 0 0 22px color-mix(in srgb, var(--pulse-color), transparent 70%);
-  height: 104px;
-  width: 104px;
+  height: var(--pulse-size);
+  width: var(--pulse-size);
 }
 
 .pulse::before {
@@ -405,7 +395,7 @@ button:disabled {
 }
 
 .pulse.release {
-  --pulse-color: #66e0ff;
+  --pulse-color: var(--release-color);
 }
 
 .pulse.release::before,

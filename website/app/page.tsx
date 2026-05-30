@@ -3,11 +3,12 @@
 import { PointerEvent, useEffect, useMemo, useRef, useState } from "react";
 
 type ClickKind = "press" | "release" | "right" | "rightRelease" | "middle" | "middleRelease" | "drag";
-type ThemeName = "blue" | "green" | "red";
+type ThemeName = "blue" | "amber" | "red";
 type ProfileName = "Default" | "Tutorial" | "Presentation";
 type ToggleKey = "press" | "release" | "right" | "middle" | "drag" | "laser" | "keys";
 
 type DemoSettings = Record<ToggleKey, boolean> & {
+  pulseSize: number;
   theme: ThemeName;
 };
 
@@ -33,6 +34,7 @@ const profiles: Record<ProfileName, DemoSettings> = {
     drag: true,
     laser: false,
     keys: true,
+    pulseSize: 104,
     theme: "blue",
   },
   Tutorial: {
@@ -43,7 +45,8 @@ const profiles: Record<ProfileName, DemoSettings> = {
     drag: true,
     laser: false,
     keys: true,
-    theme: "green",
+    pulseSize: 128,
+    theme: "amber",
   },
   Presentation: {
     press: true,
@@ -53,6 +56,7 @@ const profiles: Record<ProfileName, DemoSettings> = {
     drag: false,
     laser: true,
     keys: true,
+    pulseSize: 112,
     theme: "red",
   },
 };
@@ -77,7 +81,7 @@ export default function Home() {
   const shortcutTimeoutRef = useRef<number | null>(null);
 
   const activeColor = useMemo(() => {
-    if (settings.theme === "green") return "var(--mint)";
+    if (settings.theme === "amber") return "var(--amber)";
     if (settings.theme === "red") return "var(--coral)";
     return "var(--aqua)";
   }, [settings.theme]);
@@ -219,7 +223,14 @@ export default function Home() {
       className="surface"
       id="demo"
       ref={surfaceRef}
-      style={{ "--active": activeColor } as React.CSSProperties}
+      style={
+        {
+          "--active": activeColor,
+          "--press-color": activeColor,
+          "--release-color": activeColor,
+          "--pulse-size": `${settings.pulseSize}px`,
+        } as React.CSSProperties
+      }
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
@@ -245,7 +256,10 @@ export default function Home() {
           <span className="hero-mark" aria-hidden="true" />
           <h1>ClickLight</h1>
         </div>
-        <p>Highlights your clicks during live demos, screen sharing, and UX reviews.</p>
+        <p>
+          A tiny macOS menu bar app that highlights your clicks during demos, screen sharing,
+          UX reviews, and anywhere people need to follow what you are doing.
+        </p>
         <div className="install" onPointerDown={stopDemoEvent}>
           <code>{installCommand}</code>
           <button type="button" onClick={copyInstallCommand} aria-label="Copy install command">
@@ -255,37 +269,41 @@ export default function Home() {
       </section>
 
       <aside className="menu" aria-label="ClickLight controls" onPointerDown={stopDemoEvent}>
-        <div className="menu-title">
-          <span className="status-dot" />
-          <strong>ClickLight</strong>
-        </div>
+        <MenuItem label="Laser Pointer Mode" checked={settings.laser} onClick={() => toggle("laser")} />
+        <MenuItem
+          label="Show Live Keyboard Shortcuts"
+          checked={settings.keys}
+          onClick={() => toggle("keys")}
+        />
 
-        <div className="profiles" aria-label="Profiles">
-          {(Object.keys(profiles) as ProfileName[]).map((name) => (
-            <button
-              className={profile === name ? "selected" : ""}
-              disabled={profile === name}
-              key={name}
-              onClick={() => updateProfile(name)}
-              type="button"
-            >
-              {name}
-            </button>
-          ))}
-        </div>
+        <div className="menu-separator" />
+        <MenuItem label="Show Press" checked={settings.press} onClick={() => toggle("press")} />
+        <MenuItem label="Show Release" checked={settings.release} onClick={() => toggle("release")} />
+        <MenuItem label="Show Right Click" checked={settings.right} onClick={() => toggle("right")} />
+        <MenuItem label="Show Middle Click" checked={settings.middle} onClick={() => toggle("middle")} />
+        <MenuItem label="Show Drag" checked={settings.drag} onClick={() => toggle("drag")} />
 
-        <div className="menu-section">
-          <Toggle label="Show Press" on={settings.press} onClick={() => toggle("press")} />
-          <Toggle label="Show Release" on={settings.release} onClick={() => toggle("release")} />
-          <Toggle label="Show Right Click" on={settings.right} onClick={() => toggle("right")} />
-          <Toggle label="Show Middle Click" on={settings.middle} onClick={() => toggle("middle")} />
-          <Toggle label="Show Drag" on={settings.drag} onClick={() => toggle("drag")} />
-        </div>
+        <div className="menu-separator" />
+        <MenuItem disabled label="Size" chevron />
+        <MenuItem disabled label="Intensity" chevron />
+        <MenuItem disabled label="Duration" chevron />
+        <MenuItem disabled label="Colors" chevron />
 
-        <div className="menu-section">
-          <Toggle label="Laser Pointer Mode" on={settings.laser} onClick={() => toggle("laser")} />
-          <Toggle label="Show Keystrokes" on={settings.keys} onClick={() => toggle("keys")} />
-        </div>
+        <div className="menu-separator" />
+        <MenuItem disabled label="Profiles" chevron />
+        {(Object.keys(profiles) as ProfileName[]).map((name) => (
+          <MenuItem
+            checked={profile === name}
+            inset
+            key={name}
+            label={name}
+            onClick={() => updateProfile(name)}
+          />
+        ))}
+
+        <div className="menu-separator" />
+        <MenuItem disabled label="Open Settings..." shortcut="⌘," />
+        <MenuItem disabled label="About ClickLight" />
       </aside>
 
       {settings.keys && shortcut && <div className="shortcut-display">{shortcut}</div>}
@@ -314,21 +332,36 @@ export default function Home() {
   );
 }
 
-function Toggle({
+function MenuItem({
+  checked = false,
+  chevron = false,
+  disabled = false,
+  inset = false,
   label,
-  on,
   onClick,
+  shortcut,
 }: {
+  checked?: boolean;
+  chevron?: boolean;
+  disabled?: boolean;
+  inset?: boolean;
   label: string;
-  on: boolean;
-  onClick: () => void;
+  onClick?: () => void;
+  shortcut?: string;
 }) {
   return (
-    <button className="toggle" onClick={onClick} type="button">
-      <span>{label}</span>
-      <span className={`switch ${on ? "on" : ""}`} aria-hidden="true">
-        <span />
+    <button
+      className={`menu-row ${inset ? "inset" : ""}`}
+      disabled={disabled}
+      onClick={onClick}
+      type="button"
+    >
+      <span className="menu-check" aria-hidden="true">
+        {checked ? "✓" : ""}
       </span>
+      <span className="menu-label">{label}</span>
+      {shortcut && <span className="menu-shortcut">{shortcut}</span>}
+      {chevron && <span className="menu-chevron">›</span>}
     </button>
   );
 }
