@@ -1,13 +1,17 @@
 import AppKit
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct ClickLightSettingsView: View {
     @ObservedObject var viewModel: ClickLightSettingsViewModel
+    @ObservedObject var profileStore: ClickProfileStore
     @ObservedObject var activityStore: ClickActivityStore
     @State private var selectedPane: SettingsPane = .general
     @State private var showResetConfirmation = false
     @State private var showShortcutResetConfirmation = false
     @State private var showActivityResetConfirmation = false
+    @State private var profileName = ""
+    @State private var profileStatusMessage: String?
 
     var body: some View {
         NavigationSplitView {
@@ -63,6 +67,8 @@ struct ClickLightSettingsView: View {
                             stylePane
                         case .shortcuts:
                             shortcutsPane
+                        case .profiles:
+                            profilesPane
                         case .events:
                             eventsPane
                         case .activity:
@@ -632,6 +638,98 @@ struct ClickLightSettingsView: View {
         }
     }
 
+    private var profilesPane: some View {
+        VStack(spacing: 16) {
+            SettingsCard(
+                title: "Profiles",
+                subtitle: "Save reusable visual setups. Profiles do not include hotkeys, launch at login, menu layout, or activity history."
+            ) {
+                VStack(spacing: 0) {
+                    ModernRow(
+                        title: "Save Current Settings",
+                        subtitle: "Use the current click, laser pointer, and shortcut-display settings."
+                    ) {
+                        HStack(spacing: 8) {
+                            TextField("Profile name", text: $profileName)
+                                .textFieldStyle(.roundedBorder)
+                                .frame(width: 180)
+                            Button {
+                                saveCurrentProfile()
+                            } label: {
+                                Label("Save", systemImage: "square.and.arrow.down")
+                            }
+                            .disabled(profileName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                        }
+                    }
+
+                    if !profileStore.profiles.isEmpty {
+                        Divider().padding(.vertical, 6)
+                    }
+
+                    ForEach(profileStore.profiles) { profile in
+                        ModernRow(
+                            title: profile.name,
+                            subtitle: "Created \(profile.createdAt.formatted(date: .abbreviated, time: .shortened))"
+                        ) {
+                            HStack(spacing: 8) {
+                                Button {
+                                    viewModel.applyProfile(profile)
+                                } label: {
+                                    Label("Apply", systemImage: "checkmark.circle")
+                                }
+                                .disabled(isCurrentProfile(profile))
+                                Button(role: .destructive) {
+                                    profileStore.delete(profile)
+                                    profileStatusMessage = "Deleted \(profile.name)."
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
+                            }
+                        }
+                        if profile.id != profileStore.profiles.last?.id {
+                            Divider().padding(.vertical, 6)
+                        }
+                    }
+
+                    if profileStore.profiles.isEmpty {
+                        Text("No profiles yet.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.top, 8)
+                    }
+                }
+            }
+
+            SettingsCard(title: "Import and Export", subtitle: "Move profiles between Macs with a JSON file.") {
+                ModernRow(title: "Profiles File",
+                          subtitle: "Exports all saved profiles, not activity or app-level settings.") {
+                    HStack(spacing: 8) {
+                        Button {
+                            exportProfiles()
+                        } label: {
+                            Label("Export", systemImage: "square.and.arrow.up")
+                        }
+                        .disabled(profileStore.profiles.isEmpty)
+
+                        Button {
+                            importProfiles()
+                        } label: {
+                            Label("Import", systemImage: "square.and.arrow.down")
+                        }
+                    }
+                }
+            }
+
+            if let profileStatusMessage {
+                Text(profileStatusMessage)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+    }
+
     private var activityPane: some View {
         VStack(spacing: 16) {
             SettingsCard(
@@ -713,6 +811,46 @@ struct ClickLightSettingsView: View {
                 viewModel.update { $0[keyPath: keyPath] = newValue }
             }
         )
+    }
+
+    private func saveCurrentProfile() {
+        guard let profile = profileStore.saveProfile(named: profileName, from: viewModel.settings) else { return }
+        profileName = ""
+        profileStatusMessage = "Saved \(profile.name)."
+    }
+
+    private func isCurrentProfile(_ profile: ClickSettingsProfile) -> Bool {
+        profile.settings == ClickProfileSettings(settings: viewModel.settings)
+    }
+
+    private func exportProfiles() {
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [.json]
+        panel.nameFieldStringValue = "ClickLight Profiles.json"
+        panel.canCreateDirectories = true
+
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        do {
+            try profileStore.exportProfiles(to: url)
+            profileStatusMessage = "Exported \(profileStore.profiles.count) profile\(profileStore.profiles.count == 1 ? "" : "s")."
+        } catch {
+            profileStatusMessage = "Could not export profiles: \(error.localizedDescription)"
+        }
+    }
+
+    private func importProfiles() {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.json]
+        panel.allowsMultipleSelection = false
+        panel.canChooseDirectories = false
+
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        do {
+            let count = try profileStore.importProfiles(from: url)
+            profileStatusMessage = "Imported \(count) profile\(count == 1 ? "" : "s")."
+        } catch {
+            profileStatusMessage = "Could not import profiles: \(error.localizedDescription)"
+        }
     }
 
     @ViewBuilder
@@ -820,6 +958,16 @@ private struct MenuLayoutPane: View {
                         .toggleStyle(.switch)
                         .labelsHidden()
                         .accessibilityLabel("Show Style Presets")
+                }
+                Divider().padding(.vertical, 6)
+                ModernRow(
+                    title: "Show Profiles",
+                    subtitle: "Show saved profiles as a quick switcher in the menu."
+                ) {
+                    Toggle("", isOn: binding(\.showProfilesInMenu))
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                        .accessibilityLabel("Show Profiles")
                 }
                 Divider().padding(.vertical, 6)
                 ModernRow(
@@ -1119,6 +1267,7 @@ private enum SettingsPane: String, CaseIterable, Hashable {
     case events
     case style
     case shortcuts
+    case profiles
     case activity
     case menu
 
@@ -1130,6 +1279,8 @@ private enum SettingsPane: String, CaseIterable, Hashable {
             return "Visual Style"
         case .shortcuts:
             return "Keyboard Shortcuts"
+        case .profiles:
+            return "Profiles"
         case .events:
             return "Event Visibility"
         case .activity:
@@ -1147,6 +1298,8 @@ private enum SettingsPane: String, CaseIterable, Hashable {
             return "Size, intensity, duration, and color of click pulses."
         case .shortcuts:
             return "Set global shortcuts."
+        case .profiles:
+            return "Save and move reusable visual setups."
         case .events:
             return "Choose which interactions and shortcut overlays appear."
         case .activity:
@@ -1164,6 +1317,8 @@ private enum SettingsPane: String, CaseIterable, Hashable {
             return "paintpalette"
         case .shortcuts:
             return "keyboard"
+        case .profiles:
+            return "rectangle.stack"
         case .events:
             return "cursorarrow.click.2"
         case .activity:

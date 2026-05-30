@@ -6,12 +6,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private let settingsStore = SettingsStore()
     private let activityStore = ClickActivityStore()
+    private let profileStore = ClickProfileStore()
     private var settingsWindowController: SettingsWindowController?
     private let hotKeyManager = HotKeyManager()
     private lazy var overlayCoordinator = OverlayCoordinator(settingsStore: settingsStore)
     private lazy var captureController = ClickCaptureController(settingsStore: settingsStore, eventTap: eventTap)
     private lazy var statusController = StatusController(
         settingsStore: settingsStore,
+        profileStore: profileStore,
         activityStore: activityStore,
         permissions: permissions,
         launchAtLogin: launchAtLogin,
@@ -213,6 +215,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func openSettings() {
         let controller = settingsWindowController ?? SettingsWindowController(
             settingsStore: settingsStore,
+            profileStore: profileStore,
             activityStore: activityStore,
             launchAtLogin: launchAtLogin,
             permissions: permissions,

@@ -13,6 +13,7 @@ struct ClickSettings: Equatable {
     var liveShortcutSize: LiveShortcutSize
     var showEventControlsInMenu: Bool
     var showStyleControlsInMenu: Bool
+    var showProfilesInMenu: Bool
     var showMenuBarControlsInMenu: Bool
     var showLaunchAtLoginInMenu: Bool
     var showMenuBarText: Bool
@@ -138,6 +139,7 @@ struct ClickSettings: Equatable {
         liveShortcutSize: .medium,
         showEventControlsInMenu: true,
         showStyleControlsInMenu: true,
+        showProfilesInMenu: false,
         showMenuBarControlsInMenu: true,
         showLaunchAtLoginInMenu: true,
         showMenuBarText: false,
@@ -287,7 +289,7 @@ struct ClickSettings: Equatable {
     }
 }
 
-enum CustomClickColorMode: String, CaseIterable, Equatable {
+enum CustomClickColorMode: String, CaseIterable, Codable, Equatable {
     case all
     case byClick
 
@@ -301,7 +303,7 @@ enum CustomClickColorMode: String, CaseIterable, Equatable {
     }
 }
 
-enum LiveShortcutPosition: String, CaseIterable, Equatable {
+enum LiveShortcutPosition: String, CaseIterable, Codable, Equatable {
     case nearPointer
     case bottomCenter
 
@@ -315,7 +317,7 @@ enum LiveShortcutPosition: String, CaseIterable, Equatable {
     }
 }
 
-enum LiveShortcutSize: String, CaseIterable, Equatable {
+enum LiveShortcutSize: String, CaseIterable, Codable, Equatable {
     case small
     case medium
     case large
@@ -381,7 +383,7 @@ enum CustomClickColorTarget {
     case drag
 }
 
-enum ClickColorPreset: String, CaseIterable, Equatable {
+enum ClickColorPreset: String, CaseIterable, Codable, Equatable {
     case `default`
     case primary
     case blue
@@ -484,6 +486,7 @@ final class SettingsStore {
         static let laserInnerColorBlue = "laserInnerColorBlue"
         static let showEventControlsInMenu = "showEventControlsInMenu"
         static let showStyleControlsInMenu = "showStyleControlsInMenu"
+        static let showProfilesInMenu = "showProfilesInMenu"
         static let showMenuBarControlsInMenu = "showMenuBarControlsInMenu"
         static let showLaunchAtLoginInMenu = "showLaunchAtLoginInMenu"
         static let toggleEnabledHotKeyCode = "toggleEnabledHotKeyCode"
@@ -537,6 +540,7 @@ final class SettingsStore {
                 liveShortcutSize: LiveShortcutSize(rawValue: defaults.string(forKey: Key.liveShortcutSize) ?? "") ?? .medium,
                 showEventControlsInMenu: defaults.bool(forKey: Key.showEventControlsInMenu),
                 showStyleControlsInMenu: defaults.bool(forKey: Key.showStyleControlsInMenu),
+                showProfilesInMenu: defaults.bool(forKey: Key.showProfilesInMenu),
                 showMenuBarControlsInMenu: defaults.bool(forKey: Key.showMenuBarControlsInMenu),
                 showLaunchAtLoginInMenu: defaults.bool(forKey: Key.showLaunchAtLoginInMenu),
                 showMenuBarText: defaults.bool(forKey: Key.showMenuBarText),
@@ -627,6 +631,7 @@ final class SettingsStore {
             defaults.set(newValue.liveShortcutSize.rawValue, forKey: Key.liveShortcutSize)
             defaults.set(newValue.showEventControlsInMenu, forKey: Key.showEventControlsInMenu)
             defaults.set(newValue.showStyleControlsInMenu, forKey: Key.showStyleControlsInMenu)
+            defaults.set(newValue.showProfilesInMenu, forKey: Key.showProfilesInMenu)
             defaults.set(newValue.showMenuBarControlsInMenu, forKey: Key.showMenuBarControlsInMenu)
             defaults.set(newValue.showLaunchAtLoginInMenu, forKey: Key.showLaunchAtLoginInMenu)
             defaults.set(newValue.showMenuBarText, forKey: Key.showMenuBarText)
@@ -706,6 +711,7 @@ final class SettingsStore {
             Key.liveShortcutSize: defaults.liveShortcutSize.rawValue,
             Key.showEventControlsInMenu: defaults.showEventControlsInMenu,
             Key.showStyleControlsInMenu: defaults.showStyleControlsInMenu,
+            Key.showProfilesInMenu: defaults.showProfilesInMenu,
             Key.showMenuBarControlsInMenu: defaults.showMenuBarControlsInMenu,
             Key.showLaunchAtLoginInMenu: defaults.showLaunchAtLoginInMenu,
             Key.showMenuBarText: defaults.showMenuBarText,

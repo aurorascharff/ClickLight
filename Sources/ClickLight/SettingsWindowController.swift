@@ -7,6 +7,7 @@ final class SettingsWindowController: NSWindowController {
 
     init(
         settingsStore: SettingsStore,
+        profileStore: ClickProfileStore,
         activityStore: ClickActivityStore,
         launchAtLogin: LaunchAtLoginManaging,
         permissions: PermissionController,
@@ -21,7 +22,11 @@ final class SettingsWindowController: NSWindowController {
         self.viewModel = viewModel
 
         let hosting = NSHostingController(
-            rootView: ClickLightSettingsView(viewModel: viewModel, activityStore: activityStore)
+            rootView: ClickLightSettingsView(
+                viewModel: viewModel,
+                profileStore: profileStore,
+                activityStore: activityStore
+            )
         )
         let window = NSWindow(contentViewController: hosting)
         window.title = "ClickLight Settings"
@@ -205,6 +210,12 @@ final class ClickLightSettingsViewModel: NSObject, ObservableObject {
 
     func randomizeStyle() {
         update { $0.applyRandomizedStyle() }
+    }
+
+    func applyProfile(_ profile: ClickSettingsProfile) {
+        update { settings in
+            profile.settings.apply(to: &settings)
+        }
     }
 
     func applyCustomColor(_ color: NSColor) {

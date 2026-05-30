@@ -5,6 +5,7 @@ import Combine
 final class StatusController: NSObject {
     private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     private let settingsStore: SettingsStore
+    private let profileStore: ClickProfileStore
     private let activityStore: ClickActivityStore
     private let permissions: PermissionController
     private let launchAtLogin: LaunchAtLoginManaging
@@ -18,6 +19,7 @@ final class StatusController: NSObject {
 
     init(
         settingsStore: SettingsStore,
+        profileStore: ClickProfileStore,
         activityStore: ClickActivityStore,
         permissions: PermissionController,
         launchAtLogin: LaunchAtLoginManaging,
@@ -29,6 +31,7 @@ final class StatusController: NSObject {
         onMenuDidClose: @escaping () -> Void = {}
     ) {
         self.settingsStore = settingsStore
+        self.profileStore = profileStore
         self.activityStore = activityStore
         self.permissions = permissions
         self.launchAtLogin = launchAtLogin
@@ -176,6 +179,11 @@ final class StatusController: NSObject {
                 action: #selector(selectDuration(_:))
             ))
             menu.addItem(colorSubmenu(selected: settings.colorPreset))
+            menu.addItem(.separator())
+        }
+
+        if settings.showProfilesInMenu {
+            menu.addItem(profilesSubmenu(settings: settings))
             menu.addItem(.separator())
         }
 
@@ -335,6 +343,35 @@ final class StatusController: NSObject {
         return item
     }
 
+    private func profilesSubmenu(settings: ClickSettings) -> NSMenuItem {
+        let item = NSMenuItem(title: "Profiles", action: nil, keyEquivalent: "")
+        let menu = NSMenu()
+        let currentSettings = ClickProfileSettings(settings: settings)
+
+        if profileStore.profiles.isEmpty {
+            let emptyItem = NSMenuItem(title: "No Profiles Saved", action: nil, keyEquivalent: "")
+            emptyItem.isEnabled = false
+            menu.addItem(emptyItem)
+        } else {
+            for profile in profileStore.profiles {
+                let child = NSMenuItem(title: profile.name, action: #selector(selectProfile(_:)), keyEquivalent: "")
+                child.target = self
+                child.representedObject = profile.id.uuidString
+                child.state = profile.settings == currentSettings ? .on : .off
+                child.isEnabled = profile.settings != currentSettings
+                menu.addItem(child)
+            }
+        }
+
+        menu.addItem(.separator())
+        let manageItem = NSMenuItem(title: "Manage Profiles...", action: #selector(openSettings), keyEquivalent: "")
+        manageItem.target = self
+        menu.addItem(manageItem)
+
+        item.submenu = menu
+        return item
+    }
+
     @objc private func toggleEnabled(_ sender: NSMenuItem) {
         dismissMenu(from: sender)
         settingsStore.update { $0.isEnabled.toggle() }
@@ -418,6 +455,18 @@ final class StatusController: NSObject {
             let preset = ClickColorPreset(rawValue: rawValue)
         else { return }
         settingsStore.update { $0.colorPreset = preset }
+    }
+
+    @objc private func selectProfile(_ sender: NSMenuItem) {
+        guard
+            let rawValue = sender.representedObject as? String,
+            let profileID = UUID(uuidString: rawValue),
+            let profile = profileStore.profiles.first(where: { $0.id == profileID })
+        else { return }
+        dismissMenu(from: sender)
+        settingsStore.update { settings in
+            profile.settings.apply(to: &settings)
+        }
     }
 
     @objc private func openAccessibilitySettings() {
