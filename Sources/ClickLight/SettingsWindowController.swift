@@ -51,9 +51,6 @@ final class SettingsWindowController: NSWindowController {
         window.orderFrontRegardless()
         if let pane {
             viewModel.selectedPane = pane
-            Task { @MainActor [weak self] in
-                self?.viewModel.selectedPane = pane
-            }
         }
         viewModel.refreshSystemState()
     }
