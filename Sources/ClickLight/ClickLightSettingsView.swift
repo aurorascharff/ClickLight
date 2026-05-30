@@ -805,12 +805,7 @@ private struct MenuLayoutPane: View {
                             HStack(spacing: 8) {
                                 Toggle("", isOn: $group.isVisible)
                                     .labelsHidden()
-                                    .onChange(of: group.isVisible) { _, newValue in
-                                        if !newValue, let gIdx = groups.firstIndex(where: { $0.id == group.id }) {
-                                            for i in groups[gIdx].items.indices {
-                                                groups[gIdx].items[i].isVisible = false
-                                            }
-                                        }
+                                    .onChange(of: group.isVisible) { _, _ in
                                         save()
                                     }
                                 Text(group.title)

@@ -107,7 +107,9 @@ final class StatusController: NSObject {
             addedAny = true
         }
 
-        menu.addItem(.separator())
+        if addedAny {
+            menu.addItem(.separator())
+        }
 
         let openSettingsItem = NSMenuItem(title: "Open Settings...", action: #selector(openSettings), keyEquivalent: ",")
         openSettingsItem.target = self
