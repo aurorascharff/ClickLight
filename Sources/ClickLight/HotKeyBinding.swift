@@ -209,7 +209,6 @@ enum ClickShortcutAction: String, CaseIterable, Identifiable, Sendable {
             return 6
         case .toggleShowDrag:
             return 7
-        case .randomizeColors:
         case .toggleLiveKeyboardShortcuts:
             return 8
         case .randomizeColors:
