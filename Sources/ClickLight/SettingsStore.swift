@@ -40,6 +40,7 @@ struct ClickSettings: Equatable {
     var toggleShowRightClickHotKey: HotKeyBinding?
     var toggleShowMiddleClickHotKey: HotKeyBinding?
     var toggleShowDragHotKey: HotKeyBinding?
+    var toggleLiveKeyboardShortcutsHotKey: HotKeyBinding?
 
     var customColor: NSColor {
         NSColor(
@@ -125,7 +126,8 @@ struct ClickSettings: Equatable {
         toggleShowReleaseHotKey: ClickShortcutAction.toggleShowRelease.defaultBinding,
         toggleShowRightClickHotKey: ClickShortcutAction.toggleShowRightClick.defaultBinding,
         toggleShowMiddleClickHotKey: ClickShortcutAction.toggleShowMiddleClick.defaultBinding,
-        toggleShowDragHotKey: ClickShortcutAction.toggleShowDrag.defaultBinding
+        toggleShowDragHotKey: ClickShortcutAction.toggleShowDrag.defaultBinding,
+        toggleLiveKeyboardShortcutsHotKey: ClickShortcutAction.toggleLiveKeyboardShortcuts.defaultBinding
     )
 
     var shortcutBindings: [ClickShortcutAction: HotKeyBinding] {
@@ -150,6 +152,8 @@ struct ClickSettings: Equatable {
             return toggleShowMiddleClickHotKey
         case .toggleShowDrag:
             return toggleShowDragHotKey
+        case .toggleLiveKeyboardShortcuts:
+            return toggleLiveKeyboardShortcutsHotKey
         }
     }
 
@@ -169,6 +173,8 @@ struct ClickSettings: Equatable {
             toggleShowMiddleClickHotKey = binding
         case .toggleShowDrag:
             toggleShowDragHotKey = binding
+        case .toggleLiveKeyboardShortcuts:
+            toggleLiveKeyboardShortcutsHotKey = binding
         }
     }
 
@@ -401,6 +407,9 @@ final class SettingsStore {
         static let toggleShowDragHotKeyCode = "toggleShowDragHotKeyCode"
         static let toggleShowDragHotKeyModifiers = "toggleShowDragHotKeyModifiers"
         static let toggleShowDragHotKeyIsEnabled = "toggleShowDragHotKeyIsEnabled"
+        static let toggleLiveKeyboardShortcutsHotKeyCode = "toggleLiveKeyboardShortcutsHotKeyCode"
+        static let toggleLiveKeyboardShortcutsHotKeyModifiers = "toggleLiveKeyboardShortcutsHotKeyModifiers"
+        static let toggleLiveKeyboardShortcutsHotKeyIsEnabled = "toggleLiveKeyboardShortcutsHotKeyIsEnabled"
     }
 
     private let defaults: UserDefaults
@@ -479,6 +488,11 @@ final class SettingsStore {
                     keyCode: Key.toggleShowDragHotKeyCode,
                     modifiers: Key.toggleShowDragHotKeyModifiers,
                     isEnabled: Key.toggleShowDragHotKeyIsEnabled
+                ),
+                toggleLiveKeyboardShortcutsHotKey: shortcutBinding(
+                    keyCode: Key.toggleLiveKeyboardShortcutsHotKeyCode,
+                    modifiers: Key.toggleLiveKeyboardShortcutsHotKeyModifiers,
+                    isEnabled: Key.toggleLiveKeyboardShortcutsHotKeyIsEnabled
                 )
             )
         }
@@ -522,6 +536,7 @@ final class SettingsStore {
             saveShortcutBinding(newValue.toggleShowRightClickHotKey, keyCode: Key.toggleShowRightClickHotKeyCode, modifiers: Key.toggleShowRightClickHotKeyModifiers, isEnabled: Key.toggleShowRightClickHotKeyIsEnabled)
             saveShortcutBinding(newValue.toggleShowMiddleClickHotKey, keyCode: Key.toggleShowMiddleClickHotKeyCode, modifiers: Key.toggleShowMiddleClickHotKeyModifiers, isEnabled: Key.toggleShowMiddleClickHotKeyIsEnabled)
             saveShortcutBinding(newValue.toggleShowDragHotKey, keyCode: Key.toggleShowDragHotKeyCode, modifiers: Key.toggleShowDragHotKeyModifiers, isEnabled: Key.toggleShowDragHotKeyIsEnabled)
+            saveShortcutBinding(newValue.toggleLiveKeyboardShortcutsHotKey, keyCode: Key.toggleLiveKeyboardShortcutsHotKeyCode, modifiers: Key.toggleLiveKeyboardShortcutsHotKeyModifiers, isEnabled: Key.toggleLiveKeyboardShortcutsHotKeyIsEnabled)
             NotificationCenter.default.post(name: Self.didChangeNotification, object: self)
         }
     }
@@ -602,7 +617,10 @@ final class SettingsStore {
             Key.toggleShowMiddleClickHotKeyIsEnabled: false,
             Key.toggleShowDragHotKeyCode: 0,
             Key.toggleShowDragHotKeyModifiers: 0,
-            Key.toggleShowDragHotKeyIsEnabled: false
+            Key.toggleShowDragHotKeyIsEnabled: false,
+            Key.toggleLiveKeyboardShortcutsHotKeyCode: 0,
+            Key.toggleLiveKeyboardShortcutsHotKeyModifiers: 0,
+            Key.toggleLiveKeyboardShortcutsHotKeyIsEnabled: false
         ])
     }
 }
