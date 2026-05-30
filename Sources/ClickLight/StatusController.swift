@@ -115,7 +115,8 @@ final class StatusController: NSObject {
         menu.addItem(toggleItem(
             title: "Show Live Keyboard Shortcuts",
             isOn: settings.showLiveKeyboardShortcuts,
-            action: #selector(toggleLiveKeyboardShortcuts(_:))
+            action: #selector(toggleLiveKeyboardShortcuts(_:)),
+            shortcut: settings.shortcutBindings[.toggleLiveKeyboardShortcuts]
         ))
         menu.addItem(NSMenuItem.separator())
 
