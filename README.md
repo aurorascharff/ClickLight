@@ -43,6 +43,7 @@ Prefer not to use Homebrew? Download `ClickLight.zip` from [GitHub Releases](htt
 - Dedicated settings window with presets, sliders, and a sidebar preview pad with Randomize
 - Custom color picker in Settings
 - Menu-bar quick presets for size, duration, intensity, and color
+- Menu-bar color submenu includes one-click randomization using the same style randomizer as Settings
 - One default ClickLight toggle shortcut, with optional shortcuts for other actions
 - Optional compact menu-bar icon
 - Test pulse for verifying overlay behavior
@@ -62,6 +63,7 @@ ClickLight includes one default global shortcut for quick toggles during demos. 
 | Not set by default | Toggle Right Click |
 | Not set by default | Toggle Middle Click |
 | Not set by default | Toggle Drag |
+| Not set by default | Randomize Colors |
 
 All shortcuts can be changed or disabled in Settings.
 

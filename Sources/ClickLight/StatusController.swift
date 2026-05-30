@@ -187,7 +187,7 @@ final class StatusController: NSObject {
             selected: settings.duration,
             action: #selector(selectDuration(_:))
         ))
-        menu.addItem(colorSubmenu(selected: settings.colorPreset))
+        menu.addItem(colorSubmenu(selected: settings.colorPreset, randomizeShortcut: settings.shortcutBindings[.randomizeColors]))
         menu.addItem(NSMenuItem.separator())
 
         let openSettingsItem = NSMenuItem(title: "Open Settings...", action: #selector(openSettings), keyEquivalent: ",")
@@ -295,7 +295,7 @@ final class StatusController: NSObject {
         return item
     }
 
-    private func colorSubmenu(selected: ClickColorPreset) -> NSMenuItem {
+    private func colorSubmenu(selected: ClickColorPreset, randomizeShortcut: HotKeyBinding?) -> NSMenuItem {
         let item = NSMenuItem(title: "Colors", action: nil, keyEquivalent: "")
         let menu = NSMenu()
         for preset in ClickColorPreset.allCases where preset != .custom {
@@ -318,6 +318,12 @@ final class StatusController: NSObject {
         let configureCustom = NSMenuItem(title: "Configure Custom Colors...", action: #selector(openSettings), keyEquivalent: "")
         configureCustom.target = self
         menu.addItem(configureCustom)
+        menu.addItem(NSMenuItem.separator())
+
+        let randomize = NSMenuItem(title: "Randomize Colors", action: #selector(randomizeColors(_:)), keyEquivalent: "")
+        randomize.target = self
+        applyShortcut(randomizeShortcut, to: randomize)
+        menu.addItem(randomize)
 
         item.submenu = menu
         return item
@@ -406,6 +412,11 @@ final class StatusController: NSObject {
             let preset = ClickColorPreset(rawValue: rawValue)
         else { return }
         settingsStore.update { $0.colorPreset = preset }
+    }
+
+    @objc private func randomizeColors(_ sender: NSMenuItem) {
+        dismissMenu(from: sender)
+        settingsStore.update { $0.applyRandomizedStyle() }
     }
 
     @objc private func openAccessibilitySettings() {

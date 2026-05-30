@@ -165,6 +165,7 @@ enum ClickShortcutAction: String, CaseIterable, Identifiable, Sendable {
     case toggleShowRightClick
     case toggleShowMiddleClick
     case toggleShowDrag
+    case randomizeColors
 
     var id: String { rawValue }
 
@@ -184,6 +185,8 @@ enum ClickShortcutAction: String, CaseIterable, Identifiable, Sendable {
             return "Toggle Middle Click"
         case .toggleShowDrag:
             return "Toggle Drag"
+        case .randomizeColors:
+            return "Randomize Colors"
         }
     }
 
@@ -203,6 +206,8 @@ enum ClickShortcutAction: String, CaseIterable, Identifiable, Sendable {
             return 6
         case .toggleShowDrag:
             return 7
+        case .randomizeColors:
+            return 8
         }
     }
 
@@ -212,7 +217,7 @@ enum ClickShortcutAction: String, CaseIterable, Identifiable, Sendable {
             return HotKeyBinding(keyCode: kVK_ANSI_L, carbonModifiers: HotKeyBinding.defaultToggleModifiers)
         case .toggleLaserPointer:
             return nil
-        case .toggleShowPress, .toggleShowRelease, .toggleShowRightClick, .toggleShowMiddleClick, .toggleShowDrag:
+        case .toggleShowPress, .toggleShowRelease, .toggleShowRightClick, .toggleShowMiddleClick, .toggleShowDrag, .randomizeColors:
             return nil
         }
     }

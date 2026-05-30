@@ -40,6 +40,7 @@ struct ClickSettings: Equatable {
     var toggleShowRightClickHotKey: HotKeyBinding?
     var toggleShowMiddleClickHotKey: HotKeyBinding?
     var toggleShowDragHotKey: HotKeyBinding?
+    var randomizeColorsHotKey: HotKeyBinding?
 
     var customColor: NSColor {
         NSColor(
@@ -125,7 +126,8 @@ struct ClickSettings: Equatable {
         toggleShowReleaseHotKey: ClickShortcutAction.toggleShowRelease.defaultBinding,
         toggleShowRightClickHotKey: ClickShortcutAction.toggleShowRightClick.defaultBinding,
         toggleShowMiddleClickHotKey: ClickShortcutAction.toggleShowMiddleClick.defaultBinding,
-        toggleShowDragHotKey: ClickShortcutAction.toggleShowDrag.defaultBinding
+        toggleShowDragHotKey: ClickShortcutAction.toggleShowDrag.defaultBinding,
+        randomizeColorsHotKey: ClickShortcutAction.randomizeColors.defaultBinding
     )
 
     var shortcutBindings: [ClickShortcutAction: HotKeyBinding] {
@@ -150,6 +152,8 @@ struct ClickSettings: Equatable {
             return toggleShowMiddleClickHotKey
         case .toggleShowDrag:
             return toggleShowDragHotKey
+        case .randomizeColors:
+            return randomizeColorsHotKey
         }
     }
 
@@ -169,6 +173,8 @@ struct ClickSettings: Equatable {
             toggleShowMiddleClickHotKey = binding
         case .toggleShowDrag:
             toggleShowDragHotKey = binding
+        case .randomizeColors:
+            randomizeColorsHotKey = binding
         }
     }
 
@@ -188,6 +194,43 @@ struct ClickSettings: Equatable {
 
     static func defaultShortcutBinding(for action: ClickShortcutAction) -> HotKeyBinding? {
         action.defaultBinding
+    }
+
+    mutating func applyRandomizedStyle() {
+        let size = ClickSettingOptions.sizePresets.randomElement()?.value ?? Double(Self.defaults.size)
+        let intensity = ClickSettingOptions.intensityPresets.randomElement()?.value ?? Double(Self.defaults.intensity)
+        let duration = ClickSettingOptions.durationPresets.randomElement()?.value ?? Self.defaults.duration
+        let baseHue = CGFloat.random(in: 0...1)
+        let colors = [0.0, 0.23, 0.46, 0.69].shuffled().map { offset in
+            NSColor(
+                calibratedHue: (baseHue + CGFloat(offset)).truncatingRemainder(dividingBy: 1),
+                saturation: CGFloat.random(in: 0.65...0.95),
+                brightness: CGFloat.random(in: 0.75...1),
+                alpha: 1
+            )
+        }
+        let left = colors[0]
+        let right = colors[1]
+        let middle = colors[2]
+        let drag = colors[3]
+
+        self.size = CGFloat(size)
+        self.intensity = CGFloat(intensity)
+        self.duration = duration
+        self.customLeftColorRed = left.redComponent
+        self.customLeftColorGreen = left.greenComponent
+        self.customLeftColorBlue = left.blueComponent
+        self.customRightColorRed = right.redComponent
+        self.customRightColorGreen = right.greenComponent
+        self.customRightColorBlue = right.blueComponent
+        self.customMiddleColorRed = middle.redComponent
+        self.customMiddleColorGreen = middle.greenComponent
+        self.customMiddleColorBlue = middle.blueComponent
+        self.customDragColorRed = drag.redComponent
+        self.customDragColorGreen = drag.greenComponent
+        self.customDragColorBlue = drag.blueComponent
+        self.colorPreset = .custom
+        self.customColorMode = .byClick
     }
 }
 
@@ -401,6 +444,9 @@ final class SettingsStore {
         static let toggleShowDragHotKeyCode = "toggleShowDragHotKeyCode"
         static let toggleShowDragHotKeyModifiers = "toggleShowDragHotKeyModifiers"
         static let toggleShowDragHotKeyIsEnabled = "toggleShowDragHotKeyIsEnabled"
+        static let randomizeColorsHotKeyCode = "randomizeColorsHotKeyCode"
+        static let randomizeColorsHotKeyModifiers = "randomizeColorsHotKeyModifiers"
+        static let randomizeColorsHotKeyIsEnabled = "randomizeColorsHotKeyIsEnabled"
     }
 
     private let defaults: UserDefaults
@@ -479,6 +525,11 @@ final class SettingsStore {
                     keyCode: Key.toggleShowDragHotKeyCode,
                     modifiers: Key.toggleShowDragHotKeyModifiers,
                     isEnabled: Key.toggleShowDragHotKeyIsEnabled
+                ),
+                randomizeColorsHotKey: shortcutBinding(
+                    keyCode: Key.randomizeColorsHotKeyCode,
+                    modifiers: Key.randomizeColorsHotKeyModifiers,
+                    isEnabled: Key.randomizeColorsHotKeyIsEnabled
                 )
             )
         }
@@ -522,6 +573,7 @@ final class SettingsStore {
             saveShortcutBinding(newValue.toggleShowRightClickHotKey, keyCode: Key.toggleShowRightClickHotKeyCode, modifiers: Key.toggleShowRightClickHotKeyModifiers, isEnabled: Key.toggleShowRightClickHotKeyIsEnabled)
             saveShortcutBinding(newValue.toggleShowMiddleClickHotKey, keyCode: Key.toggleShowMiddleClickHotKeyCode, modifiers: Key.toggleShowMiddleClickHotKeyModifiers, isEnabled: Key.toggleShowMiddleClickHotKeyIsEnabled)
             saveShortcutBinding(newValue.toggleShowDragHotKey, keyCode: Key.toggleShowDragHotKeyCode, modifiers: Key.toggleShowDragHotKeyModifiers, isEnabled: Key.toggleShowDragHotKeyIsEnabled)
+            saveShortcutBinding(newValue.randomizeColorsHotKey, keyCode: Key.randomizeColorsHotKeyCode, modifiers: Key.randomizeColorsHotKeyModifiers, isEnabled: Key.randomizeColorsHotKeyIsEnabled)
             NotificationCenter.default.post(name: Self.didChangeNotification, object: self)
         }
     }
@@ -602,7 +654,10 @@ final class SettingsStore {
             Key.toggleShowMiddleClickHotKeyIsEnabled: false,
             Key.toggleShowDragHotKeyCode: 0,
             Key.toggleShowDragHotKeyModifiers: 0,
-            Key.toggleShowDragHotKeyIsEnabled: false
+            Key.toggleShowDragHotKeyIsEnabled: false,
+            Key.randomizeColorsHotKeyCode: 0,
+            Key.randomizeColorsHotKeyModifiers: 0,
+            Key.randomizeColorsHotKeyIsEnabled: false
         ])
     }
 }
