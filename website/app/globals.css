@@ -573,27 +573,54 @@ button:disabled {
 
 @media (max-width: 760px) {
   .topbar {
-    padding: 16px;
+    display: none;
   }
 
   .statement {
-    left: 18px;
-    right: 18px;
-    top: 18vh;
+    left: 20px;
+    max-width: calc(100vw - 40px);
+    right: 20px;
+    top: 9vh;
+  }
+
+  .hero-title {
+    gap: 12px;
+  }
+
+  .hero-mark {
+    height: clamp(2.8rem, 14vw, 4rem);
+    width: clamp(2.8rem, 14vw, 4rem);
   }
 
   .statement h1 {
-    font-size: clamp(4rem, 18vw, 7rem);
+    font-size: clamp(3.6rem, 18vw, 5.6rem);
+  }
+
+  .statement p {
+    font-size: 1rem;
+    margin-top: 18px;
+    max-width: 22rem;
+  }
+
+  .install {
+    margin-top: 18px;
+    max-width: 100%;
+    padding-left: 14px;
+  }
+
+  .install code {
+    font-size: 0.72rem;
   }
 
   .menu {
-    bottom: 16px;
-    left: 16px;
-    right: 16px;
-    width: auto;
+    display: none;
   }
 
   .shortcut-display {
     display: none;
+  }
+
+  .pulse {
+    --pulse-size: min(132px, 34vw);
   }
 }
