@@ -117,12 +117,21 @@ button:disabled {
   width: 22px;
 }
 
-.statement {
-  left: 7vw;
-  max-width: 760px;
+.showcase {
+  align-items: flex-start;
+  display: flex;
+  gap: clamp(36px, 6vw, 104px);
+  inset: 18vh 28px 28px 7vw;
+  justify-content: space-between;
   position: fixed;
-  top: 18vh;
   z-index: 2;
+}
+
+.statement {
+  align-self: flex-start;
+  flex: 1 1 620px;
+  max-width: 760px;
+  min-width: 0;
 }
 
 .hero-title {
@@ -187,22 +196,14 @@ button:disabled {
   margin: 0;
 }
 
-.statement span {
-  color: var(--muted);
-  display: block;
-  margin-top: 10px;
-}
-
 .menu {
+  align-self: flex-end;
   background: rgba(20, 22, 26, 0.62);
   border-radius: 17px;
-  bottom: 28px;
   color: rgba(255, 255, 255, 0.91);
+  flex: 0 0 332px;
   padding: 12px 16px;
-  position: fixed;
-  right: 28px;
   width: 332px;
-  z-index: 8;
 }
 
 .menu::before {
@@ -571,29 +572,63 @@ button:disabled {
   }
 }
 
-@media (max-width: 760px) {
+@media (min-width: 921px) and (max-width: 1180px) {
+  .showcase {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 32px;
+    inset: 12vh 24px 24px 6vw;
+    justify-content: flex-start;
+    overflow: auto;
+  }
+
+  .statement h1 {
+    font-size: clamp(3.8rem, 8vw, 6rem);
+  }
+
+  .statement p {
+    max-width: 38rem;
+  }
+
+  .install {
+    max-width: min(100%, 580px);
+  }
+
+  .menu {
+    align-self: flex-start;
+    flex: 0 0 auto;
+    width: min(420px, 100%);
+  }
+}
+
+@media (max-width: 920px) {
   .topbar {
     display: none;
   }
 
+  .showcase {
+    inset: 9vh 20px 20px;
+  }
+
   .statement {
-    left: 20px;
     max-width: calc(100vw - 40px);
-    right: 20px;
-    top: 9vh;
   }
 
   .hero-title {
+    display: grid;
     gap: 12px;
+    grid-template-columns: auto minmax(0, 1fr);
   }
 
   .hero-mark {
-    height: clamp(2.8rem, 14vw, 4rem);
-    width: clamp(2.8rem, 14vw, 4rem);
+    height: clamp(2.6rem, 11vw, 3.4rem);
+    width: clamp(2.6rem, 11vw, 3.4rem);
   }
 
   .statement h1 {
-    font-size: clamp(3.6rem, 18vw, 5.6rem);
+    font-size: clamp(3rem, 14vw, 5rem);
+    line-height: 0.9;
+    min-width: 0;
   }
 
   .statement p {

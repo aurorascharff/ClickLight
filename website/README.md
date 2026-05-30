@@ -1,3 +1,7 @@
+# ClickLight Website
+
+Homepage for [ClickLight](https://github.com/aurorascharff/ClickLight), a tiny macOS menu bar app that highlights clicks during demos, screen sharing, UX reviews, and anywhere people need to follow what you are doing.
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started

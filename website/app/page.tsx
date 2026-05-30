@@ -256,60 +256,62 @@ export default function Home() {
         </a>
       </nav>
 
-      <section className="statement" aria-label="ClickLight demo intro">
-        <div className="hero-title">
-          <span className="hero-mark" aria-hidden="true" />
-          <h1>ClickLight</h1>
-        </div>
-        <p>
-          A tiny macOS menu bar app that highlights your clicks during demos, screen sharing,
-          UX reviews, and anywhere people need to follow what you are doing.
-        </p>
-        <div className="install" onPointerDown={stopDemoEvent}>
-          <code>{installCommand}</code>
-          <button type="button" onClick={copyInstallCommand} aria-label="Copy install command">
-            {copiedInstall ? "Copied" : "Copy"}
-          </button>
-        </div>
-      </section>
+      <div className="showcase">
+        <section className="statement" aria-label="ClickLight demo intro">
+          <div className="hero-title">
+            <span className="hero-mark" aria-hidden="true" />
+            <h1>ClickLight</h1>
+          </div>
+          <p>
+            A tiny macOS menu bar app that highlights your clicks during demos, screen sharing,
+            UX reviews, and anywhere people need to follow what you are doing.
+          </p>
+          <div className="install" onPointerDown={stopDemoEvent}>
+            <code>{installCommand}</code>
+            <button type="button" onClick={copyInstallCommand} aria-label="Copy install command">
+              {copiedInstall ? "Copied" : "Copy"}
+            </button>
+          </div>
+        </section>
 
-      <aside className="menu" aria-label="ClickLight controls" onPointerDown={stopDemoEvent}>
-        <MenuItem label="Laser Pointer Mode" checked={settings.laser} onClick={() => toggle("laser")} />
-        <MenuItem
-          label="Show Live Keyboard Shortcuts"
-          checked={settings.keys}
-          onClick={() => toggle("keys")}
-        />
-
-        <div className="menu-separator" />
-        <MenuItem label="Show Press" checked={settings.press} onClick={() => toggle("press")} />
-        <MenuItem label="Show Release" checked={settings.release} onClick={() => toggle("release")} />
-        <MenuItem label="Show Right Click" checked={settings.right} onClick={() => toggle("right")} />
-        <MenuItem label="Show Middle Click" checked={settings.middle} onClick={() => toggle("middle")} />
-        <MenuItem label="Show Drag" checked={settings.drag} onClick={() => toggle("drag")} />
-
-        <div className="menu-separator" />
-        <MenuItem disabled label="Size" chevron />
-        <MenuItem disabled label="Intensity" chevron />
-        <MenuItem disabled label="Duration" chevron />
-        <MenuItem disabled label="Colors" chevron />
-
-        <div className="menu-separator" />
-        <MenuItem disabled label="Profiles" chevron />
-        {(Object.keys(profiles) as ProfileName[]).map((name) => (
+        <aside className="menu" aria-label="ClickLight controls" onPointerDown={stopDemoEvent}>
+          <MenuItem label="Laser Pointer Mode" checked={settings.laser} onClick={() => toggle("laser")} />
           <MenuItem
-            checked={profile === name}
-            inset
-            key={name}
-            label={name}
-            onClick={() => updateProfile(name)}
+            label="Show Live Keyboard Shortcuts"
+            checked={settings.keys}
+            onClick={() => toggle("keys")}
           />
-        ))}
 
-        <div className="menu-separator" />
-        <MenuItem disabled label="Open Settings..." shortcut="⌘," />
-        <MenuItem disabled label="About ClickLight" />
-      </aside>
+          <div className="menu-separator" />
+          <MenuItem label="Show Press" checked={settings.press} onClick={() => toggle("press")} />
+          <MenuItem label="Show Release" checked={settings.release} onClick={() => toggle("release")} />
+          <MenuItem label="Show Right Click" checked={settings.right} onClick={() => toggle("right")} />
+          <MenuItem label="Show Middle Click" checked={settings.middle} onClick={() => toggle("middle")} />
+          <MenuItem label="Show Drag" checked={settings.drag} onClick={() => toggle("drag")} />
+
+          <div className="menu-separator" />
+          <MenuItem disabled label="Size" chevron />
+          <MenuItem disabled label="Intensity" chevron />
+          <MenuItem disabled label="Duration" chevron />
+          <MenuItem disabled label="Colors" chevron />
+
+          <div className="menu-separator" />
+          <MenuItem disabled label="Profiles" chevron />
+          {(Object.keys(profiles) as ProfileName[]).map((name) => (
+            <MenuItem
+              checked={profile === name}
+              inset
+              key={name}
+              label={name}
+              onClick={() => updateProfile(name)}
+            />
+          ))}
+
+          <div className="menu-separator" />
+          <MenuItem disabled label="Open Settings..." shortcut="⌘," />
+          <MenuItem disabled label="About ClickLight" />
+        </aside>
+      </div>
 
       {settings.keys && shortcut && <div className="shortcut-display">{shortcut}</div>}
 
