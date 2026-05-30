@@ -37,12 +37,21 @@ export const metadata: Metadata = {
     type: "website",
     url: siteUrl,
     siteName: "ClickLight",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "ClickLight",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "ClickLight",
     description:
       "A tiny macOS menu bar app that makes clicks visible during demos, screen sharing, and UX reviews.",
+    images: ["/og-image.png"],
   },
 };
 

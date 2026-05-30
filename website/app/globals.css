@@ -173,7 +173,8 @@ button:disabled {
 .install code {
   flex: 1;
   font-family: "SF Mono", ui-monospace, Menlo, Monaco, Consolas, monospace;
-  font-size: clamp(0.74rem, 1.02vw, 0.88rem);
+  font-size: 0.88rem;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -591,7 +592,7 @@ button:disabled {
   }
 
   .install {
-    max-width: min(100%, 580px);
+    max-width: min(100%, 640px);
   }
 
   .menu {
@@ -644,7 +645,7 @@ button:disabled {
   }
 
   .install code {
-    font-size: 0.72rem;
+    font-size: 0.8rem;
   }
 
   .menu {

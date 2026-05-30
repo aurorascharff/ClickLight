@@ -240,7 +240,6 @@ export default function Home() {
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={resetPointerState}
-      onContextMenu={(event) => event.preventDefault()}
     >
       <div className="background" aria-hidden="true" />
 
