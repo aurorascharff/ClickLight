@@ -2,11 +2,7 @@ import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL ??
-  (process.env.VERCEL_PROJECT_PRODUCTION_URL
-    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-    : "http://localhost:3000");
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://click-light.vercel.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -29,6 +25,7 @@ export const metadata: Metadata = {
     description:
       "A tiny macOS menu bar app that makes clicks visible during demos, screen sharing, and UX reviews.",
     type: "website",
+    url: siteUrl,
     siteName: "ClickLight",
   },
   twitter: {
