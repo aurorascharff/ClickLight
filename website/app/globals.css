@@ -9,6 +9,7 @@
   --coral: #ff5d57;
   --active: var(--aqua);
   --press-color: var(--aqua);
+  --pulse-duration: 480ms;
   --pulse-size: 104px;
   --release-color: var(--aqua);
 }
@@ -367,10 +368,12 @@ button:disabled {
 
 .pulse {
   --pulse-color: var(--press-color);
-  animation: press-pulse 480ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: press-pulse var(--pulse-duration) cubic-bezier(0.22, 1, 0.36, 1) forwards;
   border: 4px solid var(--pulse-color);
   border-radius: 999px;
-  box-shadow: 0 0 22px color-mix(in srgb, var(--pulse-color), transparent 70%);
+  box-shadow:
+    0 0 22px color-mix(in srgb, var(--pulse-color), transparent 68%),
+    0 0 52px color-mix(in srgb, var(--pulse-color), transparent 82%);
   height: var(--pulse-size);
   width: var(--pulse-size);
 }
@@ -391,6 +394,7 @@ button:disabled {
 .pulse.release,
 .pulse.rightRelease {
   animation-name: release-pulse;
+  animation-duration: calc(var(--pulse-duration) * 0.92);
   border-width: 2.4px;
 }
 
@@ -408,6 +412,7 @@ button:disabled {
 .pulse.right {
   --pulse-color: #ff7530;
   animation-name: right-pulse;
+  animation-duration: var(--pulse-duration);
 }
 
 .pulse.right::before,
@@ -435,11 +440,13 @@ button:disabled {
 .pulse.rightRelease {
   --pulse-color: #ff7530;
   animation-name: right-release-pulse;
+  animation-duration: calc(var(--pulse-duration) * 0.92);
 }
 
 .pulse.middle {
   --pulse-color: #45eb94;
   animation-name: middle-pulse;
+  animation-duration: var(--pulse-duration);
 }
 
 .pulse.middle::before,
@@ -459,6 +466,7 @@ button:disabled {
 .pulse.middleRelease {
   --pulse-color: #45eb94;
   animation-name: middle-release-pulse;
+  animation-duration: calc(var(--pulse-duration) * 0.92);
   border: 0;
   box-shadow: none;
 }

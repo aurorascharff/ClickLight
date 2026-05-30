@@ -8,6 +8,7 @@ type ProfileName = "Default" | "Tutorial" | "Presentation";
 type ToggleKey = "press" | "release" | "right" | "middle" | "drag" | "laser" | "keys";
 
 type DemoSettings = Record<ToggleKey, boolean> & {
+  pulseDuration: number;
   pulseSize: number;
   theme: ThemeName;
 };
@@ -34,6 +35,7 @@ const profiles: Record<ProfileName, DemoSettings> = {
     drag: true,
     laser: false,
     keys: true,
+    pulseDuration: 480,
     pulseSize: 104,
     theme: "blue",
   },
@@ -45,7 +47,8 @@ const profiles: Record<ProfileName, DemoSettings> = {
     drag: true,
     laser: false,
     keys: true,
-    pulseSize: 128,
+    pulseDuration: 760,
+    pulseSize: 148,
     theme: "amber",
   },
   Presentation: {
@@ -56,6 +59,7 @@ const profiles: Record<ProfileName, DemoSettings> = {
     drag: false,
     laser: true,
     keys: true,
+    pulseDuration: 560,
     pulseSize: 112,
     theme: "red",
   },
@@ -227,6 +231,7 @@ export default function Home() {
         {
           "--active": activeColor,
           "--press-color": activeColor,
+          "--pulse-duration": `${settings.pulseDuration}ms`,
           "--release-color": activeColor,
           "--pulse-size": `${settings.pulseSize}px`,
         } as React.CSSProperties
