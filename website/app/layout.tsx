@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://click-light.vercel.app";
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://click-light.vercel.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -13,9 +14,18 @@ export const metadata: Metadata = {
   description:
     "A tiny macOS menu bar app that highlights your clicks during demos, screen sharing, UX reviews, and anywhere people need to follow what you are doing.",
   applicationName: "ClickLight",
-  authors: [{ name: "Aurora Scharff", url: "https://github.com/aurorascharff" }],
+  authors: [
+    { name: "Aurora Scharff", url: "https://github.com/aurorascharff" },
+  ],
   creator: "Aurora Scharff",
-  keywords: ["ClickLight", "macOS", "screen sharing", "live demos", "cursor", "click highlights"],
+  keywords: [
+    "ClickLight",
+    "macOS",
+    "screen sharing",
+    "live demos",
+    "cursor",
+    "click highlights",
+  ],
   icons: {
     icon: "/clicklight-icon.png",
     apple: "/clicklight-icon.png",
