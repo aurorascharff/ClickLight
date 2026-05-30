@@ -18,14 +18,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         onCheckForUpdates: { UpdateChecker.shared.checkForUpdates() },
         updatesAreConfigured: { UpdateChecker.shared.isConfigured },
         onOpenSettings: { [weak self] in self?.openSettings() },
-        onQuit: { NSApplication.shared.terminate(nil) },
-        onMenuWillOpen: { [weak self] in
-            self?.hotKeyManager.unregisterAll()
-        },
-        onMenuDidClose: { [weak self] in
-            guard let self else { return }
-            self.configureHotKeysIfNeeded(with: self.settingsStore.settings, force: true)
-        }
+        onQuit: { NSApplication.shared.terminate(nil) }
     )
     private let eventTap = ClickEventTap()
     private let permissions = PermissionController()
