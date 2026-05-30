@@ -104,7 +104,7 @@ final class StatusController: NSObject {
             action: #selector(toggleEnabled(_:)),
             shortcut: settings.shortcutBinding(for: .toggleEnabled)
         ))
-        menu.addItem(NSMenuItem.separator())
+        menu.addItem(.separator())
 
         menu.addItem(toggleItem(
             title: "Laser Pointer Mode",
@@ -118,78 +118,89 @@ final class StatusController: NSObject {
             action: #selector(toggleLiveKeyboardShortcuts(_:)),
             shortcut: settings.shortcutBinding(for: .toggleLiveKeyboardShortcuts)
         ))
-        menu.addItem(NSMenuItem.separator())
+        menu.addItem(.separator())
 
-        menu.addItem(toggleItem(
-            title: "Show Press",
-            isOn: settings.showPress,
-            action: #selector(togglePress(_:)),
-            shortcut: settings.shortcutBinding(for: .toggleShowPress)
-        ))
-        menu.addItem(toggleItem(
-            title: "Show Release",
-            isOn: settings.showRelease,
-            action: #selector(toggleRelease(_:)),
-            shortcut: settings.shortcutBinding(for: .toggleShowRelease)
-        ))
-        menu.addItem(toggleItem(
-            title: "Show Right Click",
-            isOn: settings.showRightClick,
-            action: #selector(toggleRightClick(_:)),
-            shortcut: settings.shortcutBinding(for: .toggleShowRightClick)
-        ))
-        menu.addItem(toggleItem(
-            title: "Show Middle Click",
-            isOn: settings.showMiddleClick,
-            action: #selector(toggleMiddleClick(_:)),
-            shortcut: settings.shortcutBinding(for: .toggleShowMiddleClick)
-        ))
-        let showDragItem = toggleItem(
-            title: "Show Drag",
-            isOn: settings.showDrag,
-            action: #selector(toggleDrag(_:)),
-            shortcut: settings.shortcutBinding(for: .toggleShowDrag)
-        )
-        showDragItem.isEnabled = !settings.showLaserPointer
-        menu.addItem(showDragItem)
-        menu.addItem(NSMenuItem.separator())
-        menu.addItem(toggleItem(
-            title: "Show Menu Bar Text",
-            isOn: settings.showMenuBarText,
-            action: #selector(toggleMenuBarText)
-        ))
-        menu.addItem(toggleItem(
-            title: "Show Click Count in Menu Bar",
-            isOn: settings.showMenuBarClickCount,
-            action: #selector(toggleMenuBarClickCount)
-        ))
-        menu.addItem(toggleItem(
-            title: "Launch at Login",
-            isOn: launchAtLogin.isEnabled,
-            action: #selector(toggleLaunchAtLogin)
-        ))
-        menu.addItem(NSMenuItem.separator())
+        if settings.showEventControlsInMenu {
+            menu.addItem(toggleItem(
+                title: "Show Press",
+                isOn: settings.showPress,
+                action: #selector(togglePress(_:)),
+                shortcut: settings.shortcutBinding(for: .toggleShowPress)
+            ))
+            menu.addItem(toggleItem(
+                title: "Show Release",
+                isOn: settings.showRelease,
+                action: #selector(toggleRelease(_:)),
+                shortcut: settings.shortcutBinding(for: .toggleShowRelease)
+            ))
+            menu.addItem(toggleItem(
+                title: "Show Right Click",
+                isOn: settings.showRightClick,
+                action: #selector(toggleRightClick(_:)),
+                shortcut: settings.shortcutBinding(for: .toggleShowRightClick)
+            ))
+            menu.addItem(toggleItem(
+                title: "Show Middle Click",
+                isOn: settings.showMiddleClick,
+                action: #selector(toggleMiddleClick(_:)),
+                shortcut: settings.shortcutBinding(for: .toggleShowMiddleClick)
+            ))
+            let showDragItem = toggleItem(
+                title: "Show Drag",
+                isOn: settings.showDrag,
+                action: #selector(toggleDrag(_:)),
+                shortcut: settings.shortcutBinding(for: .toggleShowDrag)
+            )
+            showDragItem.isEnabled = !settings.showLaserPointer
+            menu.addItem(showDragItem)
+            menu.addItem(.separator())
+        }
 
-        menu.addItem(submenu(
-            title: "Size",
-            options: ClickSettingOptions.sizePresets,
-            selected: Double(settings.size),
-            action: #selector(selectSize(_:))
-        ))
-        menu.addItem(submenu(
-            title: "Intensity",
-            options: ClickSettingOptions.intensityPresets,
-            selected: Double(settings.intensity),
-            action: #selector(selectIntensity(_:))
-        ))
-        menu.addItem(submenu(
-            title: "Duration",
-            options: ClickSettingOptions.durationPresets,
-            selected: settings.duration,
-            action: #selector(selectDuration(_:))
-        ))
-        menu.addItem(colorSubmenu(selected: settings.colorPreset))
-        menu.addItem(NSMenuItem.separator())
+        if settings.showStyleControlsInMenu {
+            menu.addItem(submenu(
+                title: "Size",
+                options: ClickSettingOptions.sizePresets,
+                selected: Double(settings.size),
+                action: #selector(selectSize(_:))
+            ))
+            menu.addItem(submenu(
+                title: "Intensity",
+                options: ClickSettingOptions.intensityPresets,
+                selected: Double(settings.intensity),
+                action: #selector(selectIntensity(_:))
+            ))
+            menu.addItem(submenu(
+                title: "Duration",
+                options: ClickSettingOptions.durationPresets,
+                selected: settings.duration,
+                action: #selector(selectDuration(_:))
+            ))
+            menu.addItem(colorSubmenu(selected: settings.colorPreset))
+            menu.addItem(.separator())
+        }
+
+        if settings.showMenuBarControlsInMenu {
+            menu.addItem(toggleItem(
+                title: "Show Menu Bar Text",
+                isOn: settings.showMenuBarText,
+                action: #selector(toggleMenuBarText)
+            ))
+            menu.addItem(toggleItem(
+                title: "Show Click Count in Menu Bar",
+                isOn: settings.showMenuBarClickCount,
+                action: #selector(toggleMenuBarClickCount)
+            ))
+            menu.addItem(.separator())
+        }
+
+        if settings.showLaunchAtLoginInMenu {
+            menu.addItem(toggleItem(
+                title: "Launch at Login",
+                isOn: launchAtLogin.isEnabled,
+                action: #selector(toggleLaunchAtLogin)
+            ))
+            menu.addItem(.separator())
+        }
 
         let openSettingsItem = NSMenuItem(title: "Open Settings...", action: #selector(openSettings), keyEquivalent: ",")
         openSettingsItem.target = self
@@ -208,7 +219,7 @@ final class StatusController: NSObject {
             menu.addItem(inputItem)
         }
 
-        menu.addItem(NSMenuItem.separator())
+        menu.addItem(.separator())
         let updatesConfigured = updatesAreConfigured()
         let updateItem = NSMenuItem(
             title: updatesConfigured ? "Check for Updates..." : "Updates: Not Configured",

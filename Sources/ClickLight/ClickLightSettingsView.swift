@@ -67,6 +67,8 @@ struct ClickLightSettingsView: View {
                             eventsPane
                         case .activity:
                             activityPane
+                        case .menu:
+                            MenuLayoutPane(viewModel: viewModel)
                         }
                     }
                 }
@@ -753,6 +755,69 @@ struct ClickLightSettingsView: View {
 
 }
 
+private struct MenuLayoutPane: View {
+    @ObservedObject var viewModel: ClickLightSettingsViewModel
+
+    init(viewModel: ClickLightSettingsViewModel) {
+        self.viewModel = viewModel
+    }
+
+    var body: some View {
+        SettingsCard(title: "Menu Sections", subtitle: "Keep essential controls visible and hide optional menu sections you do not use.") {
+            VStack(spacing: 0) {
+                ModernRow(
+                    title: "Show Event Controls",
+                    subtitle: "Show Press, Release, Right Click, Middle Click, and Drag in the menu."
+                ) {
+                    Toggle("", isOn: binding(\.showEventControlsInMenu))
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                        .accessibilityLabel("Show Event Controls")
+                }
+                Divider().padding(.vertical, 6)
+                ModernRow(
+                    title: "Show Style Presets",
+                    subtitle: "Show Size, Intensity, Duration, and Colors in the menu."
+                ) {
+                    Toggle("", isOn: binding(\.showStyleControlsInMenu))
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                        .accessibilityLabel("Show Style Presets")
+                }
+                Divider().padding(.vertical, 6)
+                ModernRow(
+                    title: "Show Menu Bar Controls",
+                    subtitle: "Show menu bar text and click count controls in the menu."
+                ) {
+                    Toggle("", isOn: binding(\.showMenuBarControlsInMenu))
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                        .accessibilityLabel("Show Menu Bar Controls")
+                }
+                Divider().padding(.vertical, 6)
+                ModernRow(
+                    title: "Show Launch at Login",
+                    subtitle: "Show Launch at Login in the menu."
+                ) {
+                    Toggle("", isOn: binding(\.showLaunchAtLoginInMenu))
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                        .accessibilityLabel("Show Launch at Login")
+                }
+            }
+        }
+    }
+
+    private func binding<Value>(_ keyPath: WritableKeyPath<ClickSettings, Value>) -> Binding<Value> {
+        Binding(
+            get: { viewModel.settings[keyPath: keyPath] },
+            set: { newValue in
+                viewModel.update { $0[keyPath: keyPath] = newValue }
+            }
+        )
+    }
+}
+
 private protocol ShortcutDisplayOption {
     var title: String { get }
 }
@@ -1014,6 +1079,7 @@ private enum SettingsPane: String, CaseIterable, Hashable {
     case style
     case shortcuts
     case activity
+    case menu
 
     var title: String {
         switch self {
@@ -1027,6 +1093,8 @@ private enum SettingsPane: String, CaseIterable, Hashable {
             return "Event Visibility"
         case .activity:
             return "Activity"
+        case .menu:
+            return "Menu Layout"
         }
     }
 
@@ -1042,6 +1110,8 @@ private enum SettingsPane: String, CaseIterable, Hashable {
             return "Choose which interactions and shortcut overlays appear."
         case .activity:
             return "A local daily view of your clicking."
+        case .menu:
+            return "Choose which items appear in the status bar menu and their order."
         }
     }
 
@@ -1057,6 +1127,8 @@ private enum SettingsPane: String, CaseIterable, Hashable {
             return "cursorarrow.click.2"
         case .activity:
             return "chart.bar.xaxis"
+        case .menu:
+            return "menubar.rectangle"
         }
     }
 }
