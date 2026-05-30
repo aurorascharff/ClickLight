@@ -102,7 +102,7 @@ final class StatusController: NSObject {
             title: "Enabled",
             isOn: settings.isEnabled,
             action: #selector(toggleEnabled(_:)),
-            shortcut: settings.shortcutBindings[.toggleEnabled]
+            shortcut: settings.shortcutBinding(for: .toggleEnabled)
         ))
         menu.addItem(NSMenuItem.separator())
 
@@ -110,13 +110,13 @@ final class StatusController: NSObject {
             title: "Laser Pointer Mode",
             isOn: settings.showLaserPointer,
             action: #selector(toggleLaserPointer(_:)),
-            shortcut: settings.shortcutBindings[.toggleLaserPointer]
+            shortcut: settings.shortcutBinding(for: .toggleLaserPointer)
         ))
         menu.addItem(toggleItem(
             title: "Show Live Keyboard Shortcuts",
             isOn: settings.showLiveKeyboardShortcuts,
             action: #selector(toggleLiveKeyboardShortcuts(_:)),
-            shortcut: settings.shortcutBindings[.toggleLiveKeyboardShortcuts]
+            shortcut: settings.shortcutBinding(for: .toggleLiveKeyboardShortcuts)
         ))
         menu.addItem(NSMenuItem.separator())
 
@@ -124,31 +124,31 @@ final class StatusController: NSObject {
             title: "Show Press",
             isOn: settings.showPress,
             action: #selector(togglePress(_:)),
-            shortcut: settings.shortcutBindings[.toggleShowPress]
+            shortcut: settings.shortcutBinding(for: .toggleShowPress)
         ))
         menu.addItem(toggleItem(
             title: "Show Release",
             isOn: settings.showRelease,
             action: #selector(toggleRelease(_:)),
-            shortcut: settings.shortcutBindings[.toggleShowRelease]
+            shortcut: settings.shortcutBinding(for: .toggleShowRelease)
         ))
         menu.addItem(toggleItem(
             title: "Show Right Click",
             isOn: settings.showRightClick,
             action: #selector(toggleRightClick(_:)),
-            shortcut: settings.shortcutBindings[.toggleShowRightClick]
+            shortcut: settings.shortcutBinding(for: .toggleShowRightClick)
         ))
         menu.addItem(toggleItem(
             title: "Show Middle Click",
             isOn: settings.showMiddleClick,
             action: #selector(toggleMiddleClick(_:)),
-            shortcut: settings.shortcutBindings[.toggleShowMiddleClick]
+            shortcut: settings.shortcutBinding(for: .toggleShowMiddleClick)
         ))
         let showDragItem = toggleItem(
             title: "Show Drag",
             isOn: settings.showDrag,
             action: #selector(toggleDrag(_:)),
-            shortcut: settings.shortcutBindings[.toggleShowDrag]
+            shortcut: settings.shortcutBinding(for: .toggleShowDrag)
         )
         showDragItem.isEnabled = !settings.showLaserPointer
         menu.addItem(showDragItem)
