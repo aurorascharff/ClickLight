@@ -229,10 +229,10 @@ export default function Home() {
       <div className="background" aria-hidden="true" />
 
       <nav className="topbar" aria-label="ClickLight navigation" onPointerDown={stopDemoEvent}>
-        <a className="brand" href="#demo">
+        <div className="brand" aria-label="ClickLight">
           <img src="/clicklight-icon.png" alt="" />
           ClickLight
-        </a>
+        </div>
         <a
           className="github-link"
           href="https://github.com/aurorascharff/ClickLight"
@@ -246,11 +246,10 @@ export default function Home() {
 
       <section className="statement" aria-label="ClickLight demo intro">
         <h1>ClickLight</h1>
-        <p>Highlights your clicks during live demos.</p>
+        <p>Highlights your clicks during live demos, screen sharing, and UX reviews.</p>
         <div className="install" onPointerDown={stopDemoEvent}>
-          <span>Install</span>
           <code>{installCommand}</code>
-          <button type="button" onClick={copyInstallCommand}>
+          <button type="button" onClick={copyInstallCommand} aria-label="Copy install command">
             {copiedInstall ? "Copied" : "Copy"}
           </button>
         </div>
@@ -312,7 +311,6 @@ export default function Home() {
           style={{ left: pulse.x, top: pulse.y }}
         />
       ))}
-      <p className="credit">by Aurora Scharff</p>
     </main>
   );
 }

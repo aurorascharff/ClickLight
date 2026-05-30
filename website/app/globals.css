@@ -130,16 +130,16 @@ button:disabled {
 
 .statement {
   left: 7vw;
-  max-width: 520px;
+  max-width: 760px;
   position: fixed;
-  top: 24vh;
+  top: 18vh;
   z-index: 2;
 }
 
 .statement p {
   color: var(--muted);
   font-size: clamp(1rem, 1.7vw, 1.25rem);
-  margin: 10px 0 0;
+  margin: 24px 0 0;
 }
 
 .install {
@@ -148,22 +148,35 @@ button:disabled {
   background: rgba(10, 10, 14, 0.42);
   border: 1px solid var(--stroke);
   border-radius: 999px;
-  display: inline-flex;
-  margin-top: 22px;
-  max-width: min(100%, 560px);
-  padding: 12px 15px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.24);
+  display: flex;
+  gap: 10px;
+  margin-top: 24px;
+  max-width: min(100%, 720px);
+  padding: 8px 8px 8px 18px;
 }
 
 .install code {
+  flex: 1;
   font-family: "SF Mono", ui-monospace, Menlo, Monaco, Consolas, monospace;
-  font-size: clamp(0.78rem, 1.35vw, 0.95rem);
+  font-size: clamp(0.74rem, 1.02vw, 0.88rem);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+.install button {
+  background: var(--active);
+  border: 0;
+  border-radius: 12px;
+  color: #071017;
+  font-size: 0.92rem;
+  font-weight: 760;
+  padding: 10px 14px;
+}
+
 .statement h1 {
-  font-size: clamp(4rem, 9vw, 8.5rem);
+  font-size: clamp(3.8rem, 8vw, 7.2rem);
   letter-spacing: 0;
   line-height: 0.86;
   margin: 0;
@@ -173,16 +186,6 @@ button:disabled {
   color: var(--muted);
   display: block;
   margin-top: 10px;
-}
-
-.credit {
-  bottom: 24px;
-  color: var(--muted);
-  font-size: 0.92rem;
-  left: 28px;
-  margin: 0;
-  position: fixed;
-  z-index: 6;
 }
 
 .menu {
