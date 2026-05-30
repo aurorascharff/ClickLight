@@ -1,11 +1,11 @@
 "use client";
 
-import { PointerEvent, useMemo, useRef, useState } from "react";
+import { PointerEvent, useEffect, useMemo, useRef, useState } from "react";
 
 type ClickKind = "press" | "release" | "right" | "rightRelease" | "middle" | "middleRelease" | "drag";
 type ThemeName = "blue" | "green" | "red";
 type ProfileName = "Default" | "Tutorial" | "Presentation";
-type ToggleKey = "press" | "release" | "right" | "middle" | "drag" | "laser";
+type ToggleKey = "press" | "release" | "right" | "middle" | "drag" | "laser" | "keys";
 
 type DemoSettings = Record<ToggleKey, boolean> & {
   theme: ThemeName;
@@ -32,29 +32,33 @@ const profiles: Record<ProfileName, DemoSettings> = {
     middle: true,
     drag: true,
     laser: false,
+    keys: true,
     theme: "blue",
   },
   Tutorial: {
     press: true,
     release: true,
-    right: false,
-    middle: false,
-    drag: false,
+    right: true,
+    middle: true,
+    drag: true,
     laser: false,
+    keys: true,
     theme: "green",
   },
   Presentation: {
-    press: false,
-    release: false,
-    right: false,
-    middle: false,
+    press: true,
+    release: true,
+    right: true,
+    middle: true,
     drag: false,
     laser: true,
+    keys: true,
     theme: "red",
   },
 };
 
 let nextAnimationId = 0;
+const installCommand = "brew install --cask aurorascharff/clicklight/clicklight";
 
 export default function Home() {
   const [settings, setSettings] = useState<DemoSettings>(profiles.Default);
@@ -62,18 +66,44 @@ export default function Home() {
   const [pulses, setPulses] = useState<Pulse[]>([]);
   const [trail, setTrail] = useState<TrailPoint[]>([]);
   const [laserCursor, setLaserCursor] = useState<TrailPoint | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [pressedKind, setPressedKind] = useState<ClickKind>("press");
+  const [shortcut, setShortcut] = useState<string | null>(null);
+  const [copiedInstall, setCopiedInstall] = useState(false);
   const surfaceRef = useRef<HTMLElement>(null);
+  const pointerDownRef = useRef(false);
   const downPointRef = useRef<TrailPoint | null>(null);
   const lastDragPointRef = useRef<TrailPoint | null>(null);
   const hasDraggedRef = useRef(false);
+  const pressedKindRef = useRef<ClickKind>("press");
+  const shortcutTimeoutRef = useRef<number | null>(null);
 
   const activeColor = useMemo(() => {
     if (settings.theme === "green") return "var(--mint)";
     if (settings.theme === "red") return "var(--coral)";
     return "var(--aqua)";
   }, [settings.theme]);
+
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (!settings.keys || event.repeat) return;
+      const parts = [];
+      if (event.metaKey) parts.push("⌘");
+      if (event.ctrlKey) parts.push("⌃");
+      if (event.altKey) parts.push("⌥");
+      if (event.shiftKey) parts.push("⇧");
+      const key = event.key.length === 1 ? event.key.toUpperCase() : event.key.replace("Arrow", "");
+      if (!["Meta", "Control", "Alt", "Shift"].includes(event.key)) parts.push(key);
+      if (parts.length === 0) return;
+      setShortcut(parts.join(" "));
+      if (shortcutTimeoutRef.current) window.clearTimeout(shortcutTimeoutRef.current);
+      shortcutTimeoutRef.current = window.setTimeout(() => setShortcut(null), 900);
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      if (shortcutTimeoutRef.current) window.clearTimeout(shortcutTimeoutRef.current);
+    };
+  }, [settings.keys]);
 
   function pointFromEvent(event: PointerEvent<HTMLElement>) {
     const rect = surfaceRef.current?.getBoundingClientRect();
@@ -96,25 +126,25 @@ export default function Home() {
 
   function handlePointerDown(event: PointerEvent<HTMLElement>) {
     event.currentTarget.setPointerCapture(event.pointerId);
-    setIsDragging(true);
+    pointerDownRef.current = true;
     const downPoint = pointFromEvent(event);
     downPointRef.current = downPoint ? { id: nextAnimationId++, ...downPoint } : null;
     lastDragPointRef.current = downPointRef.current;
     hasDraggedRef.current = false;
 
     if (event.button === 2 && settings.right) {
-      setPressedKind("right");
+      pressedKindRef.current = "right";
       addPulse(event, "right");
       return;
     }
 
     if (event.button === 1 && settings.middle) {
-      setPressedKind("middle");
+      pressedKindRef.current = "middle";
       addPulse(event, "middle");
       return;
     }
 
-    setPressedKind("press");
+    pressedKindRef.current = "press";
     if (settings.press) addPulse(event, "press");
   }
 
@@ -123,12 +153,12 @@ export default function Home() {
     if (!point) return;
     const nextPoint = { id: nextAnimationId++, ...point };
     const downPoint = downPointRef.current;
-    if (isDragging && downPoint) {
+    if (pointerDownRef.current && downPoint) {
       const distance = Math.hypot(point.x - downPoint.x, point.y - downPoint.y);
       if (distance > 4) hasDraggedRef.current = true;
     }
     const lastDragPoint = lastDragPointRef.current;
-    if (isDragging && hasDraggedRef.current && settings.drag && lastDragPoint) {
+    if (pointerDownRef.current && hasDraggedRef.current && settings.drag && lastDragPoint) {
       const dragDistance = Math.hypot(point.x - lastDragPoint.x, point.y - lastDragPoint.y);
       if (!settings.laser && dragDistance > 18) {
         addPulse(event, "drag");
@@ -139,7 +169,7 @@ export default function Home() {
     }
     if (!settings.laser) return;
     setLaserCursor(nextPoint);
-    if (isDragging) {
+    if (pointerDownRef.current) {
       setTrail((current) => [...current.slice(-34), nextPoint]);
     }
   }
@@ -147,15 +177,19 @@ export default function Home() {
   function handlePointerUp(event: PointerEvent<HTMLElement>) {
     if (hasDraggedRef.current && settings.drag) addPulse(event, "drag");
     if (settings.release) {
-      if (pressedKind === "right") addPulse(event, "rightRelease");
-      else if (pressedKind === "middle") addPulse(event, "middleRelease");
+      if (pressedKindRef.current === "right") addPulse(event, "rightRelease");
+      else if (pressedKindRef.current === "middle") addPulse(event, "middleRelease");
       else addPulse(event, "release");
     }
-    setIsDragging(false);
+    resetPointerState();
+    window.setTimeout(() => setTrail([]), 900);
+  }
+
+  function resetPointerState() {
+    pointerDownRef.current = false;
     downPointRef.current = null;
     lastDragPointRef.current = null;
     hasDraggedRef.current = false;
-    window.setTimeout(() => setTrail([]), 900);
   }
 
   function updateProfile(nextProfile: ProfileName) {
@@ -163,10 +197,17 @@ export default function Home() {
     setSettings(profiles[nextProfile]);
     setTrail([]);
     setLaserCursor(null);
+    setShortcut(null);
   }
 
   function toggle(key: ToggleKey) {
     setSettings((current) => ({ ...current, [key]: !current[key] }));
+  }
+
+  async function copyInstallCommand() {
+    await navigator.clipboard.writeText(installCommand);
+    setCopiedInstall(true);
+    window.setTimeout(() => setCopiedInstall(false), 1200);
   }
 
   function stopDemoEvent(event: PointerEvent<HTMLElement>) {
@@ -182,7 +223,7 @@ export default function Home() {
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
-      onPointerCancel={() => setIsDragging(false)}
+      onPointerCancel={resetPointerState}
       onContextMenu={(event) => event.preventDefault()}
     >
       <div className="background" aria-hidden="true" />
@@ -207,7 +248,11 @@ export default function Home() {
         <h1>ClickLight</h1>
         <p>Highlights your clicks during live demos.</p>
         <div className="install" onPointerDown={stopDemoEvent}>
-          <code>brew install --cask aurorascharff/clicklight/clicklight</code>
+          <span>Install</span>
+          <code>{installCommand}</code>
+          <button type="button" onClick={copyInstallCommand}>
+            {copiedInstall ? "Copied" : "Copy"}
+          </button>
         </div>
       </section>
 
@@ -241,20 +286,11 @@ export default function Home() {
 
         <div className="menu-section">
           <Toggle label="Laser Pointer Mode" on={settings.laser} onClick={() => toggle("laser")} />
-        </div>
-
-        <div className="swatches" aria-label="Colors">
-          {(["blue", "green", "red"] as ThemeName[]).map((theme) => (
-            <button
-              aria-label={`${theme} color`}
-              className={`swatch ${theme} ${settings.theme === theme ? "selected" : ""}`}
-              key={theme}
-              onClick={() => setSettings((current) => ({ ...current, theme }))}
-              type="button"
-            />
-          ))}
+          <Toggle label="Show Keystrokes" on={settings.keys} onClick={() => toggle("keys")} />
         </div>
       </aside>
+
+      {settings.keys && shortcut && <div className="shortcut-display">{shortcut}</div>}
 
       {trail.length > 1 && (
         <svg className="laser-strokes" aria-hidden="true">

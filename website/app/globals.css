@@ -210,8 +210,7 @@ button:disabled {
   width: 12px;
 }
 
-.profiles,
-.swatches {
+.profiles {
   display: flex;
   gap: 8px;
 }
@@ -285,32 +284,18 @@ button:disabled {
   transform: translateX(18px);
 }
 
-.swatches {
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding-top: 12px;
-}
-
-.swatch {
-  border: 2px solid transparent;
+.shortcut-display {
+  background: var(--panel-strong);
   border-radius: 999px;
-  height: 28px;
-  width: 28px;
-}
-
-.swatch.selected {
-  border-color: #fff;
-}
-
-.swatch.blue {
-  background: var(--aqua);
-}
-
-.swatch.green {
-  background: var(--mint);
-}
-
-.swatch.red {
-  background: var(--coral);
+  bottom: 28px;
+  color: var(--ink);
+  font-size: 1.15rem;
+  font-weight: 740;
+  left: 50%;
+  padding: 12px 18px;
+  position: fixed;
+  transform: translateX(-50%);
+  z-index: 7;
 }
 
 .pulse,
