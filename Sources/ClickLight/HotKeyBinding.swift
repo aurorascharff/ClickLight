@@ -215,11 +215,7 @@ enum ClickShortcutAction: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .toggleEnabled:
             return HotKeyBinding(keyCode: kVK_ANSI_L, carbonModifiers: HotKeyBinding.defaultToggleModifiers)
-        case .toggleLaserPointer:
-            return nil
-        case .toggleShowPress, .toggleShowRelease, .toggleShowRightClick, .toggleShowMiddleClick, .toggleShowDrag:
-            return nil
-        case .toggleLiveKeyboardShortcuts:
+        case .toggleLaserPointer, .toggleShowPress, .toggleShowRelease, .toggleShowRightClick, .toggleShowMiddleClick, .toggleShowDrag, .toggleLiveKeyboardShortcuts:
             return nil
         }
     }
