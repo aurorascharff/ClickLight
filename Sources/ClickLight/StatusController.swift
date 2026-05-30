@@ -11,7 +11,7 @@ final class StatusController: NSObject {
     private let launchAtLogin: LaunchAtLoginManaging
     private let onCheckForUpdates: () -> Void
     private let updatesAreConfigured: () -> Bool
-    private let onOpenSettings: () -> Void
+    private let onOpenSettings: (SettingsPane?) -> Void
     private let onQuit: () -> Void
     private let onMenuWillOpen: () -> Void
     private let onMenuDidClose: () -> Void
@@ -25,7 +25,7 @@ final class StatusController: NSObject {
         launchAtLogin: LaunchAtLoginManaging,
         onCheckForUpdates: @escaping () -> Void,
         updatesAreConfigured: @escaping () -> Bool,
-        onOpenSettings: @escaping () -> Void,
+        onOpenSettings: @escaping (SettingsPane?) -> Void,
         onQuit: @escaping () -> Void,
         onMenuWillOpen: @escaping () -> Void = {},
         onMenuDidClose: @escaping () -> Void = {}
@@ -335,7 +335,7 @@ final class StatusController: NSObject {
             menu.addItem(selectedCustom)
         }
 
-        let configureCustom = NSMenuItem(title: "Configure Custom Colors...", action: #selector(openSettings), keyEquivalent: "")
+        let configureCustom = NSMenuItem(title: "Configure Custom Colors...", action: #selector(openVisualStyleSettings), keyEquivalent: "")
         configureCustom.target = self
         menu.addItem(configureCustom)
 
@@ -364,7 +364,7 @@ final class StatusController: NSObject {
         }
 
         menu.addItem(.separator())
-        let manageItem = NSMenuItem(title: "Manage Profiles...", action: #selector(openSettings), keyEquivalent: "")
+        let manageItem = NSMenuItem(title: "Manage Profiles...", action: #selector(openProfileSettings), keyEquivalent: "")
         manageItem.target = self
         menu.addItem(manageItem)
 
@@ -378,7 +378,15 @@ final class StatusController: NSObject {
     }
 
     @objc private func openSettings() {
-        onOpenSettings()
+        onOpenSettings(nil)
+    }
+
+    @objc private func openProfileSettings() {
+        onOpenSettings(.profiles)
+    }
+
+    @objc private func openVisualStyleSettings() {
+        onOpenSettings(.style)
     }
 
     @objc private func togglePress(_ sender: NSMenuItem) {

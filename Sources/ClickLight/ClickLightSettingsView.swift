@@ -6,7 +6,6 @@ struct ClickLightSettingsView: View {
     @ObservedObject var viewModel: ClickLightSettingsViewModel
     @ObservedObject var profileStore: ClickProfileStore
     @ObservedObject var activityStore: ClickActivityStore
-    @State private var selectedPane: SettingsPane = .general
     @State private var showResetConfirmation = false
     @State private var showShortcutResetConfirmation = false
     @State private var showActivityResetConfirmation = false
@@ -16,7 +15,7 @@ struct ClickLightSettingsView: View {
     var body: some View {
         NavigationSplitView {
             VStack(spacing: 0) {
-                List(SettingsPane.allCases, id: \.self, selection: $selectedPane) { pane in
+                List(SettingsPane.allCases, id: \.self, selection: $viewModel.selectedPane) { pane in
                     Label {
                         Text(pane.title)
                             .font(.system(size: 13, weight: .medium))
@@ -60,7 +59,7 @@ struct ClickLightSettingsView: View {
                     paneHeader
 
                     Group {
-                        switch selectedPane {
+                        switch viewModel.selectedPane {
                         case .general:
                             generalPane
                         case .style:
@@ -138,10 +137,10 @@ struct ClickLightSettingsView: View {
 
     private var paneHeader: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(selectedPane.title)
+            Text(viewModel.selectedPane.title)
                 .font(.system(size: 22, weight: .semibold))
                 .accessibilityAddTraits(.isHeader)
-            Text(selectedPane.subtitle)
+            Text(viewModel.selectedPane.subtitle)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
@@ -1262,7 +1261,7 @@ private final class InteractiveClickPreviewView: NSView {
     }
 }
 
-private enum SettingsPane: String, CaseIterable, Hashable {
+enum SettingsPane: String, CaseIterable, Hashable {
     case general
     case events
     case style

@@ -43,12 +43,18 @@ final class SettingsWindowController: NSWindowController {
         nil
     }
 
-    func show() {
+    func show(selecting pane: SettingsPane? = nil) {
         guard let window else { return }
         NSApp.activate(ignoringOtherApps: true)
         showWindow(nil)
         window.makeKeyAndOrderFront(nil)
         window.orderFrontRegardless()
+        if let pane {
+            viewModel.selectedPane = pane
+            Task { @MainActor [weak self] in
+                self?.viewModel.selectedPane = pane
+            }
+        }
         viewModel.refreshSystemState()
     }
 
@@ -70,6 +76,7 @@ final class ClickLightSettingsViewModel: NSObject, ObservableObject {
     @Published private(set) var accessibilityTrusted: Bool = false
     @Published private(set) var inputMonitoringTrusted: Bool = false
     @Published var launchAtLoginErrorMessage: String?
+    @Published var selectedPane: SettingsPane = .general
     @Published private(set) var shortcutErrors: [ClickShortcutAction: String] = [:]
     @Published private(set) var hotKeyRegistrationIssues: [ClickShortcutAction: String] = [:]
 

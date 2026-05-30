@@ -19,7 +19,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         launchAtLogin: launchAtLogin,
         onCheckForUpdates: { UpdateChecker.shared.checkForUpdates() },
         updatesAreConfigured: { UpdateChecker.shared.isConfigured },
-        onOpenSettings: { [weak self] in self?.openSettings() },
+        onOpenSettings: { [weak self] pane in self?.openSettings(selecting: pane) },
         onQuit: { NSApplication.shared.terminate(nil) },
         onMenuWillOpen: { [weak self] in
             self?.hotKeyManager.unregisterAll()
@@ -212,7 +212,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.terminate(nil)
     }
 
-    private func openSettings() {
+    private func openSettings(selecting pane: SettingsPane? = nil) {
         let controller = settingsWindowController ?? SettingsWindowController(
             settingsStore: settingsStore,
             profileStore: profileStore,
@@ -224,6 +224,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         )
         settingsWindowController = controller
-        controller.show()
+        controller.show(selecting: pane)
     }
 }
