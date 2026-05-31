@@ -361,7 +361,7 @@ button:disabled {
   width: 100%;
 }
 
-.laser-strokes.fading {
+.laser-stroke-group.fading {
   animation: laser-fade 900ms ease-out forwards;
 }
 
@@ -373,30 +373,35 @@ button:disabled {
 
 .laser-stroke.outer {
   stroke: var(--laser-outer);
-  stroke-width: 22;
+  stroke-width: 14;
 }
 
 .laser-stroke.main {
   stroke: var(--laser-main);
-  stroke-width: 11;
+  stroke-width: 6;
 }
 
 .laser-stroke.middle {
   stroke: var(--laser-middle);
-  stroke-width: 7;
+  stroke-width: 4;
 }
 
 .laser-stroke.inner {
   stroke: var(--laser-inner);
-  stroke-width: 3.4;
+  stroke-width: 2;
 }
 
 .laser-cursor {
   background: color-mix(in srgb, var(--laser-main), transparent 82%);
   border-radius: 999px;
-  height: 42px;
+  height: 32px;
   transform: translate(-50%, -50%);
-  width: 42px;
+  transition: opacity 420ms ease-out;
+  width: 32px;
+}
+
+.laser-cursor.fading {
+  opacity: 0;
 }
 
 .laser-cursor::before,
@@ -410,20 +415,20 @@ button:disabled {
 }
 
 .laser-cursor::before {
-  background: radial-gradient(
-    circle,
-    var(--laser-inner) 0 33%,
-    var(--laser-middle) 34% 48%,
-    var(--laser-main) 50% 100%
-  );
-  height: 22px;
-  width: 22px;
+  background: var(--laser-main);
+  height: 16px;
+  width: 16px;
 }
 
 .laser-cursor::after {
-  background: var(--laser-inner);
-  height: 14px;
-  width: 14px;
+  background: radial-gradient(
+    circle,
+    var(--laser-inner) 0 38%,
+    var(--laser-middle) 40% 68%,
+    var(--laser-main) 70% 100%
+  );
+  height: 13px;
+  width: 13px;
 }
 
 .pulse {

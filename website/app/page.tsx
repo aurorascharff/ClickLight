@@ -2,10 +2,24 @@
 
 import { PointerEvent, useEffect, useMemo, useRef, useState } from "react";
 
-type ClickKind = "press" | "release" | "right" | "rightRelease" | "middle" | "middleRelease" | "drag";
+type ClickKind =
+  | "press"
+  | "release"
+  | "right"
+  | "rightRelease"
+  | "middle"
+  | "middleRelease"
+  | "drag";
 type ThemeName = "blue" | "amber" | "red";
 type ProfileName = "Default" | "Tutorial" | "Presentation";
-type ToggleKey = "press" | "release" | "right" | "middle" | "drag" | "laser" | "keys";
+type ToggleKey =
+  | "press"
+  | "release"
+  | "right"
+  | "middle"
+  | "drag"
+  | "laser"
+  | "keys";
 
 type DemoSettings = Record<ToggleKey, boolean> & {
   pulseDuration: number;
@@ -36,6 +50,15 @@ type TrailPoint = {
   x: number;
   y: number;
 };
+
+type Stroke = {
+  id: number;
+  points: TrailPoint[];
+};
+
+const LASER_CURSOR_FADE_MS = 420;
+const LASER_STROKE_FADE_MS = 900;
+const LASER_MIN_POINT_DISTANCE = 2.5;
 
 const profiles: Record<ProfileName, DemoSettings> = {
   Default: {
@@ -110,17 +133,19 @@ const themePalettes: Record<ThemeName, ThemePalette> = {
 };
 
 let nextAnimationId = 0;
-const installCommand = "brew install --cask aurorascharff/clicklight/clicklight";
+const installCommand =
+  "brew install --cask aurorascharff/clicklight/clicklight";
 
 export default function Home() {
   const [settings, setSettings] = useState<DemoSettings>(profiles.Default);
   const [profile, setProfile] = useState<ProfileName>("Default");
   const [pulses, setPulses] = useState<Pulse[]>([]);
-  const [trail, setTrail] = useState<TrailPoint[]>([]);
+  const [activeStroke, setActiveStroke] = useState<Stroke | null>(null);
+  const [fadingStrokes, setFadingStrokes] = useState<Stroke[]>([]);
   const [laserCursor, setLaserCursor] = useState<TrailPoint | null>(null);
+  const [laserCursorFading, setLaserCursorFading] = useState(false);
   const [shortcut, setShortcut] = useState<string | null>(null);
   const [copiedInstall, setCopiedInstall] = useState(false);
-  const [isPointerActive, setIsPointerActive] = useState(false);
   const surfaceRef = useRef<HTMLElement>(null);
   const pointerDownRef = useRef(false);
   const downPointRef = useRef<TrailPoint | null>(null);
@@ -128,8 +153,13 @@ export default function Home() {
   const hasDraggedRef = useRef(false);
   const pressedKindRef = useRef<ClickKind>("press");
   const shortcutTimeoutRef = useRef<number | null>(null);
+  const cursorFadeTimeoutRef = useRef<number | null>(null);
+  const cursorRemoveTimeoutRef = useRef<number | null>(null);
 
-  const palette = useMemo(() => themePalettes[settings.theme], [settings.theme]);
+  const palette = useMemo(
+    () => themePalettes[settings.theme],
+    [settings.theme],
+  );
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -140,18 +170,27 @@ export default function Home() {
       if (event.ctrlKey) parts.push("⌃");
       if (event.altKey) parts.push("⌥");
       if (event.shiftKey) parts.push("⇧");
-      const key = event.key.length === 1 ? event.key.toUpperCase() : event.key.replace("Arrow", "");
-      if (!["Meta", "Control", "Alt", "Shift"].includes(event.key)) parts.push(key);
+      const key =
+        event.key.length === 1
+          ? event.key.toUpperCase()
+          : event.key.replace("Arrow", "");
+      if (!["Meta", "Control", "Alt", "Shift"].includes(event.key))
+        parts.push(key);
       if (parts.length === 0) return;
       setShortcut(parts.join(" "));
-      if (shortcutTimeoutRef.current) window.clearTimeout(shortcutTimeoutRef.current);
-      shortcutTimeoutRef.current = window.setTimeout(() => setShortcut(null), 900);
+      if (shortcutTimeoutRef.current)
+        window.clearTimeout(shortcutTimeoutRef.current);
+      shortcutTimeoutRef.current = window.setTimeout(
+        () => setShortcut(null),
+        900,
+      );
     }
 
     window.addEventListener("keydown", handleKeyDown);
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
-      if (shortcutTimeoutRef.current) window.clearTimeout(shortcutTimeoutRef.current);
+      if (shortcutTimeoutRef.current)
+        window.clearTimeout(shortcutTimeoutRef.current);
     };
   }, [settings.keys]);
 
@@ -177,9 +216,10 @@ export default function Home() {
   function handlePointerDown(event: PointerEvent<HTMLElement>) {
     event.currentTarget.setPointerCapture(event.pointerId);
     pointerDownRef.current = true;
-    setIsPointerActive(true);
     const downPoint = pointFromEvent(event);
-    downPointRef.current = downPoint ? { id: nextAnimationId++, ...downPoint } : null;
+    downPointRef.current = downPoint
+      ? { id: nextAnimationId++, ...downPoint }
+      : null;
     lastDragPointRef.current = downPointRef.current;
     hasDraggedRef.current = false;
 
@@ -199,6 +239,38 @@ export default function Home() {
     if (settings.press) addPulse(event, "press");
   }
 
+  function clearCursorTimers() {
+    if (cursorFadeTimeoutRef.current) {
+      window.clearTimeout(cursorFadeTimeoutRef.current);
+      cursorFadeTimeoutRef.current = null;
+    }
+    if (cursorRemoveTimeoutRef.current) {
+      window.clearTimeout(cursorRemoveTimeoutRef.current);
+      cursorRemoveTimeoutRef.current = null;
+    }
+  }
+
+  function bumpLaserCursor(point: TrailPoint) {
+    clearCursorTimers();
+    setLaserCursor(point);
+    setLaserCursorFading(false);
+    cursorFadeTimeoutRef.current = window.setTimeout(() => {
+      setLaserCursorFading(true);
+      cursorRemoveTimeoutRef.current = window.setTimeout(() => {
+        setLaserCursor(null);
+        setLaserCursorFading(false);
+      }, LASER_CURSOR_FADE_MS);
+    }, 16);
+  }
+
+  function clearLaserVisuals() {
+    clearCursorTimers();
+    setLaserCursor(null);
+    setLaserCursorFading(false);
+    setActiveStroke(null);
+    setFadingStrokes([]);
+  }
+
   function handlePointerMove(event: PointerEvent<HTMLElement>) {
     const point = pointFromEvent(event);
     if (!point) return;
@@ -209,8 +281,16 @@ export default function Home() {
       if (distance > 4) hasDraggedRef.current = true;
     }
     const lastDragPoint = lastDragPointRef.current;
-    if (pointerDownRef.current && hasDraggedRef.current && settings.drag && lastDragPoint) {
-      const dragDistance = Math.hypot(point.x - lastDragPoint.x, point.y - lastDragPoint.y);
+    if (
+      pointerDownRef.current &&
+      hasDraggedRef.current &&
+      settings.drag &&
+      lastDragPoint
+    ) {
+      const dragDistance = Math.hypot(
+        point.x - lastDragPoint.x,
+        point.y - lastDragPoint.y,
+      );
       if (!settings.laser && dragDistance > 18) {
         addPulse(event, "drag");
         lastDragPointRef.current = nextPoint;
@@ -219,9 +299,21 @@ export default function Home() {
       }
     }
     if (!settings.laser) return;
-    setLaserCursor(nextPoint);
+    bumpLaserCursor(nextPoint);
     if (pointerDownRef.current) {
-      setTrail((current) => [...current.slice(-34), nextPoint]);
+      setActiveStroke((current) => {
+        if (!current) {
+          return { id: nextAnimationId++, points: [nextPoint, nextPoint] };
+        }
+        const last = current.points[current.points.length - 1];
+        if (
+          Math.hypot(last.x - nextPoint.x, last.y - nextPoint.y) <
+          LASER_MIN_POINT_DISTANCE
+        ) {
+          return current;
+        }
+        return { ...current, points: [...current.points, nextPoint] };
+      });
     }
   }
 
@@ -229,16 +321,28 @@ export default function Home() {
     if (hasDraggedRef.current && settings.drag) addPulse(event, "drag");
     if (settings.release) {
       if (pressedKindRef.current === "right") addPulse(event, "rightRelease");
-      else if (pressedKindRef.current === "middle") addPulse(event, "middleRelease");
+      else if (pressedKindRef.current === "middle")
+        addPulse(event, "middleRelease");
       else addPulse(event, "release");
     }
+
+    setActiveStroke((current) => {
+      if (!current || current.points.length < 2) return null;
+      const stroke = current;
+      setFadingStrokes((strokes) => [...strokes, stroke]);
+      window.setTimeout(() => {
+        setFadingStrokes((strokes) =>
+          strokes.filter((item) => item.id !== stroke.id),
+        );
+      }, LASER_STROKE_FADE_MS);
+      return null;
+    });
+
     resetPointerState();
-    window.setTimeout(() => setTrail([]), 900);
   }
 
   function resetPointerState() {
     pointerDownRef.current = false;
-    setIsPointerActive(false);
     downPointRef.current = null;
     lastDragPointRef.current = null;
     hasDraggedRef.current = false;
@@ -247,13 +351,28 @@ export default function Home() {
   function updateProfile(nextProfile: ProfileName) {
     setProfile(nextProfile);
     setSettings(profiles[nextProfile]);
-    setTrail([]);
-    setLaserCursor(null);
+    clearLaserVisuals();
     setShortcut(null);
   }
 
   function toggle(key: ToggleKey) {
-    setSettings((current) => ({ ...current, [key]: !current[key] }));
+    setSettings((current) => {
+      const next = { ...current, [key]: !current[key] };
+      if (key === "laser" && !next.laser) {
+        clearLaserVisuals();
+      }
+      return next;
+    });
+  }
+
+  function handlePointerLeave() {
+    if (pointerDownRef.current) return;
+    clearCursorTimers();
+    setLaserCursorFading(true);
+    cursorRemoveTimeoutRef.current = window.setTimeout(() => {
+      setLaserCursor(null);
+      setLaserCursorFading(false);
+    }, LASER_CURSOR_FADE_MS);
   }
 
   async function copyInstallCommand() {
@@ -291,10 +410,15 @@ export default function Home() {
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={resetPointerState}
+      onPointerLeave={handlePointerLeave}
     >
       <div className="background" aria-hidden="true" />
 
-      <nav className="topbar" aria-label="ClickLight navigation" onPointerDown={stopDemoEvent}>
+      <nav
+        className="topbar"
+        aria-label="ClickLight navigation"
+        onPointerDown={stopDemoEvent}
+      >
         <a
           className="github-link"
           href="https://github.com/aurorascharff/ClickLight"
@@ -313,8 +437,9 @@ export default function Home() {
             <h1>ClickLight</h1>
           </div>
           <p>
-            A tiny macOS menu bar app that highlights your clicks during demos, screen sharing,
-            UX reviews, and anywhere people need to follow what you are doing.
+            A tiny macOS menu bar app that highlights your clicks during demos,
+            screen sharing, UX reviews, and anywhere people need to follow what
+            you are doing.
           </p>
           <div className="install" onPointerDown={stopDemoEvent}>
             <code>{installCommand}</code>
@@ -322,7 +447,11 @@ export default function Home() {
               className={copiedInstall ? "copied" : ""}
               type="button"
               onClick={copyInstallCommand}
-              aria-label={copiedInstall ? "Copied install command" : "Copy install command"}
+              aria-label={
+                copiedInstall
+                  ? "Copied install command"
+                  : "Copy install command"
+              }
             >
               {copiedInstall ? (
                 <svg aria-hidden="true" viewBox="0 0 24 24">
@@ -337,14 +466,22 @@ export default function Home() {
           </div>
         </section>
 
-        <aside className="menu" aria-label="ClickLight controls" onPointerDown={stopDemoEvent}>
+        <aside
+          className="menu"
+          aria-label="ClickLight controls"
+          onPointerDown={stopDemoEvent}
+        >
           <div className="menu-brand" aria-hidden="true">
             <span className="menu-brand-icon" />
             <span className="menu-brand-title">ClickLight</span>
           </div>
           <div className="menu-separator" />
 
-          <MenuItem label="Laser Pointer Mode" checked={settings.laser} onClick={() => toggle("laser")} />
+          <MenuItem
+            label="Laser Pointer Mode"
+            checked={settings.laser}
+            onClick={() => toggle("laser")}
+          />
           <MenuItem
             label="Show Live Keyboard Shortcuts"
             checked={settings.keys}
@@ -352,11 +489,31 @@ export default function Home() {
           />
 
           <div className="menu-separator" />
-          <MenuItem label="Show Press" checked={settings.press} onClick={() => toggle("press")} />
-          <MenuItem label="Show Release" checked={settings.release} onClick={() => toggle("release")} />
-          <MenuItem label="Show Right Click" checked={settings.right} onClick={() => toggle("right")} />
-          <MenuItem label="Show Middle Click" checked={settings.middle} onClick={() => toggle("middle")} />
-          <MenuItem label="Show Drag" checked={settings.drag} onClick={() => toggle("drag")} />
+          <MenuItem
+            label="Show Press"
+            checked={settings.press}
+            onClick={() => toggle("press")}
+          />
+          <MenuItem
+            label="Show Release"
+            checked={settings.release}
+            onClick={() => toggle("release")}
+          />
+          <MenuItem
+            label="Show Right Click"
+            checked={settings.right}
+            onClick={() => toggle("right")}
+          />
+          <MenuItem
+            label="Show Middle Click"
+            checked={settings.middle}
+            onClick={() => toggle("middle")}
+          />
+          <MenuItem
+            label="Show Drag"
+            checked={settings.drag}
+            onClick={() => toggle("drag")}
+          />
 
           <div className="menu-separator" />
           <MenuItem disabled label="Size" chevron />
@@ -382,19 +539,68 @@ export default function Home() {
         </aside>
       </div>
 
-      {settings.keys && shortcut && <div className="shortcut-display">{shortcut}</div>}
+      {settings.keys && shortcut && (
+        <div className="shortcut-display">{shortcut}</div>
+      )}
 
-      {trail.length > 1 && (
-        <svg className={`laser-strokes ${isPointerActive ? "active" : "fading"}`} aria-hidden="true">
-          <polyline className="laser-stroke outer" points={trail.map((point) => `${point.x},${point.y}`).join(" ")} />
-          <polyline className="laser-stroke main" points={trail.map((point) => `${point.x},${point.y}`).join(" ")} />
-          <polyline className="laser-stroke middle" points={trail.map((point) => `${point.x},${point.y}`).join(" ")} />
-          <polyline className="laser-stroke inner" points={trail.map((point) => `${point.x},${point.y}`).join(" ")} />
+      {settings.laser && (activeStroke || fadingStrokes.length > 0) && (
+        <svg className="laser-strokes" aria-hidden="true">
+          {fadingStrokes.map((stroke) => (
+            <g key={stroke.id} className="laser-stroke-group fading">
+              <polyline
+                className="laser-stroke outer"
+                points={stroke.points.map((p) => `${p.x},${p.y}`).join(" ")}
+              />
+              <polyline
+                className="laser-stroke main"
+                points={stroke.points.map((p) => `${p.x},${p.y}`).join(" ")}
+              />
+              <polyline
+                className="laser-stroke middle"
+                points={stroke.points.map((p) => `${p.x},${p.y}`).join(" ")}
+              />
+              <polyline
+                className="laser-stroke inner"
+                points={stroke.points.map((p) => `${p.x},${p.y}`).join(" ")}
+              />
+            </g>
+          ))}
+          {activeStroke && activeStroke.points.length > 1 && (
+            <g className="laser-stroke-group active">
+              <polyline
+                className="laser-stroke outer"
+                points={activeStroke.points
+                  .map((p) => `${p.x},${p.y}`)
+                  .join(" ")}
+              />
+              <polyline
+                className="laser-stroke main"
+                points={activeStroke.points
+                  .map((p) => `${p.x},${p.y}`)
+                  .join(" ")}
+              />
+              <polyline
+                className="laser-stroke middle"
+                points={activeStroke.points
+                  .map((p) => `${p.x},${p.y}`)
+                  .join(" ")}
+              />
+              <polyline
+                className="laser-stroke inner"
+                points={activeStroke.points
+                  .map((p) => `${p.x},${p.y}`)
+                  .join(" ")}
+              />
+            </g>
+          )}
         </svg>
       )}
 
       {settings.laser && laserCursor && (
-        <span className="laser-cursor" style={{ left: laserCursor.x, top: laserCursor.y }} />
+        <span
+          className={`laser-cursor ${laserCursorFading ? "fading" : ""}`}
+          style={{ left: laserCursor.x, top: laserCursor.y }}
+        />
       )}
 
       {pulses.map((pulse) => (
