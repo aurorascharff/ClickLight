@@ -61,24 +61,80 @@ button:disabled {
 }
 
 .background {
-  background:
-    radial-gradient(circle at 18% 24%, rgba(100, 216, 255, 0.58), transparent 26%),
-    radial-gradient(circle at 72% 22%, rgba(255, 93, 87, 0.45), transparent 28%),
-    radial-gradient(circle at 48% 82%, rgba(144, 247, 166, 0.32), transparent 34%),
-    linear-gradient(135deg, #07101a 0%, #14101d 46%, #080910 100%);
+  background: linear-gradient(135deg, #07101a 0%, #14101d 46%, #080910 100%);
   inset: 0;
+  overflow: hidden;
   position: fixed;
   z-index: -2;
 }
 
+/* Each blob is its own layer so they drift independently — gives the
+   background that "alive" Sequoia feel instead of sliding as a block. */
+.background::before,
+.background::after {
+  content: "";
+  filter: blur(20px);
+  position: absolute;
+  will-change: transform;
+}
+
+.background::before {
+  background:
+    radial-gradient(circle at 18% 24%, rgba(100, 216, 255, 0.65) 0%, transparent 32%),
+    radial-gradient(circle at 78% 18%, rgba(255, 93, 87, 0.55) 0%, transparent 34%);
+  inset: -25%;
+  animation: bg-blob-a 18s ease-in-out infinite;
+}
+
 .background::after {
   background:
-    linear-gradient(112deg, transparent 0 34%, rgba(255, 255, 255, 0.12) 42%, transparent 52%),
-    radial-gradient(circle at 50% 50%, transparent 0 30%, rgba(0, 0, 0, 0.5) 82%);
-  content: "";
-  filter: blur(32px);
-  inset: 0;
-  position: absolute;
+    radial-gradient(circle at 30% 78%, rgba(144, 247, 166, 0.38) 0%, transparent 38%),
+    radial-gradient(circle at 82% 72%, rgba(170, 120, 255, 0.42) 0%, transparent 38%);
+  inset: -25%;
+  animation: bg-blob-b 22s ease-in-out infinite;
+}
+
+@keyframes bg-blob-a {
+  0% {
+    transform: translate3d(-6%, -4%, 0) scale(1.05) rotate(0deg);
+  }
+  25% {
+    transform: translate3d(4%, -6%, 0) scale(1.12) rotate(2deg);
+  }
+  50% {
+    transform: translate3d(8%, 5%, 0) scale(1.18) rotate(4deg);
+  }
+  75% {
+    transform: translate3d(-2%, 6%, 0) scale(1.1) rotate(2deg);
+  }
+  100% {
+    transform: translate3d(-6%, -4%, 0) scale(1.05) rotate(0deg);
+  }
+}
+
+@keyframes bg-blob-b {
+  0% {
+    transform: translate3d(5%, 6%, 0) scale(1.1) rotate(0deg);
+  }
+  25% {
+    transform: translate3d(-4%, 4%, 0) scale(1.18) rotate(-3deg);
+  }
+  50% {
+    transform: translate3d(-7%, -5%, 0) scale(1.22) rotate(-5deg);
+  }
+  75% {
+    transform: translate3d(2%, -6%, 0) scale(1.14) rotate(-2deg);
+  }
+  100% {
+    transform: translate3d(5%, 6%, 0) scale(1.1) rotate(0deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .background::before,
+  .background::after {
+    animation: none;
+  }
 }
 
 .topbar {
