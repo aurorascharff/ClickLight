@@ -326,17 +326,16 @@ export default function Home() {
       else addPulse(event, "release");
     }
 
-    setActiveStroke((current) => {
-      if (!current || current.points.length < 2) return null;
-      const stroke = current;
+    const stroke = activeStroke;
+    setActiveStroke(null);
+    if (stroke && stroke.points.length >= 2) {
       setFadingStrokes((strokes) => [...strokes, stroke]);
       window.setTimeout(() => {
         setFadingStrokes((strokes) =>
           strokes.filter((item) => item.id !== stroke.id),
         );
       }, LASER_STROKE_FADE_MS);
-      return null;
-    });
+    }
 
     resetPointerState();
   }
