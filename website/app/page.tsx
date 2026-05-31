@@ -224,13 +224,14 @@ export default function Home() {
       if (!settings.keys || event.repeat) return;
       // Mirrors Swift HotKeyBinding: require at least one non-shift modifier.
       if (!event.metaKey && !event.ctrlKey && !event.altKey) return;
+
+      const keyString = displayKey(event);
+      if (!keyString) return;
+
       // Some browser-reserved combos (⌘Space, ⌘Tab, ⌘H, ⌘Q, ⌘W) never reach
       // JS, but for the ones that do, prevent default browser handling so the
       // demo overlay isn't interrupted.
       event.preventDefault();
-
-      const keyString = displayKey(event);
-      if (!keyString) return;
 
       let modifiers = "";
       if (event.ctrlKey) modifiers += "⌃";
