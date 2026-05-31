@@ -94,8 +94,7 @@ button:disabled {
 }
 
 .github-link,
-.menu,
-.shortcut-display {
+.menu {
   backdrop-filter: blur(24px);
   background: rgba(10, 10, 14, 0.42);
   border: 1px solid var(--stroke);
@@ -332,14 +331,15 @@ button:disabled {
 }
 
 .shortcut-display {
-  background: var(--panel-strong);
-  border-radius: 999px;
-  bottom: 28px;
-  color: var(--ink);
-  font-size: 1.15rem;
-  font-weight: 740;
+  background: rgba(15, 15, 15, 0.88);
+  border-radius: 9px;
+  bottom: 34px;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 600;
   left: 50%;
-  padding: 12px 18px;
+  line-height: 1;
+  padding: 8px 13px;
   position: fixed;
   transform: translateX(-50%);
   transition: opacity 280ms ease-out;
