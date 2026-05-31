@@ -59,6 +59,62 @@ type Stroke = {
 const LASER_CURSOR_FADE_MS = 420;
 const LASER_STROKE_FADE_MS = 900;
 const LASER_MIN_POINT_DISTANCE = 2.5;
+// Matches Swift LiveShortcutLabel: 0.72s visible + 0.28s fade.
+const SHORTCUT_VISIBLE_MS = 720;
+const SHORTCUT_FADE_MS = 280;
+
+// Mirrors HotKeyBinding.keyCodeToDisplayString / fallbackKeyCodeString.
+// Returns the on-screen label for the pressed key, or null to skip.
+function displayKey(event: KeyboardEvent): string | null {
+  switch (event.code) {
+    case "Space":
+      return "Space";
+    case "Enter":
+    case "NumpadEnter":
+      return "↩";
+    case "Tab":
+      return "⇥";
+    case "Backspace":
+      return "⌫";
+    case "Delete":
+      return "⌦";
+    case "Escape":
+      return "Esc";
+    case "ArrowLeft":
+      return "←";
+    case "ArrowRight":
+      return "→";
+    case "ArrowDown":
+      return "↓";
+    case "ArrowUp":
+      return "↑";
+    case "PageUp":
+      return "⇞";
+    case "PageDown":
+      return "⇟";
+    case "Home":
+      return "↖";
+    case "End":
+      return "↘";
+  }
+  if (/^F\d{1,2}$/.test(event.code)) return event.code;
+  if (
+    [
+      "MetaLeft",
+      "MetaRight",
+      "ControlLeft",
+      "ControlRight",
+      "AltLeft",
+      "AltRight",
+      "ShiftLeft",
+      "ShiftRight",
+    ].includes(event.code)
+  ) {
+    return null;
+  }
+  if (event.key.length === 1) return event.key.toUpperCase();
+  return null;
+}
 
 const profiles: Record<ProfileName, DemoSettings> = {
   Default: {
@@ -145,6 +201,7 @@ export default function Home() {
   const [laserCursor, setLaserCursor] = useState<TrailPoint | null>(null);
   const [laserCursorFading, setLaserCursorFading] = useState(false);
   const [shortcut, setShortcut] = useState<string | null>(null);
+  const [shortcutFading, setShortcutFading] = useState(false);
   const [copiedInstall, setCopiedInstall] = useState(false);
   const surfaceRef = useRef<HTMLElement>(null);
   const pointerDownRef = useRef(false);
@@ -152,7 +209,8 @@ export default function Home() {
   const lastDragPointRef = useRef<TrailPoint | null>(null);
   const hasDraggedRef = useRef(false);
   const pressedKindRef = useRef<ClickKind>("press");
-  const shortcutTimeoutRef = useRef<number | null>(null);
+  const shortcutFadeTimeoutRef = useRef<number | null>(null);
+  const shortcutRemoveTimeoutRef = useRef<number | null>(null);
   const cursorFadeTimeoutRef = useRef<number | null>(null);
   const cursorRemoveTimeoutRef = useRef<number | null>(null);
 
@@ -164,33 +222,45 @@ export default function Home() {
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       if (!settings.keys || event.repeat) return;
+      // Mirrors Swift HotKeyBinding: require at least one non-shift modifier.
       if (!event.metaKey && !event.ctrlKey && !event.altKey) return;
-      const parts = [];
-      if (event.metaKey) parts.push("⌘");
-      if (event.ctrlKey) parts.push("⌃");
-      if (event.altKey) parts.push("⌥");
-      if (event.shiftKey) parts.push("⇧");
-      const key =
-        event.key.length === 1
-          ? event.key.toUpperCase()
-          : event.key.replace("Arrow", "");
-      if (!["Meta", "Control", "Alt", "Shift"].includes(event.key))
-        parts.push(key);
-      if (parts.length === 0) return;
-      setShortcut(parts.join(" "));
-      if (shortcutTimeoutRef.current)
-        window.clearTimeout(shortcutTimeoutRef.current);
-      shortcutTimeoutRef.current = window.setTimeout(
-        () => setShortcut(null),
-        900,
-      );
+      // Some browser-reserved combos (⌘Space, ⌘Tab, ⌘H, ⌘Q, ⌘W) never reach
+      // JS, but for the ones that do, prevent default browser handling so the
+      // demo overlay isn't interrupted.
+      event.preventDefault();
+
+      const keyString = displayKey(event);
+      if (!keyString) return;
+
+      let modifiers = "";
+      if (event.ctrlKey) modifiers += "⌃";
+      if (event.altKey) modifiers += "⌥";
+      if (event.shiftKey) modifiers += "⇧";
+      if (event.metaKey) modifiers += "⌘";
+
+      // Swift joins modifiers and key with no separator: "⌘Space", "⌘C".
+      setShortcut(modifiers + keyString);
+      setShortcutFading(false);
+      if (shortcutFadeTimeoutRef.current)
+        window.clearTimeout(shortcutFadeTimeoutRef.current);
+      if (shortcutRemoveTimeoutRef.current)
+        window.clearTimeout(shortcutRemoveTimeoutRef.current);
+      shortcutFadeTimeoutRef.current = window.setTimeout(() => {
+        setShortcutFading(true);
+        shortcutRemoveTimeoutRef.current = window.setTimeout(() => {
+          setShortcut(null);
+          setShortcutFading(false);
+        }, SHORTCUT_FADE_MS);
+      }, SHORTCUT_VISIBLE_MS);
     }
 
     window.addEventListener("keydown", handleKeyDown);
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
-      if (shortcutTimeoutRef.current)
-        window.clearTimeout(shortcutTimeoutRef.current);
+      if (shortcutFadeTimeoutRef.current)
+        window.clearTimeout(shortcutFadeTimeoutRef.current);
+      if (shortcutRemoveTimeoutRef.current)
+        window.clearTimeout(shortcutRemoveTimeoutRef.current);
     };
   }, [settings.keys]);
 
@@ -347,11 +417,24 @@ export default function Home() {
     hasDraggedRef.current = false;
   }
 
+  function clearShortcut() {
+    if (shortcutFadeTimeoutRef.current) {
+      window.clearTimeout(shortcutFadeTimeoutRef.current);
+      shortcutFadeTimeoutRef.current = null;
+    }
+    if (shortcutRemoveTimeoutRef.current) {
+      window.clearTimeout(shortcutRemoveTimeoutRef.current);
+      shortcutRemoveTimeoutRef.current = null;
+    }
+    setShortcut(null);
+    setShortcutFading(false);
+  }
+
   function updateProfile(nextProfile: ProfileName) {
     setProfile(nextProfile);
     setSettings(profiles[nextProfile]);
     clearLaserVisuals();
-    setShortcut(null);
+    clearShortcut();
   }
 
   function toggle(key: ToggleKey) {
@@ -359,6 +442,9 @@ export default function Home() {
       const next = { ...current, [key]: !current[key] };
       if (key === "laser" && !next.laser) {
         clearLaserVisuals();
+      }
+      if (key === "keys" && !next.keys) {
+        clearShortcut();
       }
       return next;
     });
@@ -539,7 +625,9 @@ export default function Home() {
       </div>
 
       {settings.keys && shortcut && (
-        <div className="shortcut-display">{shortcut}</div>
+        <div className={`shortcut-display ${shortcutFading ? "fading" : ""}`}>
+          {shortcut}
+        </div>
       )}
 
       {settings.laser && (activeStroke || fadingStrokes.length > 0) && (

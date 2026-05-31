@@ -342,7 +342,12 @@ button:disabled {
   padding: 12px 18px;
   position: fixed;
   transform: translateX(-50%);
+  transition: opacity 280ms ease-out;
   z-index: 7;
+}
+
+.shortcut-display.fading {
+  opacity: 0;
 }
 
 .pulse,
