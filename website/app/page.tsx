@@ -384,10 +384,8 @@ export default function Home() {
       const keyString = displayKey(event);
       if (!keyString) return;
 
-      // Some browser-reserved combos (⌘Space, ⌘Tab, ⌘H, ⌘Q, ⌘W) never reach
-      // JS, but for the ones that do, prevent default browser handling so the
-      // demo overlay isn't interrupted.
-      event.preventDefault();
+      // Don't preventDefault — the overlay is informational; the user should
+      // still be able to use ⌘A, ⌘C, ⌘V, ⌘F, ⌘R, etc. as normal.
 
       let modifiers = "";
       if (event.ctrlKey) modifiers += "⌃";
