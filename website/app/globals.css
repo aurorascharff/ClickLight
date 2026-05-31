@@ -57,6 +57,16 @@ button:disabled {
   min-height: 100vh;
   overflow: hidden;
   position: relative;
+  user-select: none;
+}
+
+/* Re-enable selection on the actual readable text so users can still copy
+   the install command and headline content. */
+.statement,
+.statement *,
+.install,
+.install * {
+  user-select: text;
 }
 
 .background {
