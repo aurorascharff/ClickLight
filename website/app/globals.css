@@ -94,11 +94,39 @@ button:disabled {
 }
 
 .github-link,
-.menu {
+.menu,
+.export-pill {
   backdrop-filter: blur(24px);
   background: rgba(10, 10, 14, 0.42);
   border: 1px solid var(--stroke);
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.24);
+}
+
+.export-pill {
+  align-items: center;
+  border-radius: 999px;
+  bottom: 24px;
+  color: var(--ink);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.92rem;
+  font-weight: 600;
+  gap: 8px;
+  height: 42px;
+  right: 380px;
+  padding: 0 18px 0 14px;
+  position: fixed;
+  z-index: 10;
+}
+
+.export-pill:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.export-pill svg {
+  fill: currentColor;
+  height: 16px;
+  width: 16px;
 }
 
 .github-link {
@@ -267,6 +295,17 @@ button:disabled {
   font-weight: 700;
 }
 
+.menu-brand-count {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  margin-left: auto;
+  padding: 2px 8px;
+}
+
 .menu-row {
   align-items: center;
   background: transparent;
@@ -322,6 +361,11 @@ button:disabled {
 .menu-chevron {
   font-size: 1.55rem;
   line-height: 0.7;
+  transition: transform 120ms ease;
+}
+
+.menu-chevron.expanded {
+  transform: rotate(90deg);
 }
 
 .menu-separator {
@@ -439,11 +483,23 @@ button:disabled {
 .pulse {
   --pulse-color: var(--press-color);
   animation: press-pulse var(--pulse-duration) cubic-bezier(0.22, 1, 0.36, 1) forwards;
-  border: 4px solid var(--pulse-color);
+  border: calc(4px * var(--pulse-border-scale, 1)) solid var(--pulse-color);
   border-radius: 999px;
+  /* Filled translucent disc behind the ring. Swift's drawGlowIfNeeded
+     fills an ellipse at ~1.4× the ring radius; here we approximate that
+     by growing the box-shadow's `spread` (an absolute outward expansion of
+     the painted disc) proportional to the pulse size. A small blur softens
+     the disc edge so it reads as a halo at lower glow values. The disc's
+     alpha comes from --pulse-glow-alpha, separate from its size so we can
+     mirror Swift's stepped 0.08 → 0.18 alpha jump at intensity ≥ 1.2. */
   box-shadow:
-    0 0 22px color-mix(in srgb, var(--pulse-color), transparent 68%),
-    0 0 52px color-mix(in srgb, var(--pulse-color), transparent 82%);
+    0 0 calc(var(--pulse-size) * 0.06 * var(--pulse-glow, 0))
+      calc(var(--pulse-size) * 0.28 * var(--pulse-glow, 0))
+      color-mix(
+        in srgb,
+        var(--pulse-color),
+        transparent calc((1 - var(--pulse-glow-alpha, 0)) * 100%)
+      );
   height: var(--pulse-size);
   width: var(--pulse-size);
 }
@@ -547,8 +603,11 @@ button:disabled {
   background: var(--pulse-color);
   border: 0;
   box-shadow: none;
-  height: 12px;
-  width: 12px;
+  /* Mirrors Swift drag dot: 2 * (size * 0.6) * (0.08 + 0.065 * intensity).
+     --pulse-size is the size CSS var, --drag-dot-scale is derived from
+     intensity in deriveIntensityVars(). */
+  height: calc(var(--pulse-size) * var(--drag-dot-scale, 0.16));
+  width: calc(var(--pulse-size) * var(--drag-dot-scale, 0.16));
 }
 
 .pulse.drag::before {
@@ -557,7 +616,7 @@ button:disabled {
 
 @keyframes press-pulse {
   0% {
-    opacity: 0.73;
+    opacity: var(--pulse-opacity, 0.73);
     transform: translate(-50%, -50%) scale(0.22);
   }
   100% {
@@ -588,7 +647,7 @@ button:disabled {
 
 @keyframes right-pulse {
   0% {
-    opacity: 0.73;
+    opacity: var(--pulse-opacity, 0.73);
     transform: translate(-50%, -50%) scale(0.22);
   }
   100% {
@@ -610,7 +669,7 @@ button:disabled {
 
 @keyframes middle-pulse {
   0% {
-    opacity: 0.73;
+    opacity: var(--pulse-opacity, 0.73);
     transform: translate(-50%, -50%) scale(0.2);
   }
   100% {
@@ -672,6 +731,10 @@ button:disabled {
 
 @media (max-width: 920px) {
   .topbar {
+    display: none;
+  }
+
+  .export-pill {
     display: none;
   }
 
