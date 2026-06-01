@@ -260,7 +260,7 @@ button:disabled {
   backdrop-filter: blur(24px);
   background: rgba(10, 10, 14, 0.42);
   border: 1px solid var(--stroke);
-  border-radius: 999px;
+  border-radius: 18px;
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.24);
   display: flex;
   gap: 10px;
@@ -274,9 +274,8 @@ button:disabled {
   font-family: "SF Mono", ui-monospace, Menlo, Monaco, Consolas, monospace;
   font-size: 0.88rem;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .install button {
