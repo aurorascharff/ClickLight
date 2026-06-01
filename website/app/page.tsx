@@ -302,7 +302,7 @@ function compactCount(value: number): string {
 
 let nextAnimationId = 0;
 const installCommand =
-  "brew install --cask aurorascharff/clicklight/clicklight";
+  "brew tap aurorascharff/clicklight https://github.com/aurorascharff/ClickLight\nbrew install --cask aurorascharff/clicklight/clicklight";
 
 // Mirrors Sources/ClickLight/ClickSettingOptions.swift so the submenu shows
 // the same presets the macOS app does.
