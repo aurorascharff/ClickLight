@@ -21,6 +21,13 @@ struct ClickSettings: Equatable {
     var size: CGFloat
     var intensity: CGFloat
     var duration: TimeInterval
+    var leftPressShape: ClickGeometryShape
+    var leftReleaseShape: ClickGeometryShape
+    var rightPressShape: ClickGeometryShape
+    var rightReleaseShape: ClickGeometryShape
+    var middlePressShape: ClickGeometryShape
+    var middleReleaseShape: ClickGeometryShape
+    var dragShape: ClickGeometryShape
     var colorPreset: ClickColorPreset
     var customColorMode: CustomClickColorMode
     var customColorRed: CGFloat
@@ -147,6 +154,13 @@ struct ClickSettings: Equatable {
         size: 64,
         intensity: 0.7,
         duration: 0.48,
+        leftPressShape: .ring,
+        leftReleaseShape: .ring,
+        rightPressShape: .cross,
+        rightReleaseShape: .cross,
+        middlePressShape: .diamond,
+        middleReleaseShape: .diamond,
+        dragShape: .dot,
         colorPreset: .default,
         customColorMode: .all,
         customColorRed: 0.0,
@@ -180,6 +194,27 @@ struct ClickSettings: Equatable {
         randomizeColorsHotKey: ClickShortcutAction.randomizeColors.defaultBinding,
         toggleLiveKeyboardShortcutsHotKey: ClickShortcutAction.toggleLiveKeyboardShortcuts.defaultBinding
     )
+
+    func geometryShape(for kind: ClickKind) -> ClickGeometryShape {
+        switch kind {
+        case .leftDown:
+            return leftPressShape
+        case .leftUp:
+            return leftReleaseShape
+        case .rightDown:
+            return rightPressShape
+        case .rightUp:
+            return rightReleaseShape
+        case .middleDown:
+            return middlePressShape
+        case .middleUp:
+            return middleReleaseShape
+        case .drag:
+            return dragShape
+        case .move:
+            return .dot
+        }
+    }
 
     var shortcutBindings: [ClickShortcutAction: HotKeyBinding] {
         Dictionary(uniqueKeysWithValues: ClickShortcutAction.allCases.compactMap { action in
@@ -251,6 +286,16 @@ struct ClickSettings: Equatable {
         action.defaultBinding
     }
 
+    mutating func resetGeometryToDefaults() {
+        self.leftPressShape = Self.defaults.leftPressShape
+        self.leftReleaseShape = Self.defaults.leftReleaseShape
+        self.rightPressShape = Self.defaults.rightPressShape
+        self.rightReleaseShape = Self.defaults.rightReleaseShape
+        self.middlePressShape = Self.defaults.middlePressShape
+        self.middleReleaseShape = Self.defaults.middleReleaseShape
+        self.dragShape = Self.defaults.dragShape
+    }
+
     mutating func applyRandomizedStyle() {
         let size = ClickSettingOptions.sizePresets.randomElement()?.value ?? Double(Self.defaults.size)
         let intensity = ClickSettingOptions.intensityPresets.randomElement()?.value ?? Double(Self.defaults.intensity)
@@ -286,6 +331,59 @@ struct ClickSettings: Equatable {
         self.customDragColorBlue = drag.blueComponent
         self.colorPreset = .custom
         self.customColorMode = .byClick
+    }
+}
+
+enum ClickGeometryShape: String, CaseIterable, Codable, Equatable {
+    case dot
+    case ring
+    case diamond
+    case cross
+    case square
+    case triangle
+    case hexagon
+    case capsule
+
+    var title: String {
+        switch self {
+        case .dot:
+            return "Dot"
+        case .ring:
+            return "Ring"
+        case .diamond:
+            return "Diamond"
+        case .cross:
+            return "Cross"
+        case .square:
+            return "Square"
+        case .triangle:
+            return "Triangle"
+        case .hexagon:
+            return "Hexagon"
+        case .capsule:
+            return "Capsule"
+        }
+    }
+
+    var glyph: String {
+        switch self {
+        case .dot:
+            return "●"
+        case .ring:
+            return "◌"
+        case .diamond:
+            return "◇"
+        case .cross:
+            return "✚"
+        case .square:
+            return "■"
+        case .triangle:
+            return "▲"
+        case .hexagon:
+            return "⬢"
+        case .capsule:
+            return "◍"
+        }
     }
 }
 
@@ -461,6 +559,13 @@ final class SettingsStore {
         static let size = "size"
         static let intensity = "intensity"
         static let duration = "duration"
+        static let leftPressShape = "leftPressShape"
+        static let leftReleaseShape = "leftReleaseShape"
+        static let rightPressShape = "rightPressShape"
+        static let rightReleaseShape = "rightReleaseShape"
+        static let middlePressShape = "middlePressShape"
+        static let middleReleaseShape = "middleReleaseShape"
+        static let dragShape = "dragShape"
         static let colorPreset = "colorPreset"
         static let customColorMode = "customColorMode"
         static let customColorRed = "customColorRed"
@@ -548,6 +653,13 @@ final class SettingsStore {
                 size: CGFloat(defaults.double(forKey: Key.size)),
                 intensity: CGFloat(defaults.double(forKey: Key.intensity)),
                 duration: defaults.double(forKey: Key.duration),
+                leftPressShape: ClickGeometryShape(rawValue: defaults.string(forKey: Key.leftPressShape) ?? "") ?? .ring,
+                leftReleaseShape: ClickGeometryShape(rawValue: defaults.string(forKey: Key.leftReleaseShape) ?? "") ?? .ring,
+                rightPressShape: ClickGeometryShape(rawValue: defaults.string(forKey: Key.rightPressShape) ?? "") ?? .cross,
+                rightReleaseShape: ClickGeometryShape(rawValue: defaults.string(forKey: Key.rightReleaseShape) ?? "") ?? .cross,
+                middlePressShape: ClickGeometryShape(rawValue: defaults.string(forKey: Key.middlePressShape) ?? "") ?? .diamond,
+                middleReleaseShape: ClickGeometryShape(rawValue: defaults.string(forKey: Key.middleReleaseShape) ?? "") ?? .diamond,
+                dragShape: ClickGeometryShape(rawValue: defaults.string(forKey: Key.dragShape) ?? "") ?? .dot,
                 colorPreset: ClickColorPreset(rawValue: defaults.string(forKey: Key.colorPreset) ?? "") ?? .default,
                 customColorMode: CustomClickColorMode(rawValue: defaults.string(forKey: Key.customColorMode) ?? "") ?? .all,
                 customColorRed: CGFloat(defaults.double(forKey: Key.customColorRed)).sanitizedColorComponent,
@@ -639,6 +751,13 @@ final class SettingsStore {
             defaults.set(Double(newValue.size), forKey: Key.size)
             defaults.set(Double(newValue.intensity), forKey: Key.intensity)
             defaults.set(newValue.duration, forKey: Key.duration)
+            defaults.set(newValue.leftPressShape.rawValue, forKey: Key.leftPressShape)
+            defaults.set(newValue.leftReleaseShape.rawValue, forKey: Key.leftReleaseShape)
+            defaults.set(newValue.rightPressShape.rawValue, forKey: Key.rightPressShape)
+            defaults.set(newValue.rightReleaseShape.rawValue, forKey: Key.rightReleaseShape)
+            defaults.set(newValue.middlePressShape.rawValue, forKey: Key.middlePressShape)
+            defaults.set(newValue.middleReleaseShape.rawValue, forKey: Key.middleReleaseShape)
+            defaults.set(newValue.dragShape.rawValue, forKey: Key.dragShape)
             defaults.set(newValue.colorPreset.rawValue, forKey: Key.colorPreset)
             defaults.set(newValue.customColorMode.rawValue, forKey: Key.customColorMode)
             defaults.set(Double(newValue.customColorRed), forKey: Key.customColorRed)
@@ -719,6 +838,13 @@ final class SettingsStore {
             Key.size: Double(defaults.size),
             Key.intensity: Double(defaults.intensity),
             Key.duration: defaults.duration,
+            Key.leftPressShape: defaults.leftPressShape.rawValue,
+            Key.leftReleaseShape: defaults.leftReleaseShape.rawValue,
+            Key.rightPressShape: defaults.rightPressShape.rawValue,
+            Key.rightReleaseShape: defaults.rightReleaseShape.rawValue,
+            Key.middlePressShape: defaults.middlePressShape.rawValue,
+            Key.middleReleaseShape: defaults.middleReleaseShape.rawValue,
+            Key.dragShape: defaults.dragShape.rawValue,
             Key.colorPreset: defaults.colorPreset.rawValue,
             Key.customColorMode: defaults.customColorMode.rawValue,
             Key.customColorRed: Double(defaults.customColorRed),
