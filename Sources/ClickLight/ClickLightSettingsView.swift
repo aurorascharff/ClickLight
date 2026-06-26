@@ -488,10 +488,38 @@ struct ClickLightSettingsView: View {
             VStack(spacing: 0) {
                 ModernRow(title: "Laser Pointer Mode",
                           subtitle: "Show a fading pointer and draw temporary strokes while dragging.") {
-                    Toggle("", isOn: binding(\.showLaserPointer))
+                    Toggle("", isOn: Binding(
+                        get: { viewModel.settings.showLaserPointer },
+                        set: { isEnabled in
+                            viewModel.update {
+                                $0.showLaserPointer = isEnabled
+                                if isEnabled {
+                                    $0.showArrowMode = false
+                                }
+                            }
+                        }
+                    ))
                         .toggleStyle(.switch)
                         .labelsHidden()
                         .accessibilityLabel("Laser Pointer Mode")
+                }
+                Divider().padding(.vertical, 6)
+                ModernRow(title: "Arrow Mode",
+                          subtitle: "Drag from origin to arrow tip. Clear arrows when you're done.") {
+                    Toggle("", isOn: Binding(
+                        get: { viewModel.settings.showArrowMode },
+                        set: { isEnabled in
+                            viewModel.update {
+                                $0.showArrowMode = isEnabled
+                                if isEnabled {
+                                    $0.showLaserPointer = false
+                                }
+                            }
+                        }
+                    ))
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                        .accessibilityLabel("Arrow Mode")
                 }
                 Divider().padding(.vertical, 6)
                 ModernRow(title: "Show Live Keyboard Shortcuts",
@@ -551,14 +579,14 @@ struct ClickLightSettingsView: View {
                     }
                     Divider().padding(.vertical, 6)
                 ModernRow(title: "Show Drag",
-                          subtitle: viewModel.settings.showLaserPointer
-                              ? "Laser Pointer Mode replaces the normal drag trail."
+                          subtitle: viewModel.settings.showLaserPointer || viewModel.settings.showArrowMode
+                              ? "Laser Pointer Mode and Arrow Mode replace the normal drag trail."
                               : "Trail pointer movement while dragging.") {
                     Toggle("", isOn: binding(\.showDrag))
                         .toggleStyle(.switch)
                         .labelsHidden()
                         .accessibilityLabel("Show Drag")
-                        .disabled(viewModel.settings.showLaserPointer)
+                        .disabled(viewModel.settings.showLaserPointer || viewModel.settings.showArrowMode)
                 }
             }
         }

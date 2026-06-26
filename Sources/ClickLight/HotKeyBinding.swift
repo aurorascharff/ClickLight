@@ -160,6 +160,8 @@ struct HotKeyBinding: Equatable, Hashable, Sendable {
 enum ClickShortcutAction: String, CaseIterable, Identifiable, Sendable {
     case toggleEnabled
     case toggleLaserPointer
+    case toggleArrowMode
+    case clearArrows
     case toggleShowPress
     case toggleShowRelease
     case toggleShowRightClick
@@ -176,6 +178,10 @@ enum ClickShortcutAction: String, CaseIterable, Identifiable, Sendable {
             return "Toggle ClickLight"
         case .toggleLaserPointer:
             return "Toggle Laser Pointer"
+        case .toggleArrowMode:
+            return "Toggle Arrow Mode"
+        case .clearArrows:
+            return "Clear Arrows"
         case .toggleShowPress:
             return "Toggle Press"
         case .toggleShowRelease:
@@ -199,6 +205,10 @@ enum ClickShortcutAction: String, CaseIterable, Identifiable, Sendable {
             return 1
         case .toggleLaserPointer:
             return 2
+        case .toggleArrowMode:
+            return 10
+        case .clearArrows:
+            return 11
         case .toggleShowPress:
             return 3
         case .toggleShowRelease:
@@ -220,7 +230,10 @@ enum ClickShortcutAction: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .toggleEnabled:
             return HotKeyBinding(keyCode: kVK_ANSI_L, carbonModifiers: HotKeyBinding.defaultToggleModifiers)
+        case .clearArrows:
+            return HotKeyBinding(keyCode: kVK_ANSI_C, carbonModifiers: HotKeyBinding.defaultToggleModifiers)
         case .toggleLaserPointer,
+            .toggleArrowMode,
             .toggleShowPress,
             .toggleShowRelease,
             .toggleShowRightClick,

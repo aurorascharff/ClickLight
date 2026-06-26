@@ -48,6 +48,7 @@ struct ClickProfileSettings: Codable, Equatable {
     var showMiddleClick: Bool
     var showDrag: Bool
     var showLaserPointer: Bool
+    var showArrowMode: Bool
     var showLiveKeyboardShortcuts: Bool
     var liveShortcutPosition: LiveShortcutPosition
     var liveShortcutSize: LiveShortcutSize
@@ -85,6 +86,7 @@ struct ClickProfileSettings: Codable, Equatable {
         self.showMiddleClick = settings.showMiddleClick
         self.showDrag = settings.showDrag
         self.showLaserPointer = settings.showLaserPointer
+        self.showArrowMode = settings.showArrowMode
         self.showLiveKeyboardShortcuts = settings.showLiveKeyboardShortcuts
         self.liveShortcutPosition = settings.liveShortcutPosition
         self.liveShortcutSize = settings.liveShortcutSize
@@ -123,6 +125,7 @@ struct ClickProfileSettings: Codable, Equatable {
         settings.showMiddleClick = showMiddleClick
         settings.showDrag = showDrag
         settings.showLaserPointer = showLaserPointer
+        settings.showArrowMode = showArrowMode
         settings.showLiveKeyboardShortcuts = showLiveKeyboardShortcuts
         settings.liveShortcutPosition = liveShortcutPosition
         settings.liveShortcutSize = liveShortcutSize
@@ -152,6 +155,85 @@ struct ClickProfileSettings: Codable, Equatable {
         settings.laserInnerColorRed = laserInnerColorRed
         settings.laserInnerColorGreen = laserInnerColorGreen
         settings.laserInnerColorBlue = laserInnerColorBlue
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case showPress
+        case showRelease
+        case showRightClick
+        case showMiddleClick
+        case showDrag
+        case showLaserPointer
+        case showArrowMode
+        case showLiveKeyboardShortcuts
+        case liveShortcutPosition
+        case liveShortcutSize
+        case size
+        case intensity
+        case duration
+        case colorPreset
+        case customColorMode
+        case customColorRed
+        case customColorGreen
+        case customColorBlue
+        case customLeftColorRed
+        case customLeftColorGreen
+        case customLeftColorBlue
+        case customRightColorRed
+        case customRightColorGreen
+        case customRightColorBlue
+        case customMiddleColorRed
+        case customMiddleColorGreen
+        case customMiddleColorBlue
+        case customDragColorRed
+        case customDragColorGreen
+        case customDragColorBlue
+        case laserColorRed
+        case laserColorGreen
+        case laserColorBlue
+        case laserInnerColorRed
+        case laserInnerColorGreen
+        case laserInnerColorBlue
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        showPress = try container.decode(Bool.self, forKey: .showPress)
+        showRelease = try container.decode(Bool.self, forKey: .showRelease)
+        showRightClick = try container.decode(Bool.self, forKey: .showRightClick)
+        showMiddleClick = try container.decode(Bool.self, forKey: .showMiddleClick)
+        showDrag = try container.decode(Bool.self, forKey: .showDrag)
+        showLaserPointer = try container.decode(Bool.self, forKey: .showLaserPointer)
+        showArrowMode = try container.decodeIfPresent(Bool.self, forKey: .showArrowMode) ?? false
+        showLiveKeyboardShortcuts = try container.decode(Bool.self, forKey: .showLiveKeyboardShortcuts)
+        liveShortcutPosition = try container.decode(LiveShortcutPosition.self, forKey: .liveShortcutPosition)
+        liveShortcutSize = try container.decode(LiveShortcutSize.self, forKey: .liveShortcutSize)
+        size = try container.decode(CGFloat.self, forKey: .size)
+        intensity = try container.decode(CGFloat.self, forKey: .intensity)
+        duration = try container.decode(TimeInterval.self, forKey: .duration)
+        colorPreset = try container.decode(ClickColorPreset.self, forKey: .colorPreset)
+        customColorMode = try container.decode(CustomClickColorMode.self, forKey: .customColorMode)
+        customColorRed = try container.decode(CGFloat.self, forKey: .customColorRed)
+        customColorGreen = try container.decode(CGFloat.self, forKey: .customColorGreen)
+        customColorBlue = try container.decode(CGFloat.self, forKey: .customColorBlue)
+        customLeftColorRed = try container.decode(CGFloat.self, forKey: .customLeftColorRed)
+        customLeftColorGreen = try container.decode(CGFloat.self, forKey: .customLeftColorGreen)
+        customLeftColorBlue = try container.decode(CGFloat.self, forKey: .customLeftColorBlue)
+        customRightColorRed = try container.decode(CGFloat.self, forKey: .customRightColorRed)
+        customRightColorGreen = try container.decode(CGFloat.self, forKey: .customRightColorGreen)
+        customRightColorBlue = try container.decode(CGFloat.self, forKey: .customRightColorBlue)
+        customMiddleColorRed = try container.decode(CGFloat.self, forKey: .customMiddleColorRed)
+        customMiddleColorGreen = try container.decode(CGFloat.self, forKey: .customMiddleColorGreen)
+        customMiddleColorBlue = try container.decode(CGFloat.self, forKey: .customMiddleColorBlue)
+        customDragColorRed = try container.decode(CGFloat.self, forKey: .customDragColorRed)
+        customDragColorGreen = try container.decode(CGFloat.self, forKey: .customDragColorGreen)
+        customDragColorBlue = try container.decode(CGFloat.self, forKey: .customDragColorBlue)
+        laserColorRed = try container.decode(CGFloat.self, forKey: .laserColorRed)
+        laserColorGreen = try container.decode(CGFloat.self, forKey: .laserColorGreen)
+        laserColorBlue = try container.decode(CGFloat.self, forKey: .laserColorBlue)
+        laserInnerColorRed = try container.decode(CGFloat.self, forKey: .laserInnerColorRed)
+        laserInnerColorGreen = try container.decode(CGFloat.self, forKey: .laserInnerColorGreen)
+        laserInnerColorBlue = try container.decode(CGFloat.self, forKey: .laserInnerColorBlue)
     }
 }
 

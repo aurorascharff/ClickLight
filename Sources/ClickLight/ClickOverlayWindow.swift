@@ -41,4 +41,8 @@ final class ClickOverlayWindow: NSWindow {
         orderFrontRegardless()
         overlayView.show(shortcut: shortcut, settings: settings)
     }
+
+    func clearArrows() {
+        overlayView.clearArrows()
+    }
 }

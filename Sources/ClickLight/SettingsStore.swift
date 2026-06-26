@@ -8,6 +8,7 @@ struct ClickSettings: Equatable {
     var showMiddleClick: Bool
     var showDrag: Bool
     var showLaserPointer: Bool
+    var showArrowMode: Bool
     var showLiveKeyboardShortcuts: Bool
     var liveShortcutPosition: LiveShortcutPosition
     var liveShortcutSize: LiveShortcutSize
@@ -46,6 +47,8 @@ struct ClickSettings: Equatable {
     var laserInnerColorBlue: CGFloat
     var toggleEnabledHotKey: HotKeyBinding?
     var toggleLaserPointerHotKey: HotKeyBinding?
+    var toggleArrowModeHotKey: HotKeyBinding?
+    var clearArrowsHotKey: HotKeyBinding?
     var toggleShowPressHotKey: HotKeyBinding?
     var toggleShowReleaseHotKey: HotKeyBinding?
     var toggleShowRightClickHotKey: HotKeyBinding?
@@ -134,6 +137,7 @@ struct ClickSettings: Equatable {
         showMiddleClick: true,
         showDrag: true,
         showLaserPointer: false,
+        showArrowMode: false,
         showLiveKeyboardShortcuts: false,
         liveShortcutPosition: .bottomCenter,
         liveShortcutSize: .medium,
@@ -172,6 +176,8 @@ struct ClickSettings: Equatable {
         laserInnerColorBlue: 1.0,
         toggleEnabledHotKey: ClickShortcutAction.toggleEnabled.defaultBinding,
         toggleLaserPointerHotKey: ClickShortcutAction.toggleLaserPointer.defaultBinding,
+        toggleArrowModeHotKey: ClickShortcutAction.toggleArrowMode.defaultBinding,
+        clearArrowsHotKey: ClickShortcutAction.clearArrows.defaultBinding,
         toggleShowPressHotKey: ClickShortcutAction.toggleShowPress.defaultBinding,
         toggleShowReleaseHotKey: ClickShortcutAction.toggleShowRelease.defaultBinding,
         toggleShowRightClickHotKey: ClickShortcutAction.toggleShowRightClick.defaultBinding,
@@ -193,6 +199,10 @@ struct ClickSettings: Equatable {
             return toggleEnabledHotKey
         case .toggleLaserPointer:
             return toggleLaserPointerHotKey
+        case .toggleArrowMode:
+            return toggleArrowModeHotKey
+        case .clearArrows:
+            return clearArrowsHotKey
         case .toggleShowPress:
             return toggleShowPressHotKey
         case .toggleShowRelease:
@@ -216,6 +226,10 @@ struct ClickSettings: Equatable {
             toggleEnabledHotKey = binding
         case .toggleLaserPointer:
             toggleLaserPointerHotKey = binding
+        case .toggleArrowMode:
+            toggleArrowModeHotKey = binding
+        case .clearArrows:
+            clearArrowsHotKey = binding
         case .toggleShowPress:
             toggleShowPressHotKey = binding
         case .toggleShowRelease:
@@ -453,6 +467,7 @@ final class SettingsStore {
         static let showMiddleClick = "showMiddleClick"
         static let showDrag = "showDrag"
         static let showLaserPointer = "showLaserPointer"
+        static let showArrowMode = "showArrowMode"
         static let showLiveKeyboardShortcuts = "showLiveKeyboardShortcuts"
         static let liveShortcutPosition = "liveShortcutPosition"
         static let liveShortcutSize = "liveShortcutSize"
@@ -495,6 +510,12 @@ final class SettingsStore {
         static let toggleLaserPointerHotKeyCode = "toggleLaserPointerHotKeyCode"
         static let toggleLaserPointerHotKeyModifiers = "toggleLaserPointerHotKeyModifiers"
         static let toggleLaserPointerHotKeyIsEnabled = "toggleLaserPointerHotKeyIsEnabled"
+        static let toggleArrowModeHotKeyCode = "toggleArrowModeHotKeyCode"
+        static let toggleArrowModeHotKeyModifiers = "toggleArrowModeHotKeyModifiers"
+        static let toggleArrowModeHotKeyIsEnabled = "toggleArrowModeHotKeyIsEnabled"
+        static let clearArrowsHotKeyCode = "clearArrowsHotKeyCode"
+        static let clearArrowsHotKeyModifiers = "clearArrowsHotKeyModifiers"
+        static let clearArrowsHotKeyIsEnabled = "clearArrowsHotKeyIsEnabled"
         static let toggleShowPressHotKeyCode = "toggleShowPressHotKeyCode"
         static let toggleShowPressHotKeyModifiers = "toggleShowPressHotKeyModifiers"
         static let toggleShowPressHotKeyIsEnabled = "toggleShowPressHotKeyIsEnabled"
@@ -535,6 +556,7 @@ final class SettingsStore {
                 showMiddleClick: defaults.bool(forKey: Key.showMiddleClick),
                 showDrag: defaults.bool(forKey: Key.showDrag),
                 showLaserPointer: defaults.bool(forKey: Key.showLaserPointer),
+                showArrowMode: defaults.bool(forKey: Key.showArrowMode),
                 showLiveKeyboardShortcuts: defaults.bool(forKey: Key.showLiveKeyboardShortcuts),
                 liveShortcutPosition: LiveShortcutPosition(rawValue: defaults.string(forKey: Key.liveShortcutPosition) ?? "") ?? .bottomCenter,
                 liveShortcutSize: LiveShortcutSize(rawValue: defaults.string(forKey: Key.liveShortcutSize) ?? "") ?? .medium,
@@ -581,6 +603,16 @@ final class SettingsStore {
                     modifiers: Key.toggleLaserPointerHotKeyModifiers,
                     isEnabled: Key.toggleLaserPointerHotKeyIsEnabled
                 ),
+                toggleArrowModeHotKey: shortcutBinding(
+                    keyCode: Key.toggleArrowModeHotKeyCode,
+                    modifiers: Key.toggleArrowModeHotKeyModifiers,
+                    isEnabled: Key.toggleArrowModeHotKeyIsEnabled
+                ),
+                clearArrowsHotKey: shortcutBinding(
+                    keyCode: Key.clearArrowsHotKeyCode,
+                    modifiers: Key.clearArrowsHotKeyModifiers,
+                    isEnabled: Key.clearArrowsHotKeyIsEnabled
+                ),
                 toggleShowPressHotKey: shortcutBinding(
                     keyCode: Key.toggleShowPressHotKeyCode,
                     modifiers: Key.toggleShowPressHotKeyModifiers,
@@ -626,6 +658,7 @@ final class SettingsStore {
             defaults.set(newValue.showMiddleClick, forKey: Key.showMiddleClick)
             defaults.set(newValue.showDrag, forKey: Key.showDrag)
             defaults.set(newValue.showLaserPointer, forKey: Key.showLaserPointer)
+            defaults.set(newValue.showArrowMode, forKey: Key.showArrowMode)
             defaults.set(newValue.showLiveKeyboardShortcuts, forKey: Key.showLiveKeyboardShortcuts)
             defaults.set(newValue.liveShortcutPosition.rawValue, forKey: Key.liveShortcutPosition)
             defaults.set(newValue.liveShortcutSize.rawValue, forKey: Key.liveShortcutSize)
@@ -664,6 +697,8 @@ final class SettingsStore {
             defaults.set(Double(newValue.laserInnerColorBlue), forKey: Key.laserInnerColorBlue)
             saveShortcutBinding(newValue.toggleEnabledHotKey, keyCode: Key.toggleEnabledHotKeyCode, modifiers: Key.toggleEnabledHotKeyModifiers, isEnabled: Key.toggleEnabledHotKeyIsEnabled)
             saveShortcutBinding(newValue.toggleLaserPointerHotKey, keyCode: Key.toggleLaserPointerHotKeyCode, modifiers: Key.toggleLaserPointerHotKeyModifiers, isEnabled: Key.toggleLaserPointerHotKeyIsEnabled)
+            saveShortcutBinding(newValue.toggleArrowModeHotKey, keyCode: Key.toggleArrowModeHotKeyCode, modifiers: Key.toggleArrowModeHotKeyModifiers, isEnabled: Key.toggleArrowModeHotKeyIsEnabled)
+            saveShortcutBinding(newValue.clearArrowsHotKey, keyCode: Key.clearArrowsHotKeyCode, modifiers: Key.clearArrowsHotKeyModifiers, isEnabled: Key.clearArrowsHotKeyIsEnabled)
             saveShortcutBinding(newValue.toggleShowPressHotKey, keyCode: Key.toggleShowPressHotKeyCode, modifiers: Key.toggleShowPressHotKeyModifiers, isEnabled: Key.toggleShowPressHotKeyIsEnabled)
             saveShortcutBinding(newValue.toggleShowReleaseHotKey, keyCode: Key.toggleShowReleaseHotKeyCode, modifiers: Key.toggleShowReleaseHotKeyModifiers, isEnabled: Key.toggleShowReleaseHotKeyIsEnabled)
             saveShortcutBinding(newValue.toggleShowRightClickHotKey, keyCode: Key.toggleShowRightClickHotKeyCode, modifiers: Key.toggleShowRightClickHotKeyModifiers, isEnabled: Key.toggleShowRightClickHotKeyIsEnabled)
@@ -706,6 +741,7 @@ final class SettingsStore {
             Key.showMiddleClick: defaults.showMiddleClick,
             Key.showDrag: defaults.showDrag,
             Key.showLaserPointer: defaults.showLaserPointer,
+            Key.showArrowMode: defaults.showArrowMode,
             Key.showLiveKeyboardShortcuts: defaults.showLiveKeyboardShortcuts,
             Key.liveShortcutPosition: defaults.liveShortcutPosition.rawValue,
             Key.liveShortcutSize: defaults.liveShortcutSize.rawValue,
@@ -748,6 +784,12 @@ final class SettingsStore {
             Key.toggleLaserPointerHotKeyCode: 0,
             Key.toggleLaserPointerHotKeyModifiers: 0,
             Key.toggleLaserPointerHotKeyIsEnabled: false,
+            Key.toggleArrowModeHotKeyCode: 0,
+            Key.toggleArrowModeHotKeyModifiers: 0,
+            Key.toggleArrowModeHotKeyIsEnabled: false,
+            Key.clearArrowsHotKeyCode: ClickShortcutAction.clearArrows.defaultBinding!.keyCode,
+            Key.clearArrowsHotKeyModifiers: ClickShortcutAction.clearArrows.defaultBinding!.carbonModifiers,
+            Key.clearArrowsHotKeyIsEnabled: true,
             Key.toggleShowPressHotKeyCode: 0,
             Key.toggleShowPressHotKeyModifiers: 0,
             Key.toggleShowPressHotKeyIsEnabled: false,

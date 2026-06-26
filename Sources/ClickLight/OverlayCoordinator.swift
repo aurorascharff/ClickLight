@@ -28,9 +28,13 @@ final class OverlayCoordinator {
         overlaysByScreenID.values.forEach { $0.apply(settings: settings) }
     }
 
+    func clearArrows() {
+        overlaysByScreenID.values.forEach { $0.clearArrows() }
+    }
+
     func show(_ event: ClickEvent) {
         guard settings.isEnabled else { return }
-        guard settings.showLaserPointer || shouldShow(event.kind) else { return }
+        guard settings.showLaserPointer || settings.showArrowMode || shouldShow(event.kind) else { return }
         guard shouldAccept(event) else { return }
         guard let screen = screen(containing: event.location) else { return }
 

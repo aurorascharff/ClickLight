@@ -7,6 +7,8 @@ final class ClickOverlayView: NSView {
     private var laserCursor: LaserCursor?
     private var activeLaserStroke: LaserStroke?
     private var completedLaserStrokes: [LaserStroke] = []
+    private var activeArrow: ArrowAnnotation?
+    private var completedArrows: [ArrowAnnotation] = []
     private var liveShortcutLabel: LiveShortcutLabel?
     private var displayLink: Timer?
 
@@ -28,6 +30,11 @@ final class ClickOverlayView: NSView {
             laserCursor = nil
             activeLaserStroke = nil
             completedLaserStrokes = []
+            needsDisplay = true
+        }
+        if !settings.isEnabled || !settings.showArrowMode {
+            activeArrow = nil
+            completedArrows = []
             needsDisplay = true
         }
         if !settings.showLiveKeyboardShortcuts {
@@ -55,6 +62,20 @@ final class ClickOverlayView: NSView {
             case .leftUp, .rightUp, .middleUp:
                 completeLaserStroke()
             case .leftDown, .rightDown, .middleDown:
+                break
+            }
+        }
+
+        if settings.showArrowMode {
+            switch event.kind {
+            case .leftDown, .rightDown, .middleDown:
+                startArrow(at: localPoint)
+            case .drag:
+                updateArrow(to: localPoint)
+                return
+            case .leftUp, .rightUp, .middleUp:
+                completeArrow(at: localPoint)
+            case .move:
                 break
             }
         }
@@ -89,6 +110,12 @@ final class ClickOverlayView: NSView {
         needsDisplay = true
     }
 
+    func clearArrows() {
+        activeArrow = nil
+        completedArrows = []
+        needsDisplay = true
+    }
+
     override func draw(_ dirtyRect: NSRect) {
         super.draw(dirtyRect)
         guard let context = NSGraphicsContext.current?.cgContext else { return }
@@ -101,6 +128,7 @@ final class ClickOverlayView: NSView {
         }
 
         drawLaser(at: now, in: context)
+        drawArrows(in: context)
         for pulse in pulses {
             draw(pulse: pulse, at: now, in: context)
         }
@@ -110,7 +138,9 @@ final class ClickOverlayView: NSView {
             laserCursor?.isExpired(at: now) != false &&
             activeLaserStroke == nil &&
             completedLaserStrokes.isEmpty &&
+            activeArrow == nil &&
             liveShortcutLabel == nil {
+            // Completed arrows are static and persist until cleared, so they do not need the display link.
             stopDisplayLink()
         }
     }
@@ -145,6 +175,35 @@ final class ClickOverlayView: NSView {
         stroke.completedAt = CACurrentMediaTime()
         completedLaserStrokes.append(stroke)
         activeLaserStroke = nil
+        startDisplayLink()
+        needsDisplay = true
+    }
+
+    private func startArrow(at point: CGPoint) {
+        activeArrow = ArrowAnnotation(start: point, end: point)
+        startDisplayLink()
+        needsDisplay = true
+    }
+
+    private func updateArrow(to point: CGPoint) {
+        if activeArrow == nil {
+            activeArrow = ArrowAnnotation(start: point, end: point)
+        } else {
+            activeArrow?.end = point
+        }
+        startDisplayLink()
+        needsDisplay = true
+    }
+
+    private func completeArrow(at point: CGPoint) {
+        guard var arrow = activeArrow else { return }
+        arrow.end = point
+        activeArrow = nil
+        guard arrow.length >= 18 else {
+            needsDisplay = true
+            return
+        }
+        completedArrows.append(arrow)
         startDisplayLink()
         needsDisplay = true
     }
@@ -211,6 +270,77 @@ final class ClickOverlayView: NSView {
         context.setStrokeColor(innerColor.withAlphaComponent(alpha).cgColor)
         context.setLineWidth(2)
         context.strokePath()
+        context.restoreGState()
+    }
+
+    private func drawArrows(in context: CGContext) {
+        guard settings.showArrowMode else { return }
+
+        for arrow in completedArrows {
+            drawArrow(arrow, alpha: 1, in: context)
+        }
+
+        if let activeArrow {
+            drawArrow(activeArrow, alpha: 0.96, in: context)
+        }
+    }
+
+    private func drawArrow(_ arrow: ArrowAnnotation, alpha: CGFloat, in context: CGContext) {
+        guard arrow.length >= 6, alpha > 0 else { return }
+
+        let vector = CGPoint(x: arrow.end.x - arrow.start.x, y: arrow.end.y - arrow.start.y)
+        let length = max(arrow.length, 1)
+        let unit = CGPoint(x: vector.x / length, y: vector.y / length)
+        let normal = CGPoint(x: -unit.y, y: unit.x)
+        let headLength = min(max(settings.size * 0.58, 30), max(30, length * 0.42))
+        let headWidth = max(settings.size * 0.36, 22)
+        let shaftEnd = CGPoint(
+            x: arrow.end.x - unit.x * headLength * 0.72,
+            y: arrow.end.y - unit.y * headLength * 0.72
+        )
+        let left = CGPoint(
+            x: arrow.end.x - unit.x * headLength + normal.x * headWidth * 0.5,
+            y: arrow.end.y - unit.y * headLength + normal.y * headWidth * 0.5
+        )
+        let right = CGPoint(
+            x: arrow.end.x - unit.x * headLength - normal.x * headWidth * 0.5,
+            y: arrow.end.y - unit.y * headLength - normal.y * headWidth * 0.5
+        )
+        let mainWidth = max(settings.size * 0.14, 8)
+        let arrowColor = settings.laserColor
+
+        context.saveGState()
+        context.setLineCap(.round)
+        context.setLineJoin(.round)
+
+        context.move(to: arrow.start)
+        context.addLine(to: shaftEnd)
+        context.setStrokeColor(NSColor.black.withAlphaComponent(alpha * 0.24).cgColor)
+        context.setLineWidth(mainWidth + 3)
+        context.strokePath()
+
+        context.move(to: arrow.start)
+        context.addLine(to: shaftEnd)
+        context.setStrokeColor(arrowColor.withAlphaComponent(alpha).cgColor)
+        context.setLineWidth(mainWidth)
+        context.strokePath()
+
+        let headPath = CGMutablePath()
+        headPath.move(to: arrow.end)
+        headPath.addLine(to: left)
+        headPath.addLine(to: right)
+        headPath.closeSubpath()
+
+        context.addPath(headPath)
+        context.setFillColor(NSColor.black.withAlphaComponent(alpha * 0.24).cgColor)
+        context.setShadow(offset: CGSize(width: 0, height: -1), blur: 3, color: NSColor.black.withAlphaComponent(alpha * 0.18).cgColor)
+        context.fillPath()
+
+        context.setShadow(offset: .zero, blur: 0, color: nil)
+        context.addPath(headPath)
+        context.setFillColor(arrowColor.withAlphaComponent(alpha).cgColor)
+        context.fillPath()
+
         context.restoreGState()
     }
 
@@ -550,7 +680,7 @@ final class ClickOverlayView: NSView {
         case .middleUp:
             return settings.showMiddleClick && settings.showRelease
         case .drag:
-            return settings.showDrag && !settings.showLaserPointer
+            return settings.showDrag && !settings.showLaserPointer && !settings.showArrowMode
         case .move:
             return false
         }
@@ -631,5 +761,14 @@ private struct LaserStroke {
     func isExpired(at time: CFTimeInterval) -> Bool {
         guard let completedAt else { return false }
         return time - completedAt >= Self.fadeDuration
+    }
+}
+
+private struct ArrowAnnotation {
+    let start: CGPoint
+    var end: CGPoint
+
+    var length: CGFloat {
+        hypot(end.x - start.x, end.y - start.y)
     }
 }
