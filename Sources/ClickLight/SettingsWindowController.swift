@@ -216,6 +216,10 @@ final class ClickLightSettingsViewModel: NSObject, ObservableObject {
         update { $0.applyRandomizedStyle() }
     }
 
+    func resetGeometryToDefaults() {
+        update { $0.resetGeometryToDefaults() }
+    }
+
     func applyProfile(_ profile: ClickSettingsProfile) {
         update { settings in
             profile.settings.apply(to: &settings)

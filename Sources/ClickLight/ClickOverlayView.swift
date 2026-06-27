@@ -397,6 +397,8 @@ final class ClickOverlayView: NSView {
         context.setLineCap(.round)
         context.setLineJoin(.round)
 
+        let shape = settings.geometryShape(for: pulse.kind)
+
         switch pulse.kind {
         case .leftDown:
             drawGlowIfNeeded(
@@ -406,15 +408,15 @@ final class ClickOverlayView: NSView {
                 color: pulse.color,
                 alpha: fade * visualIntensity
             )
-            drawRing(
+            drawShape(
                 context: context,
+                shape: shape,
                 point: pulse.point,
                 radius: pulse.baseSize * (0.18 + 0.62 * eased),
                 lineWidth: lineWidth,
                 color: pulse.color,
                 alpha: alpha
             )
-            drawDot(context: context, point: pulse.point, radius: pulse.baseSize * 0.085, color: pulse.color, alpha: alpha * 0.75)
         case .leftUp:
             let releaseRadius = pulse.baseSize * (0.76 - 0.42 * eased)
             let releaseAlpha = alpha * 0.55
@@ -425,15 +427,15 @@ final class ClickOverlayView: NSView {
                 color: pulse.color,
                 alpha: fade * visualIntensity * 0.45
             )
-            drawRing(
+            drawShape(
                 context: context,
+                shape: shape,
                 point: pulse.point,
                 radius: releaseRadius,
                 lineWidth: lineWidth * 0.55,
                 color: pulse.color,
                 alpha: releaseAlpha
             )
-            drawDot(context: context, point: pulse.point, radius: pulse.baseSize * 0.055, color: pulse.color, alpha: releaseAlpha * 0.6)
         case .rightDown:
             drawGlowIfNeeded(
                 context: context,
@@ -442,15 +444,15 @@ final class ClickOverlayView: NSView {
                 color: pulse.color,
                 alpha: fade * visualIntensity
             )
-            drawRing(
+            drawShape(
                 context: context,
+                shape: shape,
                 point: pulse.point,
                 radius: pulse.baseSize * (0.18 + 0.54 * eased),
                 lineWidth: lineWidth,
                 color: pulse.color,
                 alpha: alpha
             )
-            drawCrosshair(context: context, point: pulse.point, size: pulse.baseSize * 0.28, color: pulse.color, alpha: alpha * 0.85)
         case .rightUp:
             let releaseRadius = pulse.baseSize * (0.68 - 0.36 * eased)
             let releaseAlpha = alpha * 0.5
@@ -461,15 +463,15 @@ final class ClickOverlayView: NSView {
                 color: pulse.color,
                 alpha: fade * visualIntensity * 0.4
             )
-            drawRing(
+            drawShape(
                 context: context,
+                shape: shape,
                 point: pulse.point,
                 radius: releaseRadius,
                 lineWidth: lineWidth * 0.55,
                 color: pulse.color,
                 alpha: releaseAlpha
             )
-            drawCrosshair(context: context, point: pulse.point, size: pulse.baseSize * (0.16 + 0.08 * fade), color: pulse.color, alpha: releaseAlpha * 0.7)
         case .middleDown:
             drawGlowIfNeeded(
                 context: context,
@@ -478,17 +480,17 @@ final class ClickOverlayView: NSView {
                 color: pulse.color,
                 alpha: fade * visualIntensity
             )
-            drawRing(
+            drawShape(
                 context: context,
+                shape: shape,
                 point: pulse.point,
                 radius: pulse.baseSize * (0.16 + 0.52 * eased),
                 lineWidth: lineWidth,
                 color: pulse.color,
                 alpha: alpha
             )
-            drawDiamond(context: context, point: pulse.point, size: pulse.baseSize * 0.24, color: pulse.color, alpha: alpha * 0.86)
         case .middleUp:
-            let releaseSize = pulse.baseSize * (0.32 - 0.12 * eased)
+            let releaseRadius = pulse.baseSize * (0.32 - 0.12 * eased)
             let releaseAlpha = alpha * 0.5
             drawGlowIfNeeded(
                 context: context,
@@ -497,14 +499,24 @@ final class ClickOverlayView: NSView {
                 color: pulse.color,
                 alpha: fade * visualIntensity * 0.38
             )
-            drawDiamond(context: context, point: pulse.point, size: releaseSize, color: pulse.color, alpha: releaseAlpha * 0.82)
-        case .drag:
-            drawDot(
+            drawShape(
                 context: context,
+                shape: shape,
                 point: pulse.point,
-                radius: pulse.baseSize * (0.08 + 0.065 * visualIntensity),
+                radius: releaseRadius,
+                lineWidth: lineWidth * 0.55,
                 color: pulse.color,
-                alpha: alpha * 0.78
+                alpha: releaseAlpha
+            )
+        case .drag:
+            drawShape(
+                context: context,
+                shape: shape,
+                point: pulse.point,
+                radius: pulse.baseSize * (0.18 + 0.08 * visualIntensity),
+                lineWidth: lineWidth * 0.8,
+                color: pulse.color,
+                alpha: alpha * 0.86
             )
         case .move:
             break
@@ -529,6 +541,35 @@ final class ClickOverlayView: NSView {
             width: radius * 2,
             height: radius * 2
         ))
+    }
+
+    private func drawShape(
+        context: CGContext,
+        shape: ClickGeometryShape,
+        point: CGPoint,
+        radius: CGFloat,
+        lineWidth: CGFloat,
+        color: NSColor,
+        alpha: CGFloat
+    ) {
+        switch shape {
+        case .dot:
+            drawDot(context: context, point: point, radius: max(2, radius * 0.42), color: color, alpha: alpha)
+        case .ring:
+            drawRing(context: context, point: point, radius: radius, lineWidth: max(2, lineWidth), color: color, alpha: alpha)
+        case .diamond:
+            drawDiamond(context: context, point: point, size: max(4, radius * 0.62), color: color, alpha: alpha)
+        case .cross:
+            drawCrosshair(context: context, point: point, size: max(4, radius * 0.72), color: color, alpha: alpha)
+        case .square:
+            drawSquare(context: context, point: point, size: max(4, radius * 0.72), color: color, alpha: alpha)
+        case .triangle:
+            drawTriangle(context: context, point: point, size: max(4, radius * 0.82), color: color, alpha: alpha)
+        case .hexagon:
+            drawHexagon(context: context, point: point, size: max(4, radius * 0.82), color: color, alpha: alpha)
+        case .capsule:
+            drawCapsule(context: context, point: point, size: max(4, radius * 0.9), color: color, alpha: alpha)
+        }
     }
 
     private func drawRing(
@@ -567,6 +608,47 @@ final class ClickOverlayView: NSView {
         context.move(to: CGPoint(x: point.x, y: point.y - size))
         context.addLine(to: CGPoint(x: point.x, y: point.y + size))
         context.strokePath()
+    }
+
+    private func drawSquare(context: CGContext, point: CGPoint, size: CGFloat, color: NSColor, alpha: CGFloat) {
+        context.setFillColor(color.withAlphaComponent(alpha).cgColor)
+        let rect = CGRect(x: point.x - size, y: point.y - size, width: size * 2, height: size * 2)
+        context.addPath(CGPath(roundedRect: rect, cornerWidth: size * 0.18, cornerHeight: size * 0.18, transform: nil))
+        context.fillPath()
+    }
+
+    private func drawTriangle(context: CGContext, point: CGPoint, size: CGFloat, color: NSColor, alpha: CGFloat) {
+        context.setFillColor(color.withAlphaComponent(alpha).cgColor)
+        let path = CGMutablePath()
+        path.move(to: CGPoint(x: point.x, y: point.y + size))
+        path.addLine(to: CGPoint(x: point.x + size * 0.95, y: point.y - size * 0.55))
+        path.addLine(to: CGPoint(x: point.x - size * 0.95, y: point.y - size * 0.55))
+        path.closeSubpath()
+        context.addPath(path)
+        context.fillPath()
+    }
+
+    private func drawHexagon(context: CGContext, point: CGPoint, size: CGFloat, color: NSColor, alpha: CGFloat) {
+        context.setFillColor(color.withAlphaComponent(alpha).cgColor)
+        let path = CGMutablePath()
+        let cos60 = CGFloat(0.5)
+        let sin60 = CGFloat(0.8660254)
+        path.move(to: CGPoint(x: point.x + size, y: point.y))
+        path.addLine(to: CGPoint(x: point.x + size * cos60, y: point.y + size * sin60))
+        path.addLine(to: CGPoint(x: point.x - size * cos60, y: point.y + size * sin60))
+        path.addLine(to: CGPoint(x: point.x - size, y: point.y))
+        path.addLine(to: CGPoint(x: point.x - size * cos60, y: point.y - size * sin60))
+        path.addLine(to: CGPoint(x: point.x + size * cos60, y: point.y - size * sin60))
+        path.closeSubpath()
+        context.addPath(path)
+        context.fillPath()
+    }
+
+    private func drawCapsule(context: CGContext, point: CGPoint, size: CGFloat, color: NSColor, alpha: CGFloat) {
+        context.setFillColor(color.withAlphaComponent(alpha).cgColor)
+        let rect = CGRect(x: point.x - size * 0.92, y: point.y - size * 0.42, width: size * 1.84, height: size * 0.84)
+        context.addPath(CGPath(roundedRect: rect, cornerWidth: size * 0.42, cornerHeight: size * 0.42, transform: nil))
+        context.fillPath()
     }
 
     private func drawDiamond(context: CGContext, point: CGPoint, size: CGFloat, color: NSColor, alpha: CGFloat) {

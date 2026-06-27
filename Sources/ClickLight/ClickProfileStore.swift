@@ -55,6 +55,13 @@ struct ClickProfileSettings: Codable, Equatable {
     var size: CGFloat
     var intensity: CGFloat
     var duration: TimeInterval
+    var leftPressShape: ClickGeometryShape
+    var leftReleaseShape: ClickGeometryShape
+    var rightPressShape: ClickGeometryShape
+    var rightReleaseShape: ClickGeometryShape
+    var middlePressShape: ClickGeometryShape
+    var middleReleaseShape: ClickGeometryShape
+    var dragShape: ClickGeometryShape
     var colorPreset: ClickColorPreset
     var customColorMode: CustomClickColorMode
     var customColorRed: CGFloat
@@ -93,6 +100,13 @@ struct ClickProfileSettings: Codable, Equatable {
         self.size = settings.size
         self.intensity = settings.intensity
         self.duration = settings.duration
+        self.leftPressShape = settings.leftPressShape
+        self.leftReleaseShape = settings.leftReleaseShape
+        self.rightPressShape = settings.rightPressShape
+        self.rightReleaseShape = settings.rightReleaseShape
+        self.middlePressShape = settings.middlePressShape
+        self.middleReleaseShape = settings.middleReleaseShape
+        self.dragShape = settings.dragShape
         self.colorPreset = settings.colorPreset
         self.customColorMode = settings.customColorMode
         self.customColorRed = settings.customColorRed
@@ -132,6 +146,13 @@ struct ClickProfileSettings: Codable, Equatable {
         settings.size = size
         settings.intensity = intensity
         settings.duration = duration
+        settings.leftPressShape = leftPressShape
+        settings.leftReleaseShape = leftReleaseShape
+        settings.rightPressShape = rightPressShape
+        settings.rightReleaseShape = rightReleaseShape
+        settings.middlePressShape = middlePressShape
+        settings.middleReleaseShape = middleReleaseShape
+        settings.dragShape = dragShape
         settings.colorPreset = colorPreset
         settings.customColorMode = customColorMode
         settings.customColorRed = customColorRed

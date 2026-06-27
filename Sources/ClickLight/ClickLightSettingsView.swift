@@ -377,6 +377,55 @@ struct ClickLightSettingsView: View {
                 }
             }
 
+            SettingsCard(title: "Geometry", subtitle: "Choose the marker shape used for each click type.") {
+                HStack {
+                    Spacer()
+                    Button {
+                        viewModel.resetGeometryToDefaults()
+                    } label: {
+                        Label("Reset Geometry", systemImage: "arrow.counterclockwise")
+                    }
+                    .controlSize(.small)
+                }
+                VStack(spacing: 10) {
+                    geometryShapeRow(
+                        title: "Left Press",
+                        subtitle: "Shape for left-button press pulses.",
+                        shape: geometryBinding(\.leftPressShape)
+                    )
+                    geometryShapeRow(
+                        title: "Left Release",
+                        subtitle: "Shape for left-button release pulses.",
+                        shape: geometryBinding(\.leftReleaseShape)
+                    )
+                    geometryShapeRow(
+                        title: "Right Press",
+                        subtitle: "Shape for right-button press pulses.",
+                        shape: geometryBinding(\.rightPressShape)
+                    )
+                    geometryShapeRow(
+                        title: "Right Release",
+                        subtitle: "Shape for right-button release pulses.",
+                        shape: geometryBinding(\.rightReleaseShape)
+                    )
+                    geometryShapeRow(
+                        title: "Middle Press",
+                        subtitle: "Shape for middle-button press pulses.",
+                        shape: geometryBinding(\.middlePressShape)
+                    )
+                    geometryShapeRow(
+                        title: "Middle Release",
+                        subtitle: "Shape for middle-button release pulses.",
+                        shape: geometryBinding(\.middleReleaseShape)
+                    )
+                    geometryShapeRow(
+                        title: "Drag Trail",
+                        subtitle: "Shape used for drag pulses when the normal trail is active.",
+                        shape: geometryBinding(\.dragShape)
+                    )
+                }
+            }
+
             SettingsCard(title: "Color", subtitle: "Tint applied to every pulse.") {
                 VStack(alignment: .leading, spacing: 14) {
                     HStack(spacing: 10) {
@@ -838,6 +887,44 @@ struct ClickLightSettingsView: View {
                 viewModel.update { $0[keyPath: keyPath] = newValue }
             }
         )
+    }
+
+    private func geometryBinding(_ keyPath: WritableKeyPath<ClickSettings, ClickGeometryShape>) -> Binding<ClickGeometryShape> {
+        Binding(
+            get: { viewModel.settings[keyPath: keyPath] },
+            set: { newValue in
+                viewModel.update { $0[keyPath: keyPath] = newValue }
+            }
+        )
+    }
+
+    private func geometryShapeRow(title: String, subtitle: String, shape: Binding<ClickGeometryShape>) -> some View {
+        ModernRow(title: title, subtitle: subtitle) {
+            HStack(spacing: 8) {
+                Text(shape.wrappedValue.glyph)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(.primary)
+                    .frame(width: 28, height: 28)
+                    .background(Capsule().fill(Color.accentColor.opacity(0.14)))
+                    .accessibilityHidden(true)
+
+                Picker("Shape", selection: shape) {
+                    ForEach(ClickGeometryShape.allCases, id: \ .self) { option in
+                        Label {
+                            Text(option.title)
+                        } icon: {
+                            Text(option.glyph)
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundStyle(.primary)
+                        }
+                        .tag(option)
+                    }
+                }
+                .labelsHidden()
+                .pickerStyle(.menu)
+                .accessibilityLabel(title)
+            }
+        }
     }
 
     private func saveCurrentProfile() {
