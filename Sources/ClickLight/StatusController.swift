@@ -12,6 +12,7 @@ final class StatusController: NSObject {
     private let onCheckForUpdates: () -> Void
     private let updatesAreConfigured: () -> Bool
     private let onOpenSettings: (SettingsPane?) -> Void
+    private let onClearArrows: () -> Void
     private let onQuit: () -> Void
     private let onMenuWillOpen: () -> Void
     private let onMenuDidClose: () -> Void
@@ -26,6 +27,7 @@ final class StatusController: NSObject {
         onCheckForUpdates: @escaping () -> Void,
         updatesAreConfigured: @escaping () -> Bool,
         onOpenSettings: @escaping (SettingsPane?) -> Void,
+        onClearArrows: @escaping () -> Void = {},
         onQuit: @escaping () -> Void,
         onMenuWillOpen: @escaping () -> Void = {},
         onMenuDidClose: @escaping () -> Void = {}
@@ -38,6 +40,7 @@ final class StatusController: NSObject {
         self.onCheckForUpdates = onCheckForUpdates
         self.updatesAreConfigured = updatesAreConfigured
         self.onOpenSettings = onOpenSettings
+        self.onClearArrows = onClearArrows
         self.onQuit = onQuit
         self.onMenuWillOpen = onMenuWillOpen
         self.onMenuDidClose = onMenuDidClose
@@ -116,6 +119,18 @@ final class StatusController: NSObject {
             shortcut: settings.shortcutBinding(for: .toggleLaserPointer)
         ))
         menu.addItem(toggleItem(
+            title: "Arrow Mode",
+            isOn: settings.showArrowMode,
+            action: #selector(toggleArrowMode(_:)),
+            shortcut: settings.shortcutBinding(for: .toggleArrowMode)
+        ))
+        if settings.showArrowMode {
+            let clearArrowsItem = NSMenuItem(title: "Clear Arrows", action: #selector(clearArrows(_:)), keyEquivalent: "")
+            clearArrowsItem.target = self
+            applyShortcut(settings.shortcutBinding(for: .clearArrows), to: clearArrowsItem)
+            menu.addItem(clearArrowsItem)
+        }
+        menu.addItem(toggleItem(
             title: "Show Live Keyboard Shortcuts",
             isOn: settings.showLiveKeyboardShortcuts,
             action: #selector(toggleLiveKeyboardShortcuts(_:)),
@@ -154,7 +169,7 @@ final class StatusController: NSObject {
                 action: #selector(toggleDrag(_:)),
                 shortcut: settings.shortcutBinding(for: .toggleShowDrag)
             )
-            showDragItem.isEnabled = !settings.showLaserPointer
+            showDragItem.isEnabled = !settings.showLaserPointer && !settings.showArrowMode
             menu.addItem(showDragItem)
             menu.addItem(.separator())
         }
@@ -374,7 +389,12 @@ final class StatusController: NSObject {
 
     @objc private func toggleEnabled(_ sender: NSMenuItem) {
         dismissMenu(from: sender)
-        settingsStore.update { $0.isEnabled.toggle() }
+        settingsStore.update {
+            $0.isEnabled.toggle()
+            if !$0.isEnabled {
+                $0.showArrowMode = false
+            }
+        }
     }
 
     @objc private func openSettings() {
@@ -416,7 +436,27 @@ final class StatusController: NSObject {
 
     @objc private func toggleLaserPointer(_ sender: NSMenuItem) {
         dismissMenu(from: sender)
-        settingsStore.update { $0.showLaserPointer.toggle() }
+        settingsStore.update {
+            $0.showLaserPointer.toggle()
+            if $0.showLaserPointer {
+                $0.showArrowMode = false
+            }
+        }
+    }
+
+    @objc private func toggleArrowMode(_ sender: NSMenuItem) {
+        dismissMenu(from: sender)
+        settingsStore.update {
+            $0.showArrowMode.toggle()
+            if $0.showArrowMode {
+                $0.showLaserPointer = false
+            }
+        }
+    }
+
+    @objc private func clearArrows(_ sender: NSMenuItem) {
+        dismissMenu(from: sender)
+        onClearArrows()
     }
 
     @objc private func toggleLiveKeyboardShortcuts(_ sender: NSMenuItem) {

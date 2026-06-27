@@ -20,6 +20,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         onCheckForUpdates: { UpdateChecker.shared.checkForUpdates() },
         updatesAreConfigured: { UpdateChecker.shared.isConfigured },
         onOpenSettings: { [weak self] pane in self?.openSettings(selecting: pane) },
+        onClearArrows: { [weak self] in self?.overlayCoordinator.clearArrows() },
         onQuit: { NSApplication.shared.terminate(nil) },
         onMenuWillOpen: { [weak self] in
             self?.hotKeyManager.unregisterAll()
@@ -158,9 +159,28 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statusController.dismissMenu()
         switch action {
         case .toggleEnabled:
-            settingsStore.update { $0.isEnabled.toggle() }
+            settingsStore.update {
+                $0.isEnabled.toggle()
+                if !$0.isEnabled {
+                    $0.showArrowMode = false
+                }
+            }
         case .toggleLaserPointer:
-            settingsStore.update { $0.showLaserPointer.toggle() }
+            settingsStore.update {
+                $0.showLaserPointer.toggle()
+                if $0.showLaserPointer {
+                    $0.showArrowMode = false
+                }
+            }
+        case .toggleArrowMode:
+            settingsStore.update {
+                $0.showArrowMode.toggle()
+                if $0.showArrowMode {
+                    $0.showLaserPointer = false
+                }
+            }
+        case .clearArrows:
+            overlayCoordinator.clearArrows()
         case .toggleShowPress:
             settingsStore.update { $0.showPress.toggle() }
         case .toggleShowRelease:
