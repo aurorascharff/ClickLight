@@ -233,7 +233,7 @@ struct ClickLightSettingsView: View {
                 }
             }
 
-            if viewModel.settings.showLiveKeyboardShortcuts {
+            if viewModel.settings.showLiveKeyboardShortcuts || viewModel.settings.listensForReleaseSuppressionShortcut {
                 SettingsCard {
                     VStack(alignment: .leading, spacing: 12) {
                         HStack(spacing: 10) {
@@ -246,7 +246,7 @@ struct ClickLightSettingsView: View {
                                     .font(.callout.weight(.medium))
                                 Text(viewModel.inputMonitoringTrusted
                                      ? "ClickLight can observe keyboard shortcuts across the system."
-                                     : "Grant Input Monitoring access so ClickLight can show keyboard shortcuts.")
+                                     : "Grant Input Monitoring access so ClickLight can observe keyboard shortcuts.")
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                             }
@@ -638,9 +638,42 @@ struct ClickLightSettingsView: View {
                 }
             }
 
+            SettingsCard(title: "Screenshot Capture") {
+                VStack(spacing: 0) {
+                    ModernRow(title: "Hide Release After Shortcut",
+                              subtitle: "Skip one release highlight after the screenshot shortcut.") {
+                        Toggle("", isOn: binding(\.suppressReleaseAfterShortcut))
+                            .toggleStyle(.switch)
+                            .labelsHidden()
+                            .accessibilityLabel("Hide Release After Shortcut")
+                    }
+
+                    Divider().padding(.vertical, 4)
+
+                    ShortcutRecorderField(
+                        label: "Screenshot Shortcut",
+                        currentBinding: viewModel.settings.releaseSuppressionHotKey,
+                        defaultBinding: HotKeyBinding.defaultScreenshotReleaseSuppression,
+                        errorMessage: viewModel.releaseSuppressionShortcutError,
+                        onRecord: { binding in
+                            viewModel.updateReleaseSuppressionShortcutBinding(binding)
+                        },
+                        onReset: {
+                            viewModel.resetReleaseSuppressionShortcutBinding()
+                        },
+                        onClear: {
+                            viewModel.clearReleaseSuppressionShortcutBinding()
+                        }
+                    )
+                    .padding(.vertical, 4)
+                    .disabled(!viewModel.settings.suppressReleaseAfterShortcut)
+                    .opacity(viewModel.settings.suppressReleaseAfterShortcut ? 1 : 0.55)
+                }
+            }
+
             SettingsCard {
                 ModernRow(title: "Reset All Shortcuts",
-                          subtitle: "Restore the ClickLight toggle shortcut and disable optional shortcuts.") {
+                          subtitle: "Restore default shortcuts and disable optional shortcuts.") {
                     Button(role: .destructive) {
                         showShortcutResetConfirmation = true
                     } label: {
@@ -661,7 +694,7 @@ struct ClickLightSettingsView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("This restores the ClickLight toggle shortcut and disables every optional shortcut.")
+            Text("This restores default shortcuts and disables every optional shortcut.")
         }
     }
 

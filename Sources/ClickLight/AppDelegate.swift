@@ -36,17 +36,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var captureEnabledState: Bool?
     private var laserPointerEnabledState: Bool?
     private var liveKeyboardShortcutsEnabledState: Bool?
+    private var releaseSuppressionShortcutEnabledState: Bool?
+    private var suppressReleaseUntil: TimeInterval?
     private var hotKeyBindingsState: [ClickShortcutAction: HotKeyBinding] = [:]
     private var hotKeyRegistrationIssuesState: [ClickShortcutAction: String] = [:]
     private var activeShortcutRecorders = 0
+    private let releaseSuppressionTimeout: TimeInterval = 10
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         configureMainMenu()
         overlayCoordinator.start()
         permissions.requestAccessibilityIfNeeded()
+        if settingsStore.settings.showLiveKeyboardShortcuts || settingsStore.settings.listensForReleaseSuppressionShortcut {
+            permissions.requestInputMonitoringIfNeeded()
+        }
         captureEnabledState = settingsStore.settings.isEnabled
         laserPointerEnabledState = settingsStore.settings.showLaserPointer
         liveKeyboardShortcutsEnabledState = settingsStore.settings.showLiveKeyboardShortcuts
+        releaseSuppressionShortcutEnabledState = settingsStore.settings.listensForReleaseSuppressionShortcut
         captureController.startIfEnabled()
         statusController.start()
         configureHotKeysIfNeeded(with: settingsStore.settings, force: true)
@@ -114,17 +121,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if settings.showLiveKeyboardShortcuts && liveKeyboardShortcutsEnabledState != true {
             permissions.requestInputMonitoringIfNeeded()
         }
+        if settings.listensForReleaseSuppressionShortcut && releaseSuppressionShortcutEnabledState != true {
+            permissions.requestInputMonitoringIfNeeded()
+        }
         overlayCoordinator.refreshSettings()
         configureHotKeysIfNeeded(with: settings)
         let isEnabled = settings.isEnabled
         let laserPointerEnabled = settings.showLaserPointer
         let liveKeyboardShortcutsEnabled = settings.showLiveKeyboardShortcuts
+        let releaseSuppressionShortcutEnabled = settings.listensForReleaseSuppressionShortcut
         guard captureEnabledState != isEnabled ||
             laserPointerEnabledState != laserPointerEnabled ||
-            liveKeyboardShortcutsEnabledState != liveKeyboardShortcutsEnabled else { return }
+            liveKeyboardShortcutsEnabledState != liveKeyboardShortcutsEnabled ||
+            releaseSuppressionShortcutEnabledState != releaseSuppressionShortcutEnabled else { return }
         captureEnabledState = isEnabled
         laserPointerEnabledState = laserPointerEnabled
         liveKeyboardShortcutsEnabledState = liveKeyboardShortcutsEnabled
+        releaseSuppressionShortcutEnabledState = releaseSuppressionShortcutEnabled
         captureController.refreshEnabledState()
     }
 
@@ -201,13 +214,33 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func clickEventDidArrive(_ notification: Notification) {
         guard let box = notification.object as? ClickEventBox else { return }
         guard settingsWindowController?.contains(box.event.location) != true else { return }
+        guard !shouldSuppressRelease(box.event) else { return }
         activityStore.record(box.event)
         overlayCoordinator.show(box.event)
     }
 
     @objc private func keyboardShortcutEventDidArrive(_ notification: Notification) {
         guard let box = notification.object as? KeyboardShortcutEventBox else { return }
+        if shouldArmReleaseSuppression(for: box.event) {
+            suppressReleaseUntil = ProcessInfo.processInfo.systemUptime + releaseSuppressionTimeout
+        }
         overlayCoordinator.show(box.event)
+    }
+
+    private func shouldArmReleaseSuppression(for event: KeyboardShortcutEvent) -> Bool {
+        let settings = settingsStore.settings
+        guard settings.suppressReleaseAfterShortcut else { return false }
+        return settings.releaseSuppressionHotKey == event.binding
+    }
+
+    private func shouldSuppressRelease(_ event: ClickEvent) -> Bool {
+        guard event.kind.isRelease, let suppressReleaseUntil else { return false }
+
+        defer {
+            self.suppressReleaseUntil = nil
+        }
+
+        return ProcessInfo.processInfo.systemUptime <= suppressReleaseUntil
     }
 
     private func configureMainMenu() {

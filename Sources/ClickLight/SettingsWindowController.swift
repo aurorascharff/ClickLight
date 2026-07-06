@@ -75,6 +75,7 @@ final class ClickLightSettingsViewModel: NSObject, ObservableObject {
     @Published var launchAtLoginErrorMessage: String?
     @Published var selectedPane: SettingsPane = .general
     @Published private(set) var shortcutErrors: [ClickShortcutAction: String] = [:]
+    @Published private(set) var releaseSuppressionShortcutError: String?
     @Published private(set) var hotKeyRegistrationIssues: [ClickShortcutAction: String] = [:]
 
     init(
@@ -93,6 +94,7 @@ final class ClickLightSettingsViewModel: NSObject, ObservableObject {
         self.accessibilityTrusted = permissions.isAccessibilityTrusted
         self.inputMonitoringTrusted = permissions.isInputMonitoringTrusted
         self.shortcutErrors = Self.findShortcutConflicts(in: settings)
+        self.releaseSuppressionShortcutError = Self.findReleaseSuppressionShortcutConflict(in: settings)
         self.hotKeyRegistrationIssues = hotKeyRegistrationIssuesProvider()
         NotificationCenter.default.addObserver(
             self,
@@ -124,6 +126,7 @@ final class ClickLightSettingsViewModel: NSObject, ObservableObject {
             settings = latestSettings
         }
         shortcutErrors = Self.findShortcutConflicts(in: latestSettings)
+        releaseSuppressionShortcutError = Self.findReleaseSuppressionShortcutConflict(in: latestSettings)
     }
 
     @objc private func appBecameActive() {
@@ -307,6 +310,10 @@ final class ClickLightSettingsViewModel: NSObject, ObservableObject {
             shortcutErrors[action] = message
             return false
         }
+        if settings.releaseSuppressionHotKey == binding {
+            shortcutErrors[action] = "Matches Screenshot Shortcut. Choose a unique shortcut."
+            return false
+        }
 
         shortcutErrors[action] = nil
         update { settings in
@@ -334,10 +341,38 @@ final class ClickLightSettingsViewModel: NSObject, ObservableObject {
         }
     }
 
+    @discardableResult
+    func updateReleaseSuppressionShortcutBinding(_ binding: HotKeyBinding) -> Bool {
+        if let conflictingAction = conflictAction(for: binding) {
+            releaseSuppressionShortcutError = "Matches \(conflictingAction.title). Choose a unique shortcut."
+            return false
+        }
+
+        releaseSuppressionShortcutError = nil
+        update { settings in
+            settings.releaseSuppressionHotKey = binding
+        }
+        return true
+    }
+
+    func resetReleaseSuppressionShortcutBinding() {
+        update { settings in
+            settings.releaseSuppressionHotKey = HotKeyBinding.defaultScreenshotReleaseSuppression
+        }
+    }
+
+    func clearReleaseSuppressionShortcutBinding() {
+        releaseSuppressionShortcutError = nil
+        update { settings in
+            settings.releaseSuppressionHotKey = nil
+        }
+    }
+
     private func apply(_ updatedSettings: ClickSettings) {
         guard settings != updatedSettings else { return }
         settings = updatedSettings
         shortcutErrors = Self.findShortcutConflicts(in: updatedSettings)
+        releaseSuppressionShortcutError = Self.findReleaseSuppressionShortcutConflict(in: updatedSettings)
 
         DispatchQueue.main.async { [weak self] in
             guard let self, self.settings == updatedSettings else { return }
@@ -352,6 +387,12 @@ final class ClickLightSettingsViewModel: NSObject, ObservableObject {
         }
     }
 
+    private func conflictAction(for binding: HotKeyBinding) -> ClickShortcutAction? {
+        ClickShortcutAction.allCases.first { action in
+            settings.shortcutBinding(for: action) == binding
+        }
+    }
+
     private static func findShortcutConflicts(in settings: ClickSettings) -> [ClickShortcutAction: String] {
         var errors: [ClickShortcutAction: String] = [:]
 
@@ -360,6 +401,9 @@ final class ClickLightSettingsViewModel: NSObject, ObservableObject {
             guard let other = ClickShortcutAction.allCases.first(where: {
                 $0 != action && settings.shortcutBinding(for: $0) == binding
             }) else {
+                if settings.releaseSuppressionHotKey == binding {
+                    errors[action] = "Matches Screenshot Shortcut. Choose a unique shortcut."
+                }
                 continue
             }
 
@@ -367,5 +411,13 @@ final class ClickLightSettingsViewModel: NSObject, ObservableObject {
         }
 
         return errors
+    }
+
+    private static func findReleaseSuppressionShortcutConflict(in settings: ClickSettings) -> String? {
+        guard let binding = settings.releaseSuppressionHotKey else { return nil }
+        guard let action = ClickShortcutAction.allCases.first(where: { settings.shortcutBinding(for: $0) == binding }) else {
+            return nil
+        }
+        return "Matches \(action.title). Choose a unique shortcut."
     }
 }

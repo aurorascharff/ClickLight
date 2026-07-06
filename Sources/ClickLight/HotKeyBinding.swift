@@ -6,6 +6,10 @@ struct HotKeyBinding: Equatable, Hashable, Sendable {
     let carbonModifiers: Int
 
     static let defaultToggleModifiers: Int = Int(controlKey | optionKey | cmdKey)
+    static let defaultScreenshotReleaseSuppression = HotKeyBinding(
+        keyCode: kVK_ANSI_4,
+        carbonModifiers: Int(cmdKey | shiftKey)
+    )
 
     var displayString: String {
         modifiersString + keyString

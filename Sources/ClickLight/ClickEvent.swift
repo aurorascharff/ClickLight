@@ -22,6 +22,7 @@ struct ClickEvent: Sendable {
 }
 
 struct KeyboardShortcutEvent: Sendable {
+    let binding: HotKeyBinding
     let displayString: String
     let location: CGPoint
     let timestamp: TimeInterval

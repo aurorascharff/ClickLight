@@ -10,6 +10,7 @@ struct ClickSettings: Equatable {
     var showLaserPointer: Bool
     var showArrowMode: Bool
     var showLiveKeyboardShortcuts: Bool
+    var suppressReleaseAfterShortcut: Bool
     var liveShortcutPosition: LiveShortcutPosition
     var liveShortcutSize: LiveShortcutSize
     var showEventControlsInMenu: Bool
@@ -56,6 +57,7 @@ struct ClickSettings: Equatable {
     var toggleShowDragHotKey: HotKeyBinding?
     var randomizeColorsHotKey: HotKeyBinding?
     var toggleLiveKeyboardShortcutsHotKey: HotKeyBinding?
+    var releaseSuppressionHotKey: HotKeyBinding?
 
     var customColor: NSColor {
         NSColor(
@@ -139,6 +141,7 @@ struct ClickSettings: Equatable {
         showLaserPointer: false,
         showArrowMode: false,
         showLiveKeyboardShortcuts: false,
+        suppressReleaseAfterShortcut: true,
         liveShortcutPosition: .bottomCenter,
         liveShortcutSize: .medium,
         showEventControlsInMenu: true,
@@ -184,8 +187,13 @@ struct ClickSettings: Equatable {
         toggleShowMiddleClickHotKey: ClickShortcutAction.toggleShowMiddleClick.defaultBinding,
         toggleShowDragHotKey: ClickShortcutAction.toggleShowDrag.defaultBinding,
         randomizeColorsHotKey: ClickShortcutAction.randomizeColors.defaultBinding,
-        toggleLiveKeyboardShortcutsHotKey: ClickShortcutAction.toggleLiveKeyboardShortcuts.defaultBinding
+        toggleLiveKeyboardShortcutsHotKey: ClickShortcutAction.toggleLiveKeyboardShortcuts.defaultBinding,
+        releaseSuppressionHotKey: HotKeyBinding.defaultScreenshotReleaseSuppression
     )
+
+    var listensForReleaseSuppressionShortcut: Bool {
+        suppressReleaseAfterShortcut && releaseSuppressionHotKey != nil
+    }
 
     var shortcutBindings: [ClickShortcutAction: HotKeyBinding] {
         Dictionary(uniqueKeysWithValues: ClickShortcutAction.allCases.compactMap { action in
@@ -259,6 +267,7 @@ struct ClickSettings: Equatable {
         for action in ClickShortcutAction.allCases {
             resetShortcutBinding(for: action)
         }
+        releaseSuppressionHotKey = HotKeyBinding.defaultScreenshotReleaseSuppression
     }
 
     static func defaultShortcutBinding(for action: ClickShortcutAction) -> HotKeyBinding? {
@@ -469,6 +478,7 @@ final class SettingsStore {
         static let showLaserPointer = "showLaserPointer"
         static let showArrowMode = "showArrowMode"
         static let showLiveKeyboardShortcuts = "showLiveKeyboardShortcuts"
+        static let suppressReleaseAfterShortcut = "suppressReleaseAfterShortcut"
         static let liveShortcutPosition = "liveShortcutPosition"
         static let liveShortcutSize = "liveShortcutSize"
         static let showMenuBarText = "showMenuBarText"
@@ -537,6 +547,9 @@ final class SettingsStore {
         static let toggleLiveKeyboardShortcutsHotKeyCode = "toggleLiveKeyboardShortcutsHotKeyCode"
         static let toggleLiveKeyboardShortcutsHotKeyModifiers = "toggleLiveKeyboardShortcutsHotKeyModifiers"
         static let toggleLiveKeyboardShortcutsHotKeyIsEnabled = "toggleLiveKeyboardShortcutsHotKeyIsEnabled"
+        static let releaseSuppressionHotKeyCode = "releaseSuppressionHotKeyCode"
+        static let releaseSuppressionHotKeyModifiers = "releaseSuppressionHotKeyModifiers"
+        static let releaseSuppressionHotKeyIsEnabled = "releaseSuppressionHotKeyIsEnabled"
     }
 
     private let defaults: UserDefaults
@@ -558,6 +571,7 @@ final class SettingsStore {
                 showLaserPointer: defaults.bool(forKey: Key.showLaserPointer),
                 showArrowMode: defaults.bool(forKey: Key.showArrowMode),
                 showLiveKeyboardShortcuts: defaults.bool(forKey: Key.showLiveKeyboardShortcuts),
+                suppressReleaseAfterShortcut: defaults.bool(forKey: Key.suppressReleaseAfterShortcut),
                 liveShortcutPosition: LiveShortcutPosition(rawValue: defaults.string(forKey: Key.liveShortcutPosition) ?? "") ?? .bottomCenter,
                 liveShortcutSize: LiveShortcutSize(rawValue: defaults.string(forKey: Key.liveShortcutSize) ?? "") ?? .medium,
                 showEventControlsInMenu: defaults.bool(forKey: Key.showEventControlsInMenu),
@@ -647,6 +661,11 @@ final class SettingsStore {
                     keyCode: Key.toggleLiveKeyboardShortcutsHotKeyCode,
                     modifiers: Key.toggleLiveKeyboardShortcutsHotKeyModifiers,
                     isEnabled: Key.toggleLiveKeyboardShortcutsHotKeyIsEnabled
+                ),
+                releaseSuppressionHotKey: shortcutBinding(
+                    keyCode: Key.releaseSuppressionHotKeyCode,
+                    modifiers: Key.releaseSuppressionHotKeyModifiers,
+                    isEnabled: Key.releaseSuppressionHotKeyIsEnabled
                 )
             )
         }
@@ -660,6 +679,7 @@ final class SettingsStore {
             defaults.set(newValue.showLaserPointer, forKey: Key.showLaserPointer)
             defaults.set(newValue.showArrowMode, forKey: Key.showArrowMode)
             defaults.set(newValue.showLiveKeyboardShortcuts, forKey: Key.showLiveKeyboardShortcuts)
+            defaults.set(newValue.suppressReleaseAfterShortcut, forKey: Key.suppressReleaseAfterShortcut)
             defaults.set(newValue.liveShortcutPosition.rawValue, forKey: Key.liveShortcutPosition)
             defaults.set(newValue.liveShortcutSize.rawValue, forKey: Key.liveShortcutSize)
             defaults.set(newValue.showEventControlsInMenu, forKey: Key.showEventControlsInMenu)
@@ -706,6 +726,7 @@ final class SettingsStore {
             saveShortcutBinding(newValue.toggleShowDragHotKey, keyCode: Key.toggleShowDragHotKeyCode, modifiers: Key.toggleShowDragHotKeyModifiers, isEnabled: Key.toggleShowDragHotKeyIsEnabled)
             saveShortcutBinding(newValue.randomizeColorsHotKey, keyCode: Key.randomizeColorsHotKeyCode, modifiers: Key.randomizeColorsHotKeyModifiers, isEnabled: Key.randomizeColorsHotKeyIsEnabled)
             saveShortcutBinding(newValue.toggleLiveKeyboardShortcutsHotKey, keyCode: Key.toggleLiveKeyboardShortcutsHotKeyCode, modifiers: Key.toggleLiveKeyboardShortcutsHotKeyModifiers, isEnabled: Key.toggleLiveKeyboardShortcutsHotKeyIsEnabled)
+            saveShortcutBinding(newValue.releaseSuppressionHotKey, keyCode: Key.releaseSuppressionHotKeyCode, modifiers: Key.releaseSuppressionHotKeyModifiers, isEnabled: Key.releaseSuppressionHotKeyIsEnabled)
             NotificationCenter.default.post(name: Self.didChangeNotification, object: self)
         }
     }
@@ -743,6 +764,7 @@ final class SettingsStore {
             Key.showLaserPointer: defaults.showLaserPointer,
             Key.showArrowMode: defaults.showArrowMode,
             Key.showLiveKeyboardShortcuts: defaults.showLiveKeyboardShortcuts,
+            Key.suppressReleaseAfterShortcut: defaults.suppressReleaseAfterShortcut,
             Key.liveShortcutPosition: defaults.liveShortcutPosition.rawValue,
             Key.liveShortcutSize: defaults.liveShortcutSize.rawValue,
             Key.showEventControlsInMenu: defaults.showEventControlsInMenu,
@@ -810,7 +832,10 @@ final class SettingsStore {
             Key.randomizeColorsHotKeyIsEnabled: false,
             Key.toggleLiveKeyboardShortcutsHotKeyCode: 0,
             Key.toggleLiveKeyboardShortcutsHotKeyModifiers: 0,
-            Key.toggleLiveKeyboardShortcutsHotKeyIsEnabled: false
+            Key.toggleLiveKeyboardShortcutsHotKeyIsEnabled: false,
+            Key.releaseSuppressionHotKeyCode: HotKeyBinding.defaultScreenshotReleaseSuppression.keyCode,
+            Key.releaseSuppressionHotKeyModifiers: HotKeyBinding.defaultScreenshotReleaseSuppression.carbonModifiers,
+            Key.releaseSuppressionHotKeyIsEnabled: true
         ])
     }
 }

@@ -9,6 +9,7 @@ final class ClickEventTap: ClickEventCapturing {
     private var globalMonitor: Any?
     private var laserPointerEnabled = false
     private var liveKeyboardShortcutsEnabled = false
+    private var releaseSuppressionShortcutEnabled = false
 
     var statusLabel: String {
         switch (eventTap != nil, globalMonitor != nil) {
@@ -23,12 +24,18 @@ final class ClickEventTap: ClickEventCapturing {
         }
     }
 
-    func start(laserPointerEnabled: Bool, liveKeyboardShortcutsEnabled: Bool) {
+    func start(
+        laserPointerEnabled: Bool,
+        liveKeyboardShortcutsEnabled: Bool,
+        releaseSuppressionShortcutEnabled: Bool
+    ) {
         if self.laserPointerEnabled != laserPointerEnabled ||
-            self.liveKeyboardShortcutsEnabled != liveKeyboardShortcutsEnabled {
+            self.liveKeyboardShortcutsEnabled != liveKeyboardShortcutsEnabled ||
+            self.releaseSuppressionShortcutEnabled != releaseSuppressionShortcutEnabled {
             stop()
             self.laserPointerEnabled = laserPointerEnabled
             self.liveKeyboardShortcutsEnabled = liveKeyboardShortcutsEnabled
+            self.releaseSuppressionShortcutEnabled = releaseSuppressionShortcutEnabled
         }
         startEventTapIfNeeded()
         startGlobalMonitorIfNeeded()
@@ -56,7 +63,7 @@ final class ClickEventTap: ClickEventCapturing {
         if laserPointerEnabled {
             types.append(.mouseMoved)
         }
-        if liveKeyboardShortcutsEnabled {
+        if shouldObserveKeyboardShortcuts {
             types.append(.keyDown)
         }
         let mask = types.reduce(CGEventMask(0)) { partial, eventType in
@@ -114,7 +121,7 @@ final class ClickEventTap: ClickEventCapturing {
         if laserPointerEnabled {
             eventTypes.insert(.mouseMoved)
         }
-        if liveKeyboardShortcutsEnabled {
+        if shouldObserveKeyboardShortcuts {
             eventTypes.insert(.keyDown)
         }
 
@@ -171,6 +178,7 @@ final class ClickEventTap: ClickEventCapturing {
     private static func post(shortcut: HotKeyBinding, timestamp: TimeInterval) {
         DispatchQueue.main.async {
             let shortcutEvent = KeyboardShortcutEvent(
+                binding: shortcut,
                 displayString: shortcut.displayString,
                 location: NSEvent.mouseLocation,
                 timestamp: timestamp
@@ -192,6 +200,10 @@ final class ClickEventTap: ClickEventCapturing {
         )
         guard shortcut.keyString != "?" else { return nil }
         return shortcut
+    }
+
+    private var shouldObserveKeyboardShortcuts: Bool {
+        liveKeyboardShortcutsEnabled || releaseSuppressionShortcutEnabled
     }
 }
 

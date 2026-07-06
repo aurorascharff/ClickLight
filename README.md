@@ -38,6 +38,7 @@ Prefer not to use Homebrew? Download `ClickLight.zip` from [GitHub Releases](htt
 - Separate visuals for press, release, right-click, and drag
 - Optional laser pointer mode with fading freehand strokes while dragging
 - Optional live keyboard shortcut display pinned to the bottom of the screen by default, with pointer-following placement and sizes through XL available
+- Optional screenshot shortcut handling that hides the release highlight after `Command + Shift + 4`
 - Local daily click activity chart with a resettable seven-day history
 - Optional daily click count in the menu bar
 - Dedicated settings window with presets, sliders, optional menu sections, and a sidebar preview pad with Randomize
@@ -65,6 +66,7 @@ ClickLight includes one default global shortcut for quick toggles during demos. 
 | Not set by default | Toggle Drag |
 | Not set by default | Randomize Colors |
 | Not set by default | Toggle Live Keyboard Shortcuts |
+| `Command + Shift + 4` | Hide the next release highlight after screenshot selection |
 
 All shortcuts can be changed or disabled in Settings.
 
@@ -74,7 +76,7 @@ ClickLight requires Accessibility permission to detect clicks outside its own me
 
 **System Settings -> Privacy & Security -> Accessibility**
 
-The optional Live Keyboard Shortcuts display additionally requires **Input Monitoring**, because macOS protects keyboard input separately from mouse clicks.
+The optional Live Keyboard Shortcuts display and screenshot shortcut handling additionally require **Input Monitoring**, because macOS protects keyboard input separately from mouse clicks.
 
 After enabling permission, quit ClickLight from the menu bar and reopen it.
 
