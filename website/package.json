@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",
-    "next": "^16.0.0",
+    "next": "^16.4.0-canary.58",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

@@ -42,6 +42,13 @@ const LASER_MIN_POINT_DISTANCE = 2.5;
 // Matches Swift LiveShortcutLabel: 0.72s visible + 0.28s fade.
 const SHORTCUT_VISIBLE_MS = 720;
 const SHORTCUT_FADE_MS = 280;
+const NAVIGATION_KEYS = new Set([
+  "Tab",
+  "ArrowLeft",
+  "ArrowRight",
+  "ArrowDown",
+  "ArrowUp",
+]);
 
 // Mirrors HotKeyBinding.keyCodeToDisplayString / fallbackKeyCodeString.
 // Returns the on-screen label for the pressed key, or null to skip.
@@ -378,8 +385,15 @@ export default function Home() {
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       if (!settings.showLiveKeyboardShortcuts || event.repeat) return;
-      // Mirrors Swift HotKeyBinding: require at least one non-shift modifier.
-      if (!event.metaKey && !event.ctrlKey && !event.altKey) return;
+      // Mirrors ClickEventTap: ordinary keys need a shortcut modifier, while
+      // Tab and arrow navigation are useful enough to show on their own.
+      if (
+        !event.metaKey &&
+        !event.ctrlKey &&
+        !event.altKey &&
+        !NAVIGATION_KEYS.has(event.code)
+      )
+        return;
 
       const keyString = displayKey(event);
       if (!keyString) return;

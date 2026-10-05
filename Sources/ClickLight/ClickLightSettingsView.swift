@@ -523,7 +523,7 @@ struct ClickLightSettingsView: View {
                 }
                 Divider().padding(.vertical, 6)
                 ModernRow(title: "Show Live Keyboard Shortcuts",
-                          subtitle: "Display shortcut combinations while you use them.") {
+                          subtitle: "Display shortcut combinations, Tab, and arrow keys while you use them.") {
                     Toggle("", isOn: binding(\.showLiveKeyboardShortcuts))
                         .toggleStyle(.switch)
                         .labelsHidden()
