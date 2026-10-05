@@ -1,6 +1,6 @@
 cask "clicklight" do
-  version "0.16.0"
-  sha256 "92ad5cc4364acb74a47a13735b0747f4b06f64de883bea2a77cdf43b9622ea7b"
+  version "0.17.0"
+  sha256 "21f5b653b8a47af8e564782274361919302f4601c36736809c63be5352edb037"
 
   url "https://github.com/aurorascharff/ClickLight/releases/download/v#{version}/ClickLight.zip"
   name "ClickLight"
