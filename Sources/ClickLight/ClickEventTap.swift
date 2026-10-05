@@ -24,6 +24,10 @@ final class ClickEventTap: ClickEventCapturing {
         }
     }
 
+    var usesEventTap: Bool {
+        eventTap != nil
+    }
+
     func start(
         laserPointerEnabled: Bool,
         liveKeyboardShortcutsEnabled: Bool,
@@ -126,12 +130,13 @@ final class ClickEventTap: ClickEventCapturing {
         }
 
         globalMonitor = NSEvent.addGlobalMonitorForEvents(matching: eventTypes) { event in
+            let location = NSEvent.mouseLocation
             if event.type == .keyDown, let shortcut = Self.keyboardShortcut(from: event) {
-                Self.post(shortcut: shortcut, timestamp: event.timestamp)
+                Self.post(shortcut: shortcut, location: location, timestamp: event.timestamp)
                 return
             }
             guard let kind = ClickKind(event: event) else { return }
-            Self.post(kind: kind, timestamp: event.timestamp)
+            Self.post(kind: kind, location: location, timestamp: event.timestamp)
         }
     }
 
@@ -151,7 +156,7 @@ final class ClickEventTap: ClickEventCapturing {
         }
 
         if type == .keyDown, let nsEvent = NSEvent(cgEvent: event), let shortcut = Self.keyboardShortcut(from: nsEvent) {
-            Self.post(shortcut: shortcut, timestamp: event.timestampSeconds)
+            Self.post(shortcut: shortcut, location: NSEvent.mouseLocation, timestamp: event.timestampSeconds)
             return Unmanaged.passUnretained(event)
         }
 
@@ -159,28 +164,41 @@ final class ClickEventTap: ClickEventCapturing {
             return Unmanaged.passUnretained(event)
         }
 
-        Self.post(kind: kind, timestamp: event.timestampSeconds)
+        // Sample the pointer position synchronously at event time. Deferring
+        // the read to main-queue delivery would capture wherever the pointer
+        // happens to be then, and the fallback monitor would record different
+        // coordinates for the same physical click (breaking dedup).
+        Self.post(kind: kind, location: Self.appKitLocation(of: event), timestamp: event.timestampSeconds)
 
         return Unmanaged.passUnretained(event)
     }
 
-    private static func post(kind: ClickKind, timestamp: TimeInterval) {
+    /// Converts a CGEvent's Quartz location (top-left origin, primary display)
+    /// into AppKit screen coordinates (bottom-left origin), matching
+    /// `NSEvent.mouseLocation` so both capture channels agree.
+    private static func appKitLocation(of event: CGEvent) -> CGPoint {
+        let quartzPoint = event.location
+        let primaryDisplayHeight = CGDisplayPixelsHigh(CGMainDisplayID())
+        return CGPoint(x: quartzPoint.x, y: CGFloat(primaryDisplayHeight) - quartzPoint.y)
+    }
+
+    private static func post(kind: ClickKind, location: CGPoint, timestamp: TimeInterval) {
         DispatchQueue.main.async {
             let clickEvent = ClickEvent(
                 kind: kind,
-                location: NSEvent.mouseLocation,
+                location: location,
                 timestamp: timestamp
             )
             NotificationCenter.default.post(name: Self.didReceiveClickEvent, object: ClickEventBox(clickEvent))
         }
     }
 
-    private static func post(shortcut: HotKeyBinding, timestamp: TimeInterval) {
+    private static func post(shortcut: HotKeyBinding, location: CGPoint, timestamp: TimeInterval) {
         DispatchQueue.main.async {
             let shortcutEvent = KeyboardShortcutEvent(
                 binding: shortcut,
                 displayString: shortcut.displayString,
-                location: NSEvent.mouseLocation,
+                location: location,
                 timestamp: timestamp
             )
             NotificationCenter.default.post(
