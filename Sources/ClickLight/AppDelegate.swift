@@ -37,6 +37,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var laserPointerEnabledState: Bool?
     private var liveKeyboardShortcutsEnabledState: Bool?
     private var releaseSuppressionShortcutEnabledState: Bool?
+    private var inputMonitoringTrustedState: Bool?
     private var suppressReleaseUntil: TimeInterval?
     private var hotKeyBindingsState: [ClickShortcutAction: HotKeyBinding] = [:]
     private var hotKeyRegistrationIssuesState: [ClickShortcutAction: String] = [:]
@@ -54,6 +55,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         laserPointerEnabledState = settingsStore.settings.showLaserPointer
         liveKeyboardShortcutsEnabledState = settingsStore.settings.showLiveKeyboardShortcuts
         releaseSuppressionShortcutEnabledState = settingsStore.settings.listensForReleaseSuppressionShortcut
+        inputMonitoringTrustedState = permissions.isInputMonitoringTrusted
         captureController.startIfEnabled()
         statusController.start()
         configureHotKeysIfNeeded(with: settingsStore.settings, force: true)
@@ -102,6 +104,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func appDidBecomeActive() {
+        let settings = settingsStore.settings
+        let inputMonitoringTrusted = permissions.isInputMonitoringTrusted
+        if inputMonitoringTrusted && inputMonitoringTrustedState != true &&
+            (settings.showLiveKeyboardShortcuts || settings.listensForReleaseSuppressionShortcut) {
+            // Recreate listeners that may have been registered before macOS applied
+            // a newly granted Input Monitoring permission.
+            captureController.restartIfEnabled()
+        }
+        inputMonitoringTrustedState = inputMonitoringTrusted
         statusController.refresh()
     }
 

@@ -46,6 +46,11 @@ final class ClickCaptureController {
         }
     }
 
+    func restartIfEnabled() {
+        eventTap.stop()
+        startIfEnabled()
+    }
+
     func stop() {
         eventTap.stop()
     }
