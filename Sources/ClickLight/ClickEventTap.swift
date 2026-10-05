@@ -1,4 +1,5 @@
 import AppKit
+import Carbon.HIToolbox
 
 final class ClickEventTap: ClickEventCapturing {
     static let didReceiveClickEvent = Notification.Name("ClickLightDidReceiveClickEvent")
@@ -192,7 +193,9 @@ final class ClickEventTap: ClickEventCapturing {
 
     private static func keyboardShortcut(from event: NSEvent) -> HotKeyBinding? {
         let modifiers = event.modifierFlags.intersection([.command, .option, .control, .shift])
-        guard !modifiers.intersection([.command, .option, .control]).isEmpty else { return nil }
+        let hasShortcutModifier = !modifiers.intersection([.command, .option, .control]).isEmpty
+        let isNavigationKey = navigationKeyCodes.contains(Int(event.keyCode))
+        guard hasShortcutModifier || isNavigationKey else { return nil }
 
         let shortcut = HotKeyBinding(
             keyCode: Int(event.keyCode),
@@ -201,6 +204,14 @@ final class ClickEventTap: ClickEventCapturing {
         guard shortcut.keyString != "?" else { return nil }
         return shortcut
     }
+
+    private static let navigationKeyCodes: Set<Int> = [
+        Int(kVK_Tab),
+        Int(kVK_LeftArrow),
+        Int(kVK_RightArrow),
+        Int(kVK_DownArrow),
+        Int(kVK_UpArrow)
+    ]
 
     private var shouldObserveKeyboardShortcuts: Bool {
         liveKeyboardShortcutsEnabled || releaseSuppressionShortcutEnabled
