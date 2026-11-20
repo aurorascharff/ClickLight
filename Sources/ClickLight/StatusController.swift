@@ -273,6 +273,9 @@ final class StatusController: NSObject {
         }
         button.imagePosition = titleParts.isEmpty ? .imageOnly : .imageLeading
         button.title = titleParts.joined(separator: " ")
+        // Subtle state cue: dim the status item while ClickLight is disabled
+        // so a global-hotkey toggle has visible feedback.
+        button.alphaValue = settings.isEnabled ? 1.0 : 0.45
     }
 
     private func compactCount(_ value: Int) -> String {

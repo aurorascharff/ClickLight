@@ -114,6 +114,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         inputMonitoringTrustedState = inputMonitoringTrusted
         statusController.refresh()
+        retryEventTapIfNeeded()
+    }
+
+    /// If the user granted Accessibility permission while the app was running,
+    /// the initial `CGEvent.tapCreate` failed silently and capture fell back to
+    /// the NSEvent monitor. Re-entering the app is the natural moment to retry
+    /// tap creation so full capture works without a restart.
+    private func retryEventTapIfNeeded() {
+        guard settingsStore.settings.isEnabled else { return }
+        guard permissions.isAccessibilityTrusted else { return }
+        guard !captureController.usesEventTap else { return }
+        captureController.refreshEnabledState()
     }
 
     @objc private func shortcutRecordingDidBegin() {

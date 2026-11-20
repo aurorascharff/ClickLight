@@ -36,7 +36,7 @@ struct ClickLightSettingsView: View {
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(.secondary)
 
-                    ClickPreviewPad(settings: viewModel.settings, activityStore: activityStore)
+                    ClickPreviewPad(settings: viewModel.settings)
                         .frame(height: 116)
                         .accessibilityLabel("Preview Pad")
 
@@ -1214,14 +1214,13 @@ private struct ActivityMetric: View {
 
 private struct ClickPreviewPad: NSViewRepresentable {
     let settings: ClickSettings
-    let activityStore: ClickActivityStore
 
     func makeNSView(context: Context) -> InteractiveClickPreviewView {
-        InteractiveClickPreviewView(settings: settings, activityStore: activityStore)
+        InteractiveClickPreviewView(settings: settings)
     }
 
     func updateNSView(_ nsView: InteractiveClickPreviewView, context: Context) {
-        nsView.apply(settings: settings, activityStore: activityStore)
+        nsView.apply(settings: settings)
     }
 }
 
@@ -1229,11 +1228,9 @@ private struct ClickPreviewPad: NSViewRepresentable {
 private final class InteractiveClickPreviewView: NSView {
     private let overlayView: ClickOverlayView
     private var settings: ClickSettings
-    private var activityStore: ClickActivityStore
 
-    init(settings: ClickSettings, activityStore: ClickActivityStore) {
+    init(settings: ClickSettings) {
         self.settings = settings
-        self.activityStore = activityStore
         self.overlayView = ClickOverlayView(
             screenFrame: CGRect(x: 0, y: 0, width: 200, height: 116),
             settings: settings
@@ -1264,9 +1261,8 @@ private final class InteractiveClickPreviewView: NSView {
         bounds.contains(point) ? self : nil
     }
 
-    func apply(settings: ClickSettings, activityStore: ClickActivityStore) {
+    func apply(settings: ClickSettings) {
         self.settings = settings
-        self.activityStore = activityStore
         overlayView.apply(settings: settings)
     }
 
@@ -1317,7 +1313,8 @@ private final class InteractiveClickPreviewView: NSView {
             location: location,
             timestamp: CACurrentMediaTime()
         )
-        activityStore.record(clickEvent)
+        // Preview clicks only render the overlay; they are not real user
+        // activity and must not be counted in the daily stats.
         overlayView.show(event: clickEvent, settings: settings)
     }
 }

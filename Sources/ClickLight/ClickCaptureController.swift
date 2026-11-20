@@ -2,6 +2,7 @@ import Foundation
 
 protocol ClickEventCapturing: AnyObject {
     var statusLabel: String { get }
+    var usesEventTap: Bool { get }
 
     func start(
         laserPointerEnabled: Bool,
@@ -23,6 +24,10 @@ final class ClickCaptureController {
 
     var statusLabel: String {
         eventTap.statusLabel
+    }
+
+    var usesEventTap: Bool {
+        eventTap.usesEventTap
     }
 
     func startIfEnabled() {
